@@ -67,6 +67,15 @@ for(const name of hairNames)for(const direction of ['front','left','right','back
  hairFrames.set(key,img);img.onload=()=>renderPreview();
  img.src='assets/player/hairstyles/'+key+'.png';
 }
+const hairstyleFits={
+ short:{front:[0.49,0.83,0,-0.035],left:[0.49,0.83,0,-0.005],right:[0.49,0.83,0,-0.005],back:[0.49,0.83,0,-0.045]},
+ messy:{front:[0.53,0.88,0,-0.055],left:[0.53,0.88,0,-0.025],right:[0.53,0.88,0,-0.025],back:[0.53,0.88,0,-0.055]},
+ ponytail:{front:[0.49,0.94,0,-0.045],left:[0.51,1.00,0,-0.045],right:[0.51,1.00,0,-0.045],back:[0.51,1.03,0,-0.045]},
+ bun:{front:[0.49,0.92,0,-0.055],left:[0.51,0.95,0,-0.055],right:[0.51,0.95,0,-0.055],back:[0.51,0.95,0,-0.055]},
+ long_straight:{front:[0.49,1.00,0,-0.045],left:[0.51,1.05,0,-0.045],right:[0.51,1.05,0,-0.045],back:[0.51,1.06,0,-0.045]},
+ wavy:{front:[0.51,1.00,0,-0.045],left:[0.53,1.05,0,-0.045],right:[0.53,1.05,0,-0.045],back:[0.53,1.06,0,-0.045]},
+ curly:{front:[0.55,0.95,0,-0.055],left:[0.55,0.98,0,-0.045],right:[0.55,0.98,0,-0.045],back:[0.55,0.98,0,-0.055]}
+};
 function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  const name=hairNames[s.hairStyle]||'short';
  const sourceDirection=name==='braided'&&direction==='right'?'left':direction;
@@ -76,9 +85,10 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  if(!chosen)return;
  const offset=hairOffsets[name+'_'+direction]||[0,0];
  const braided=name==='braided';
- const hairW=baseW*(braided?(direction==='front'?0.47:0.53):0.55),hairH=baseH*(braided?(direction==='front'?0.92:1.0):0.55);
- const drawX=Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96);
- const drawY=Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):({front:-0.025,left:0.015,right:0.015,back:-0.045}[direction]??0))+offset[1]*baseH/128);
+ const fit=hairstyleFits[name]?.[direction]||[0.55,0.55,0,0];
+ const hairW=baseW*(braided?(direction==='front'?0.47:0.53):fit[0]),hairH=baseH*(braided?(direction==='front'?0.92:1.0):fit[1]);
+ const drawX=Math.round(baseX+(baseW-hairW)/2+(braided?0:fit[2]*baseW)+offset[0]*baseW/96);
+ const drawY=Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):fit[3])+offset[1]*baseH/128);
  if(braided&&direction==='right'){
   ctx.save();ctx.translate(drawX+hairW,0);ctx.scale(-1,1);
   ctx.drawImage(chosen,0,drawY,Math.round(hairW),Math.round(hairH));ctx.restore();
