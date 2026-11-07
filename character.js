@@ -22,13 +22,13 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p>Uploaded base-body sprites (hair and clothing layers are next)</p><button type="button" id="rotateSprite">Turn ↻</button></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p>Body + uploaded hairstyle sprites (clothing layers are next)</p><button type="button" id="rotateSprite">Turn ↻</button></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
 <label>Pronouns<select id="c-pronouns"><option>she/her</option><option>he/him</option><option>they/them</option></select></label>
 <label>Skin tone<select id="c-skin"></select></label>
-<label>Hair style<select id="c-hairStyle"><option value="0">Short</option><option value="1">Bob</option><option value="2">Long</option><option value="3">Curly</option><option value="4">Ponytail</option><option value="5">Buzz cut</option></select></label>
+<label>Hair style<select id="c-hairStyle"><option value="0">Short</option><option value="1">Messy</option><option value="2">Ponytail</option><option value="3">Bun</option><option value="4">Long straight</option><option value="5">Wavy</option><option value="6">Curly</option><option value="7">Braided</option></select></label>
 <label>Hair color<select id="c-hairColor"></select></label>
 <label>Eye color<select id="c-eyes"></select></label>
 <label>Shirt style<select id="c-shirt"><option value="0">T-shirt</option><option value="1">Jacket</option><option value="2">Hoodie</option><option value="3">Button-up</option><option value="4">Sweater</option></select></label>
@@ -58,7 +58,25 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
  img.onload=()=>{if(id==='front_idle_1')baseReady=true;renderPreview()};
  img.src='assets/player/base-sprites/'+id+'.png';
 }
-function drawUploadedBase(ctx,x,y,dir,step,scale){
+const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
+const hairFrames=new Map();
+const hairOffsets={};
+try{Object.assign(hairOffsets,JSON.parse(localStorage.getItem('roots-hair-offsets')||'{}'))}catch(e){}
+for(const name of hairNames)for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
+ const key=name+'_'+direction+'_'+pose,img=new Image();
+ hairFrames.set(key,img);img.onload=()=>renderPreview();
+ img.src='assets/player/hairstyles/'+key+'.png';
+}
+function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
+ const name=hairNames[s.hairStyle]||'short';
+ const img=hairFrames.get(name+'_'+direction+'_'+pose);
+ const fallback=hairFrames.get(name+'_'+direction+'_idle_1');
+ const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
+ if(!chosen)return;
+ const offset=hairOffsets[name+'_'+direction]||[0,0];
+ ctx.drawImage(chosen,Math.round(baseX+offset[0]*baseW/96),Math.round(baseY+offset[1]*baseH/128),Math.round(baseW),Math.round(baseH));
+}
+function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
  const pose=moving?(Math.floor(performance.now()/180)%2?'walk_1':'walk_2'):'idle_1';
  const img=baseFrames[direction+'_'+pose];
@@ -68,10 +86,12 @@ function drawUploadedBase(ctx,x,y,dir,step,scale){
  // All source PNGs use the same rectangular cell. Keep the character centered and feet anchored.
  const size=scale*64,aspect=chosen.naturalWidth/chosen.naturalHeight;
  ctx.imageSmoothingEnabled=false;
- ctx.drawImage(chosen,Math.round(x-size*aspect/2),Math.round(y-size),Math.round(size*aspect),Math.round(size));
+ const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
+ ctx.drawImage(chosen,left,top,width,height);
+ drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
-function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
+function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,s,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
 const px=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x+a*scale),Math.round(y+b*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
 const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=palettes.clothes[s.bottomColor]||palettes.clothes[0];
 const walk=step?2:0;
