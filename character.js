@@ -84,7 +84,8 @@ function render(){
 }
 function draw(ctx,x,y,s,dir='down',step=0,scale=1){
  const direction={down:'front',up:'back',left:'left',right:'right'}[dir]||'front';
- const frame=step?('walk_'+(Math.floor(Date.now()/190)%2+1)):'idle_1';
+ const frames=['idle_1','walk_1','idle_2','walk_2'];
+ const frame=step?frames[Math.floor(Date.now()/140)%frames.length]:'idle_1';
  if(!paint(ctx,s.avatar||1,direction,frame,x,y+12*scale,55*scale)){
   ctx.fillStyle='#e5b95e';ctx.fillRect(x-8*scale,y-20*scale,16*scale,28*scale);
  }
