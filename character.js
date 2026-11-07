@@ -76,7 +76,7 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  if(!chosen)return;
  const offset=hairOffsets[name+'_'+direction]||[0,0];
  const braided=name==='braided';
- const hairW=baseW*(braided?0.53:0.55),hairH=baseH*(braided?1.0:0.55);
+ const hairW=baseW*(braided?(direction==='front'?0.47:0.53):0.55),hairH=baseH*(braided?(direction==='front'?0.92:1.0):0.55);
  const drawX=Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96);
  const drawY=Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):({front:-0.025,left:0.015,right:0.015,back:-0.045}[direction]??0))+offset[1]*baseH/128);
  if(braided&&direction==='right'){
@@ -101,7 +101,8 @@ function drawSideBraid(ctx,bx,by,bw,bh,direction){
 }
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
- const pose=moving?(Math.floor(performance.now()/180)%2?'walk_1':'walk_2'):'idle_1';
+ const gait=moving?Math.floor(performance.now()/140)%4:0;
+ const pose=moving?(['idle_1','walk_1','idle_2','walk_2'][gait]):'idle_1';
  const img=baseFrames[direction+'_'+pose];
  const fallback=baseFrames[direction+'_idle_1'];
  const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
