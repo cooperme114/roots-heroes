@@ -18,11 +18,11 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 #characterCreator .buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
 #characterCreator button{background:#e8ca87;color:#25343c;border:0;border-radius:7px;padding:11px 18px;font-weight:750;cursor:pointer}
 #characterCreator button.secondary{background:#4c6971;color:white}
-#characterCreator .preview button{padding:5px 12px;margin:4px;background:#d5e3db}
+#characterCreator .preview button{padding:7px 10px;margin:4px;background:#d5e3db}#characterCreator .hair-controls{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}#characterCreator #hairPreviewName{font-size:16px;font-weight:750;color:#ffe0a1}
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p>Body + uploaded hairstyle sprites (clothing layers are next)</p><button type="button" id="rotateSprite">Turn ↻</button></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Hair and body preview · clothing is not available yet</p></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
@@ -43,7 +43,7 @@ selectOptions('hairColor',['Black','Dark brown','Chestnut','Blonde','Silver','Au
 selectOptions('eyes',['Brown','Blue','Green','Hazel','Violet']);
 selectOptions('shirtColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
 selectOptions('bottomColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
-let facing=0;const dirs=['down','right','up','left'];const preview=modal.querySelector('#creatorPreview');
+const hairstyleLabels=['Short','Messy','Ponytail','Bun','Long straight','Wavy','Curly','Braided'];let facing=0;const dirs=['down','right','up','left'];const preview=modal.querySelector('#creatorPreview');
 const sheets={};let loaded=0;for(const type of ['body','hair','tops','bottoms']){const im=new Image();im.onload=()=>{loaded++;renderPreview()};im.src='assets/player/'+type+'.svg';sheets[type]=im}
 const cache=new Map();
 function tile(type,row,d,step,color){const key=[type,row,d,step,color].join(':');if(cache.has(key))return cache.get(key);const im=sheets[type];if(!im.complete||!im.naturalWidth)return null;const tile=document.createElement('canvas');tile.width=32;tile.height=48;const cc=tile.getContext('2d',{willReadFrequently:true});cc.drawImage(im,(d*3+step)*32,row*48,32,48,0,0,32,48);
@@ -110,9 +110,12 @@ if(dir==='down'){px(-4,-22,3,3,palettes.eyes[s.eyes]);px(2,-22,3,3,palettes.eyes
 if(dir==='left'||dir==='right'){px(dir==='left'?-5:3,-22,3,3,palettes.eyes[s.eyes])}
 if(dir==='up'){px(-7,-27,14,12,hair)}
 }
-function renderPreview(){const p=preview.getContext('2d');p.clearRect(0,0,120,144);p.fillStyle='#a9cba8';p.fillRect(0,0,120,144);p.fillStyle='#91b491';p.fillRect(0,116,120,28);draw(p,60,91,state,dirs[facing],0,3)}
+function renderPreview(){modal.querySelector('#hairPreviewName').textContent=hairstyleLabels[state.hairStyle]||'Short';const p=preview.getContext('2d');p.clearRect(0,0,120,144);p.fillStyle='#a9cba8';p.fillRect(0,0,120,144);p.fillStyle='#91b491';p.fillRect(0,116,120,28);draw(p,60,91,state,dirs[facing],0,3)}
 for(const k of Object.keys(defaults)){const el=modal.querySelector('#c-'+k);if(!el)continue;el.value=state[k];el.addEventListener('input',()=>{state[k]=typeof defaults[k]==='number'?Number(el.value):el.value;renderPreview()})}
 modal.querySelector('#rotateSprite').onclick=()=>{facing=(facing+1)%4;renderPreview()};
+function changeHair(delta){state.hairStyle=(Number(state.hairStyle)+delta+hairstyleLabels.length)%hairstyleLabels.length;modal.querySelector('#c-hairStyle').value=state.hairStyle;renderPreview()}
+modal.querySelector('#hairPrevious').onclick=()=>changeHair(-1);
+modal.querySelector('#hairNext').onclick=()=>changeHair(1);
 function open(){for(const k of Object.keys(defaults)){const el=modal.querySelector('#c-'+k);if(el)el.value=state[k]}modal.style.display='flex';renderPreview()}
 function close(){modal.style.display='none';window.dispatchEvent(new Event('roots-character-close'))}
 modal.querySelector('#creatorSave').onclick=()=>{state.name=state.name.trim()||'Director';localStorage.setItem(SK,JSON.stringify(state));close()};
