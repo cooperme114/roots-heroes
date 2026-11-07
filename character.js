@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const SK='roots-heroes-character-v1';
-const defaults={name:'Director',gender:'Nonbinary',pronouns:'they/them',skin:2,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0};
-const palettes={skin:['#f5cda8','#dfaa7f','#b97e5b','#8d563c','#613c30','#e9b994'],hair:['#28242b','#5c382c','#a16a3c','#e4b55f','#bcb9b4','#a44a3e','#523b75','#2c6680'],eyes:['#49372d','#3d6c9c','#51865a','#806049','#584a87'],clothes:['#d6a354','#7ca3c7','#b6759e','#6a9c81','#a68bcb','#e6d8c1','#424d61','#cf7565']};
+const defaults={name:'Director',gender:'Nonbinary',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0};
+const palettes={skin:['#43271f','#60392b','#7d4c36','#9c6144','#b87c57','#ce9870','#e4b38d','#f2d0af'],hair:['#28242b','#5c382c','#a16a3c','#e4b55f','#bcb9b4','#a44a3e','#523b75','#2c6680'],eyes:['#49372d','#3d6c9c','#51865a','#806049','#584a87'],clothes:['#d6a354','#7ca3c7','#b6759e','#6a9c81','#a68bcb','#e6d8c1','#424d61','#cf7565']};
 let state={...defaults};try{const saved=JSON.parse(localStorage.getItem(SK));if(saved)state={...defaults,...saved}}catch(e){}
 const modal=document.createElement('div');modal.id='characterCreator';modal.innerHTML=`
 <style>
@@ -38,7 +38,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 </div></div><div class="buttons"><button class="secondary" id="creatorCancel" type="button">Cancel</button><button id="creatorSave" type="button">Start Exploring</button></div></div>`;
 document.body.appendChild(modal);
 const selectOptions=(id,labels)=>{const el=modal.querySelector('#c-'+id);labels.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v;el.appendChild(o)})};
-selectOptions('skin',['Fair','Light','Medium','Tan','Deep','Warm']);
+selectOptions('skin',['Skin 1','Skin 2','Skin 3','Skin 4','Skin 5','Skin 6','Skin 7','Skin 8']);
 selectOptions('hairColor',['Black','Dark brown','Chestnut','Blonde','Silver','Auburn','Purple','Blue']);
 selectOptions('eyes',['Brown','Blue','Green','Hazel','Violet']);
 selectOptions('shirtColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
