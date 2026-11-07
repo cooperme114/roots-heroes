@@ -74,7 +74,7 @@ const hairstyleFits={
  bun:{front:[0.47,0.88,0,-0.105],left:[0.51,0.95,0.025,-0.075],right:[0.51,0.95,0,-0.055],back:[0.51,0.95,0,-0.055]},
  long_straight:{front:[0.49,1.00,0,-0.09],left:[0.51,1.05,0.045,-0.245],right:[0.51,1.05,0.005,-0.245],back:[0.51,1.06,0,-0.045]},
  wavy:{front:[0.51,1.00,0,-0.09],left:[0.53,1.05,0.045,-0.245],right:[0.53,1.05,0.005,-0.245],back:[0.53,1.06,0,-0.045]},
- curly:{front:[0.55,0.95,0,-0.075],left:[0.55,0.98,0.045,-0.215],right:[0.55,0.98,-0.045,-0.215],back:[0.55,0.98,0,-0.055]}
+ curly:{front:[0.55,0.95,0,-0.075],left:[0.55,0.98,-0.055,-0.215],right:[0.55,0.98,-0.015,-0.215],back:[0.55,0.98,0,-0.055]}
 };
 function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  const name=hairNames[s.hairStyle]||'short';
