@@ -22,7 +22,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Hair and body preview · clothing is not available yet</p></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing fit preview · T-shirt and pants</p></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
@@ -57,6 +57,46 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
  const id=direction+'_'+pose,img=new Image();baseFrames[id]=img;
  img.onload=()=>{if(id==='front_idle_1')baseReady=true;renderPreview()};
  img.src='assets/player/base-sprites/'+id+'.png';
+}
+const clothingFrames={tshirt:new Map(),pants:new Map()};
+for(const kind of ['tshirt','pants'])for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
+ const img=new Image(),key=direction+'_'+pose;
+ clothingFrames[kind].set(key,img);
+ img.onload=()=>renderPreview();
+ img.src='assets/clothes/'+kind+'_'+key+'.png';
+}
+const clothingTintCache=new WeakMap();
+function tintedClothing(img,color){
+ if(!color)return img;
+ let colors=clothingTintCache.get(img);if(!colors){colors=new Map();clothingTintCache.set(img,colors)}
+ if(colors.has(color))return colors.get(color);
+ const layer=document.createElement('canvas');layer.width=img.naturalWidth;layer.height=img.naturalHeight;
+ const g=layer.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
+ const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
+ const rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));
+ for(let i=0;i<d.length;i+=4){
+  if(d[i+3]<15)continue;
+  const r=d[i],gr=d[i+1],b=d[i+2];
+  // Preserve dark pixel outlines; tint only the white and gray fabric.
+  if(Math.min(r,gr,b)<115||Math.max(r,gr,b)-Math.min(r,gr,b)>35)continue;
+  const shade=Math.max(.55,Math.min(1.18,(r+gr+b)/660));
+  for(let j=0;j<3;j++)d[i+j]=Math.round(Math.min(255,rgb[j]*shade));
+ }
+ g.putImageData(pixels,0,0);colors.set(color,layer);return layer;
+}
+function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
+ const pieces=[
+  ['pants',s.bottom===0?palettes.clothes[s.bottomColor]:null,.36,.31,.675],
+  ['tshirt',s.shirt===0?palettes.clothes[s.shirtColor]:null,.59,.29,.435]
+ ];
+ for(const [kind,color,width,height,top] of pieces){
+  if(color===null)continue; // Only show outfits with uploaded sprites.
+  const frames=clothingFrames[kind],img=frames.get(direction+'_'+pose);
+  const chosen=img?.naturalWidth?img:frames.get(direction+'_idle_1');
+  if(!chosen?.naturalWidth)continue;
+  const w=bw*width,h=bh*height;
+  ctx.drawImage(tintedClothing(chosen,color),Math.round(bx+(bw-w)/2),Math.round(by+bh*top),Math.round(w),Math.round(h));
+ }
 }
 const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
 const hairFrames=new Map();
@@ -125,6 +165,7 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
  if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
  ctx.drawImage(chosen,left,top,width,height);
+ drawClothing(ctx,left,top,width,height,s,direction,pose);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
