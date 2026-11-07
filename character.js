@@ -96,13 +96,16 @@ function coloredBase(img,s){
   const relativeY=(y-minY)/height;
   // The base character's vest and shorts are neutral gray; skin is warm orange.
   // Leave outlines, skin, eyes, and hair pixels completely unchanged.
-  if(hi-lo>24||hi<55||hi>245)continue;
+  // The source underwear is gray, while skin has a pronounced warm/red cast.
+  // Detect neutral fabric rather than requiring almost identical RGB channels.
+  const neutral=Math.abs(r-green)<48&&Math.abs(green-blue)<48;
+  if(!neutral||hi<65||hi>245)continue;
   let rgb;
-  if(relativeY>=.88&&relativeY<.98)rgb=shoesRGB;
-  else if(relativeY>.48&&relativeY<.755)rgb=shirtRGB;
-  else if(relativeY>=.755&&relativeY<.88)rgb=pantsRGB;
+  if(relativeY>=.86&&relativeY<.99)rgb=shoesRGB;
+  else if(relativeY>=.51&&relativeY<.755)rgb=shirtRGB;
+  else if(relativeY>=.755&&relativeY<.86)rgb=pantsRGB;
   else continue;
-  const shade=Math.max(.42,Math.min(1.15,(r+green+blue)/570));
+  const shade=Math.max(.52,Math.min(1.15,(r+green+blue)/570));
   for(let channel=0;channel<3;channel++)d[i+channel]=Math.round(Math.min(255,rgb[channel]*shade));
  }
  g.putImageData(pixels,0,0);
