@@ -110,7 +110,7 @@ if(dir==='down'){px(-4,-22,3,3,palettes.eyes[s.eyes]);px(2,-22,3,3,palettes.eyes
 if(dir==='left'||dir==='right'){px(dir==='left'?-5:3,-22,3,3,palettes.eyes[s.eyes])}
 if(dir==='up'){px(-7,-27,14,12,hair)}
 }
-function renderPreview(){modal.querySelector('#hairPreviewName').textContent=hairstyleLabels[state.hairStyle]||'Short';const p=preview.getContext('2d');p.clearRect(0,0,120,144);p.fillStyle='#a9cba8';p.fillRect(0,0,120,144);p.fillStyle='#91b491';p.fillRect(0,116,120,28);draw(p,60,91,state,dirs[facing],0,3)}
+function renderPreview(){modal.querySelector('#hairPreviewName').textContent=hairstyleLabels[state.hairStyle]||'Short';const p=preview.getContext('2d');p.clearRect(0,0,120,144);p.fillStyle='#a9cba8';p.fillRect(0,0,120,144);p.fillStyle='#91b491';p.fillRect(0,116,120,28);draw(p,60,119,state,dirs[facing],0,1.45)}
 for(const k of Object.keys(defaults)){const el=modal.querySelector('#c-'+k);if(!el)continue;el.value=state[k];el.addEventListener('input',()=>{state[k]=typeof defaults[k]==='number'?Number(el.value):el.value;renderPreview()})}
 modal.querySelector('#rotateSprite').onclick=()=>{facing=(facing+1)%4;renderPreview()};
 function changeHair(delta){state.hairStyle=(Number(state.hairStyle)+delta+hairstyleLabels.length)%hairstyleLabels.length;modal.querySelector('#c-hairStyle').value=state.hairStyle;renderPreview()}
