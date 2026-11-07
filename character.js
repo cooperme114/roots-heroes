@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const SK='roots-heroes-character-v1';
-const defaults={name:'Director',gender:'Nonbinary',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0};
+const defaults={name:'Director',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0};
 const palettes={skin:['#43271f','#60392b','#7d4c36','#9c6144','#b87c57','#ce9870','#e4b38d','#f2d0af'],hair:['#28242b','#5c382c','#a16a3c','#e4b55f','#bcb9b4','#a44a3e','#523b75','#2c6680'],eyes:['#49372d','#3d6c9c','#51865a','#806049','#584a87'],clothes:['#d6a354','#7ca3c7','#b6759e','#6a9c81','#a68bcb','#e6d8c1','#424d61','#cf7565']};
 let state={...defaults};try{const saved=JSON.parse(localStorage.getItem(SK));if(saved)state={...defaults,...saved}}catch(e){}
 const modal=document.createElement('div');modal.id='characterCreator';modal.innerHTML=`
@@ -22,10 +22,10 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p>Pixel sprite preview</p><button type="button" id="rotateSprite">Turn ↻</button></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p>Uploaded base-body sprites (hair and clothing layers are next)</p><button type="button" id="rotateSprite">Turn ↻</button></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
-<label>Gender<select id="c-gender"><option>Female</option><option>Male</option><option>Nonbinary</option><option>Prefer not to say</option></select></label>
+
 <label>Pronouns<select id="c-pronouns"><option>she/her</option><option>he/him</option><option>they/them</option></select></label>
 <label>Skin tone<select id="c-skin"></select></label>
 <label>Hair style<select id="c-hairStyle"><option value="0">Short</option><option value="1">Bob</option><option value="2">Long</option><option value="3">Curly</option><option value="4">Ponytail</option><option value="5">Buzz cut</option></select></label>
@@ -51,7 +51,27 @@ if(color&&type!=='body'){const data=cc.getImageData(0,0,32,48),rgb=[1,3,5].map((
 cache.set(key,tile);return tile}
 function drawSheet(ctx,x,y,s,dir,step,scale){const d={down:0,left:1,right:2,up:3}[dir]??0;const layers=[['body',Math.min(7,s.skin),null],['bottoms',s.bottom,palettes.clothes[s.bottomColor]],['tops',s.shirt,palettes.clothes[s.shirtColor]],['hair',s.hairStyle,palettes.hair[s.hairColor]]];for(const [type,row,color] of layers){const tileCanvas=tile(type,row,d,step?1:0,color);if(!tileCanvas)return false;ctx.drawImage(tileCanvas,Math.round(x-16*scale),Math.round(y-34*scale),32*scale,48*scale)}return true}
 
-function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
+const baseFrames={};let baseReady=false;
+const baseDirections={down:'front',left:'left',right:'right',up:'back'};
+for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
+ const id=direction+'_'+pose,img=new Image();baseFrames[id]=img;
+ img.onload=()=>{if(id==='front_idle_1')baseReady=true;renderPreview()};
+ img.src='assets/player/base-sprites/'+id+'.png';
+}
+function drawUploadedBase(ctx,x,y,dir,step,scale){
+ const direction=baseDirections[dir]||'front',moving=step>0;
+ const pose=moving?(Math.floor(performance.now()/180)%2?'walk_1':'walk_2'):'idle_1';
+ const img=baseFrames[direction+'_'+pose];
+ const fallback=baseFrames[direction+'_idle_1'];
+ const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
+ if(!chosen)return false;
+ // All source PNGs use the same rectangular cell. Keep the character centered and feet anchored.
+ const size=scale*64,aspect=chosen.naturalWidth/chosen.naturalHeight;
+ ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(chosen,Math.round(x-size*aspect/2),Math.round(y-size),Math.round(size*aspect),Math.round(size));
+ return true;
+}
+function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
 const px=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x+a*scale),Math.round(y+b*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
 const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=palettes.clothes[s.bottomColor]||palettes.clothes[0];
 const walk=step?2:0;
