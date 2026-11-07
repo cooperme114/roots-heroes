@@ -121,7 +121,7 @@ function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
   const crop=croppedClothing(chosen);if(!crop)continue;
   const w=bw*width,h=bh*height;
   const tinted=tintedClothing(chosen,color,kind);
-  ctx.drawImage(tinted,crop.x,crop.y,crop.w,crop.h,Math.round(bx+(bw-w)/2+(kind==='pants'?-bw*.012:0)),Math.round(by+bh*top),Math.round(w),Math.round(h));
+  ctx.drawImage(tinted,crop.x,crop.y,crop.w,crop.h,Math.round(bx+(bw-w)/2+(kind==='pants'?bw*.02:0)),Math.round(by+bh*top),Math.round(w),Math.round(h));
  }
 
 }
