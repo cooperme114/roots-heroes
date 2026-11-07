@@ -44,7 +44,14 @@ selectOptions('eyes',['Brown','Blue','Green','Hazel','Violet']);
 selectOptions('shirtColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
 selectOptions('bottomColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
 let facing=0;const dirs=['down','right','up','left'];const preview=modal.querySelector('#creatorPreview');
-function draw(ctx,x,y,s,dir='down',step=0,scale=1){
+const sheets={};let loaded=0;for(const type of ['body','hair','tops','bottoms']){const im=new Image();im.onload=()=>{loaded++;renderPreview()};im.src='assets/player/'+type+'.svg';sheets[type]=im}
+const cache=new Map();
+function tile(type,row,d,step,color){const key=[type,row,d,step,color].join(':');if(cache.has(key))return cache.get(key);const im=sheets[type];if(!im.complete||!im.naturalWidth)return null;const tile=document.createElement('canvas');tile.width=32;tile.height=48;const cc=tile.getContext('2d',{willReadFrequently:true});cc.drawImage(im,(d*3+step)*32,row*48,32,48,0,0,32,48);
+if(color&&type!=='body'){const data=cc.getImageData(0,0,32,48),rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));for(let k=0;k<data.data.length;k+=4){if(data.data[k+3]===0)continue;const r=data.data[k],g=data.data[k+1],b=data.data[k+2];if(r+g+b<160||r+g+b>650)continue;const brightness=Math.max(.55,Math.min(1.25,(r+g+b)/370));for(let j=0;j<3;j++)data.data[k+j]=Math.min(255,Math.round(rgb[j]*brightness))}cc.putImageData(data,0,0)}
+cache.set(key,tile);return tile}
+function drawSheet(ctx,x,y,s,dir,step,scale){const d={down:0,left:1,right:2,up:3}[dir]??0;const layers=[['body',Math.min(7,s.skin),null],['bottoms',s.bottom,palettes.clothes[s.bottomColor]],['tops',s.shirt,palettes.clothes[s.shirtColor]],['hair',s.hairStyle,palettes.hair[s.hairColor]]];for(const [type,row,color] of layers){const tileCanvas=tile(type,row,d,step?1:0,color);if(!tileCanvas)return false;ctx.drawImage(tileCanvas,Math.round(x-16*scale),Math.round(y-34*scale),32*scale,48*scale)}return true}
+
+function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
 const px=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x+a*scale),Math.round(y+b*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
 const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=palettes.clothes[s.bottomColor]||palettes.clothes[0];
 const walk=step?2:0;
