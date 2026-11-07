@@ -84,6 +84,21 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
   ctx.drawImage(chosen,0,drawY,Math.round(hairW),Math.round(hairH));ctx.restore();
  }else ctx.drawImage(chosen,drawX,drawY,Math.round(hairW),Math.round(hairH));
 }
+const braidSideOverlays={};
+for(const side of ['left','right']){
+ const img=new Image();braidSideOverlays[side]=img;
+ img.onload=()=>renderPreview();
+ img.src='assets/player/hairstyles/'+side+'_braid.png';
+}
+function drawSideBraid(ctx,bx,by,bw,bh,direction){
+ const img=braidSideOverlays[direction];
+ if(!img?.naturalWidth)return;
+ // The braid is a separate transparent PNG, anchored behind the ear and shoulder.
+ const h=bh*0.27,w=h*img.naturalWidth/img.naturalHeight;
+ const centerX=bx+bw*(direction==='left'?0.69:0.31);
+ const top=by+bh*0.29;
+ ctx.drawImage(img,Math.round(centerX-w/2),Math.round(top),Math.round(w),Math.round(h));
+}
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
  const pose=moving?(Math.floor(performance.now()/180)%2?'walk_1':'walk_2'):'idle_1';
@@ -96,6 +111,7 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
  ctx.drawImage(chosen,left,top,width,height);
+ if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
