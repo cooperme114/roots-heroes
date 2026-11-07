@@ -96,7 +96,7 @@ function drawSideBraid(ctx,bx,by,bw,bh,direction){
  // The braid is a separate transparent PNG, anchored behind the ear and shoulder.
  const h=bh*0.27,w=h*img.naturalWidth/img.naturalHeight;
  const centerX=bx+bw*(direction==='left'?0.63:0.37);
- const top=by+bh*0.325;
+ const top=by+bh*0.405;
  ctx.drawImage(img,Math.round(centerX-w/2),Math.round(top),Math.round(w),Math.round(h));
 }
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
