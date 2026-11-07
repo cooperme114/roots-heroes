@@ -22,7 +22,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing fit preview · T-shirt and pants</p></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing colors follow the original body animations</p></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
@@ -58,74 +58,51 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
  img.onload=()=>{if(id==='front_idle_1')baseReady=true;renderPreview()};
  img.src='assets/player/base-sprites/'+id+'.png';
 }
-const clothingFrames={tshirt:new Map(),pants:new Map()};
-for(const kind of ['tshirt','pants'])for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
- const img=new Image(),key=direction+'_'+pose;
- clothingFrames[kind].set(key,img);
- img.onload=()=>renderPreview();
- img.src='assets/clothes/'+kind+'_'+key+'.png';
-}
-const clothingTintCache=new WeakMap();
-function tintedClothing(img,color,kind){
- if(!color)return img;
- let colors=clothingTintCache.get(img);if(!colors){colors=new Map();clothingTintCache.set(img,colors)}
- const cacheKey=kind+':'+color;
- if(colors.has(cacheKey))return colors.get(cacheKey);
- const layer=document.createElement('canvas');layer.width=img.naturalWidth;layer.height=img.naturalHeight;
+// Recolor the clothing already painted on each base sprite, rather than
+// drawing separately sized overlays. This keeps every walking frame aligned.
+const recoloredBodies=new WeakMap();
+function coloredBase(img,s){
+ const shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0];
+ const pants=palettes.clothes[s.bottomColor]||palettes.clothes[0];
+ const key=shirt+'|'+pants;
+ let variants=recoloredBodies.get(img);
+ if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
+ if(variants.has(key))return variants.get(key);
+ const layer=document.createElement('canvas');
+ layer.width=img.naturalWidth;layer.height=img.naturalHeight;
  const g=layer.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
  const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
- const rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));
- const crop=kind==='pants'?croppedClothing(img):null;
- for(let i=0;i<d.length;i+=4){
-  if(d[i+3]<15)continue;
-  const y=Math.floor(i/4/layer.width);
-  if(crop&&y>=crop.y+crop.h*.79){
-   // The bottom of each pant leg becomes the shoe, keeping its original silhouette.
-   const shade=d[i]<100?0.65:1;
-   d[i]=Math.round(34*shade);d[i+1]=Math.round(36*shade);d[i+2]=Math.round(42*shade);
-   continue;
-  }
-  const r=d[i],gr=d[i+1],b=d[i+2];
-  // Preserve dark pixel outlines; tint only the white and gray fabric.
-  if(Math.min(r,gr,b)<115||Math.max(r,gr,b)-Math.min(r,gr,b)>35)continue;
-  const shade=Math.max(.55,Math.min(1.18,(r+gr+b)/660));
-  for(let j=0;j<3;j++)d[i+j]=Math.round(Math.min(255,rgb[j]*shade));
+ let minX=layer.width,minY=layer.height,maxX=-1,maxY=-1;
+ for(let y=0;y<layer.height;y++)for(let x=0;x<layer.width;x++){
+  const i=(y*layer.width+x)*4;
+  if(d[i+3]<100)continue;
+  minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+  minY=Math.min(minY,y);maxY=Math.max(maxY,y);
  }
- g.putImageData(pixels,0,0);colors.set(cacheKey,layer);return layer;
-}
-const clothingCropCache=new WeakMap();
-function croppedClothing(img){
- if(clothingCropCache.has(img))return clothingCropCache.get(img);
- const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
- const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
- const data=g.getImageData(0,0,canvas.width,canvas.height).data;
- let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
- for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-  if(data[(y*canvas.width+x)*4+3]<75)continue;
-  minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+ if(maxY<minY)return img;
+ const height=maxY-minY+1;
+ const shirtRGB=[1,3,5].map((n,i)=>parseInt(shirt.slice(n,n+2),16));
+ const pantsRGB=[1,3,5].map((n,i)=>parseInt(pants.slice(n,n+2),16));
+ for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
+  const i=(y*layer.width+x)*4;
+  if(d[i+3]<100)continue;
+  const r=d[i],green=d[i+1],blue=d[i+2];
+  const hi=Math.max(r,green,blue),lo=Math.min(r,green,blue);
+  const relativeY=(y-minY)/height;
+  // The base character's vest and shorts are neutral gray; skin is warm orange.
+  // Leave outlines, skin, eyes, and hair pixels completely unchanged.
+  if(hi-lo>24||hi<75||hi>245)continue;
+  let rgb;
+  if(relativeY>.48&&relativeY<.755)rgb=shirtRGB;
+  else if(relativeY>=.755&&relativeY<.88)rgb=pantsRGB;
+  else continue;
+  const shade=Math.max(.42,Math.min(1.15,(r+green+blue)/570));
+  for(let channel=0;channel<3;channel++)d[i+channel]=Math.round(Math.min(255,rgb[channel]*shade));
  }
- if(maxX<0)return null;
- const result={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
- clothingCropCache.set(img,result);return result;
+ g.putImageData(pixels,0,0);
+ variants.set(key,layer);
+ return layer;
 }
-function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
- const pieces=[
-  ['pants',s.bottom===0?palettes.clothes[s.bottomColor]:null,.198,.292,.660],
-  ['tshirt',s.shirt===0?palettes.clothes[s.shirtColor]:null,.248,.262,.452]
- ];
- for(const [kind,color,width,height,top] of pieces){
-  if(color===null)continue;
-  const frames=clothingFrames[kind],img=frames.get(direction+'_'+pose);
-  const chosen=img?.naturalWidth?img:frames.get(direction+'_idle_1');
-  if(!chosen?.naturalWidth)continue;
-  const crop=croppedClothing(chosen);if(!crop)continue;
-  const w=bw*width,h=bh*height;
-  const tinted=tintedClothing(chosen,color,kind);
-  ctx.drawImage(tinted,crop.x,crop.y,crop.w,crop.h,Math.round(bx+(bw-w)/2+(kind==='pants'?-bw*.005:0)),Math.round(by+bh*top),Math.round(w),Math.round(h));
- }
-
-}
-
 const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
 const hairFrames=new Map();
 const hairOffsets={};
@@ -192,8 +169,7 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
  if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
- ctx.drawImage(chosen,left,top,width,height);
- drawClothing(ctx,left,top,width,height,s,direction,pose);
+ ctx.drawImage(coloredBase(chosen,s),left,top,width,height);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
