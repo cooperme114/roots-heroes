@@ -1,257 +1,34 @@
-(()=>{'use strict';
-const SK='roots-heroes-character-v1';
-const defaults={name:'Director',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0,shoeColor:'#25272d'};
-const palettes={skin:['#43271f','#60392b','#7d4c36','#9c6144','#b87c57','#ce9870','#e4b38d','#f2d0af'],hair:['#28242b','#5c382c','#a16a3c','#e4b55f','#bcb9b4','#a44a3e','#523b75','#2c6680'],eyes:['#49372d','#3d6c9c','#51865a','#806049','#584a87'],clothes:['#d6a354','#7ca3c7','#b6759e','#6a9c81','#a68bcb','#e6d8c1','#424d61','#cf7565']};
-let state={...defaults};try{const saved=JSON.parse(localStorage.getItem(SK));if(saved)state={...defaults,...saved}}catch(e){}
-for(const k of ['shirtColor','bottomColor'])if(typeof state[k]==='number')state[k]=palettes.clothes[state[k]]||palettes.clothes[0];
-const modal=document.createElement('div');modal.id='characterCreator';modal.innerHTML=`
-<style>
-#characterCreator{position:fixed;inset:0;z-index:20;background:#111d25eF;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
-#characterCreator .creator{width:min(850px,100%);max-height:95vh;overflow:auto;background:#253b43;border:3px solid #e6c989;border-radius:14px;padding:18px;box-shadow:0 20px 70px #000a}
-#characterCreator h2{margin:0 0 4px;color:#ffdf9e;font-size:24px}#characterCreator .hint{font-size:13px;color:#c8d7d7;margin:0 0 14px}
-#characterCreator .layout{display:grid;grid-template-columns:230px 1fr;gap:18px}
-#characterCreator .preview{background:#344e51;border-radius:10px;padding:14px;text-align:center;align-self:start}
-#characterCreator canvas{width:180px;height:216px;image-rendering:pixelated;background:#b4d1b3;border:3px solid #e2d6b6;border-radius:8px;margin:auto}
-#characterCreator .preview p{font-size:12px;color:#e0e9e4;margin:8px 0}
-#characterCreator .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#characterCreator label{display:block;font-size:12px;color:#e9d5aa}
-#characterCreator input,#characterCreator select{width:100%;margin-top:4px;padding:9px;border:1px solid #789195;border-radius:6px;background:#15272d;color:white;font:inherit}
-#characterCreator input[type=color]{height:40px;padding:3px;cursor:pointer}
-#characterCreator .buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
-#characterCreator button{background:#e8ca87;color:#25343c;border:0;border-radius:7px;padding:11px 18px;font-weight:750;cursor:pointer}
-#characterCreator button.secondary{background:#4c6971;color:white}
-#characterCreator .preview button{padding:7px 10px;margin:4px;background:#d5e3db}#characterCreator .hair-controls{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}#characterCreator #hairPreviewName{font-size:16px;font-weight:750;color:#ffe0a1}
-@media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
-</style>
-<div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Pick any shirt, pants, and shoe colors</p></div></div>
-<div class="fields">
-<label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
-
-<label>Pronouns<select id="c-pronouns"><option>she/her</option><option>he/him</option><option>they/them</option></select></label>
-<label>Skin tone<select id="c-skin"></select></label>
-<label>Hair style<select id="c-hairStyle"><option value="0">Short</option><option value="1">Messy</option><option value="2">Ponytail</option><option value="3">Bun</option><option value="4">Long straight</option><option value="5">Wavy</option><option value="6">Curly</option><option value="7">Braided</option></select></label>
-<label>Hair color<select id="c-hairColor"></select></label>
-<label>Eye color<select id="c-eyes"></select></label>
-<label>Shirt style<select id="c-shirt"><option value="0">T-shirt</option><option value="1">Jacket</option><option value="2">Hoodie</option><option value="3">Button-up</option><option value="4">Sweater</option></select></label>
-<label>Shirt color<input type="color" id="c-shirtColor"></label>
-<label>Bottoms<select id="c-bottom"><option value="0">Pants</option><option value="1">Shorts</option><option value="2">Skirt</option></select></label>
-<label>Pants color<input type="color" id="c-bottomColor"></label>
-<label>Shoe color<input type="color" id="c-shoeColor"></label>
-</div></div><div class="buttons"><button class="secondary" id="creatorCancel" type="button">Cancel</button><button id="creatorSave" type="button">Start Exploring</button></div></div>`;
+(()=>{
+'use strict';
+const KEY='roots-heroes-character-v1';
+let saved={};try{saved=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+let state={name:saved.name||'Director',pronouns:saved.pronouns||'they/them',avatar:0};
+const modal=document.createElement('div');modal.id='characterCreator';
+modal.innerHTML=`<style>
+#characterCreator{position:fixed;inset:0;z-index:20;background:#111d25ef;display:none;align-items:center;justify-content:center;padding:14px}
+#characterCreator .creator{background:#253b43;color:#f4e3c3;border:3px solid #e6c989;border-radius:14px;padding:22px;width:min(520px,100%);text-align:center}
+#characterCreator h2{margin:0 0 8px;color:#ffdf9e}
+#characterCreator label{display:block;text-align:left;margin:12px 0;font-size:14px}
+#characterCreator input,#characterCreator select{display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #789195;border-radius:6px;background:#15272d;color:white}
+#characterCreator button{background:#e8ca87;color:#25343c;border:0;border-radius:7px;padding:10px 16px;font-weight:bold;cursor:pointer;margin:4px}
+#characterCreator canvas{image-rendering:pixelated;background:#b4d1b3;border:3px solid #e2d6b6;border-radius:8px}
+</style><div class="creator"><h2>Create Your Director</h2><p>The old character sprites have been cleared. Preset avatars are coming next.</p><canvas width="120" height="144" id="creatorPreview"></canvas><label>Name<input id="c-name" maxlength="22"></label><label>Pronouns<select id="c-pronouns"><option>she/her</option><option>he/him</option><option>they/them</option></select></label><button id="creatorCancel">Cancel</button><button id="creatorSave">Start Exploring</button></div>`;
 document.body.appendChild(modal);
-const selectOptions=(id,labels)=>{const el=modal.querySelector('#c-'+id);labels.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v;el.appendChild(o)})};
-selectOptions('skin',['Skin 1','Skin 2','Skin 3','Skin 4','Skin 5','Skin 6','Skin 7','Skin 8']);
-selectOptions('hairColor',['Black','Dark brown','Chestnut','Blonde','Silver','Auburn','Purple','Blue']);
-selectOptions('eyes',['Brown','Blue','Green','Hazel','Violet']);
-
-
-const hairstyleLabels=['Short','Messy','Ponytail','Bun','Long straight','Wavy','Curly','Braided'];let facing=0;const dirs=['down','right','up','left'];const preview=modal.querySelector('#creatorPreview');
-const sheets={};let loaded=0;for(const type of ['body','hair','tops','bottoms']){const im=new Image();im.onload=()=>{loaded++;renderPreview()};im.src='assets/player/'+type+'.svg';sheets[type]=im}
-const cache=new Map();
-function tile(type,row,d,step,color){const key=[type,row,d,step,color].join(':');if(cache.has(key))return cache.get(key);const im=sheets[type];if(!im.complete||!im.naturalWidth)return null;const tile=document.createElement('canvas');tile.width=32;tile.height=48;const cc=tile.getContext('2d',{willReadFrequently:true});cc.drawImage(im,(d*3+step)*32,row*48,32,48,0,0,32,48);
-if(color&&type!=='body'){const data=cc.getImageData(0,0,32,48),rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));for(let k=0;k<data.data.length;k+=4){if(data.data[k+3]===0)continue;const r=data.data[k],g=data.data[k+1],b=data.data[k+2];if(r+g+b<160||r+g+b>650)continue;const brightness=Math.max(.55,Math.min(1.25,(r+g+b)/370));for(let j=0;j<3;j++)data.data[k+j]=Math.min(255,Math.round(rgb[j]*brightness))}cc.putImageData(data,0,0)}
-cache.set(key,tile);return tile}
-function drawSheet(ctx,x,y,s,dir,step,scale){const d={down:0,left:1,right:2,up:3}[dir]??0;const layers=[['body',Math.min(7,s.skin),null],['bottoms',s.bottom,typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]],['tops',s.shirt,typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]],['hair',s.hairStyle,palettes.hair[s.hairColor]]];for(const [type,row,color] of layers){const tileCanvas=tile(type,row,d,step?1:0,color);if(!tileCanvas)return false;ctx.drawImage(tileCanvas,Math.round(x-16*scale),Math.round(y-34*scale),32*scale,48*scale)}return true}
-
-const baseFrames={};let baseReady=false;
-const baseDirections={down:'front',left:'left',right:'right',up:'back'};
-for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
- const id=direction+'_'+pose,img=new Image();baseFrames[id]=img;
- img.onload=()=>{if(id==='front_idle_1')baseReady=true;renderPreview()};
- img.src='assets/player/base-sprites/'+id+'.png';
+const preview=modal.querySelector('#creatorPreview');
+function draw(ctx,x,y,s,dir='down',step=0,scale=1){
+ const block=(dx,dy,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.round(x+dx*scale),Math.round(y+dy*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
+ const stride=step?2:0;
+ block(-7,2+stride,6,9,'#242d35');block(1,2-stride,6,9,'#242d35');
+ block(-8,-9,16,14,'#4b7593');block(-10,-14,20,15,'#e5b95e');
+ block(-12,-12,4,12,'#c58d6a');block(8,-12,4,12,'#c58d6a');
+ block(-8,-29,16,16,'#c58d6a');block(-9,-31,18,8,'#50382c');
+ if(dir!=='up'){block(dir==='right'?3:-5,-23,3,3,'#24242a');if(dir==='down')block(2,-23,3,3,'#24242a')}
 }
-// Recolor the clothing already painted on each base sprite, rather than
-// drawing separately sized overlays. This keeps every walking frame aligned.
-const recoloredBodies=new WeakMap();
-// Pixel-level clothing mask. Every source animation frame is masked against
-// its own opaque silhouette, so no separately positioned sprites can drift.
-// Hand-traced from the original 1536x1024 body sheet: four 384x256 cells per row.
-// Coordinates are relative to the original cell and converted to each cropped sprite.
-const bodySheetBounds={
- front:[[137,23,247,245],[137,23,247,245],[137,23,247,245],[137,23,247,245]],
- left:[[142,22,241,244],[136,22,245,241],[142,22,241,244],[141,22,242,241]],
- right:[[143,21,241,244],[140,21,252,240],[142,21,242,244],[141,21,244,242]],
- back:[[137,21,247,242],[137,21,247,242],[137,21,247,242],[137,21,247,242]]
-};
-const bodyPaintShapes={
- front:{
-  shirt:[[[170,118],[213,118],[223,145],[215,179],[216,190],[169,190],[169,177],[160,151]],[[154,133],[173,132],[172,165],[145,163]],[[215,131],[231,134],[239,162],[216,164]]],
-  pants:[[[169,184],[217,184],[217,224],[196,224],[193,214],[189,224],[166,224]]],
-  shoes:[[[160,226],[194,226],[194,242],[157,242]],[[196,226],[225,226],[225,242],[196,242]]]
- },
- left:{
-  shirt:[[[173,118],[191,117],[201,136],[202,185],[171,185],[170,137]]],
-  pants:[[[172,182],[200,182],[202,217],[170,217]]],
-  shoes:[[[158,219],[212,219],[212,245],[157,245]]]
- },
- right:{
-  shirt:[[[184,117],[201,117],[210,137],[210,186],[180,186],[180,134]]],
-  pants:[[[179,181],[210,181],[211,217],[178,217]]],
-  shoes:[[[157,218],[224,218],[224,245],[157,245]]]
- },
- back:{
-  shirt:[[[169,119],[215,119],[223,144],[218,187],[166,187],[161,144]],[[145,139],[170,133],[168,166],[144,163]],[[215,133],[240,140],[239,165],[217,165]]],
-  pants:[[[168,183],[217,183],[220,225],[164,225]]],
-  shoes:[[[158,225],[225,225],[225,243],[158,243]]]
- }
-};
-function coloredBase(img,s,direction='front',pose='idle_1'){
- const shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0];
- const pants=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
- const shoes=s.shoeColor||'#25272d';
- const key=[shirt,pants,shoes,direction,pose].join('|');
- let variants=recoloredBodies.get(img);
- if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
- if(variants.has(key))return variants.get(key);
- const layer=document.createElement('canvas');layer.width=img.naturalWidth;layer.height=img.naturalHeight;
- const g=layer.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
- const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
- let minX=layer.width,minY=layer.height,maxX=-1,maxY=-1;
- for(let y=0;y<layer.height;y++)for(let x=0;x<layer.width;x++){
-  const i=(y*layer.width+x)*4;if(d[i+3]<128)continue;
-  minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
- }
- if(maxY<minY)return img;
- const poseIndex={idle_1:0,walk_1:1,idle_2:2,walk_2:3}[pose]??0;
- const bounds=bodySheetBounds[direction][poseIndex],sourceWidth=bounds[2]-bounds[0],sourceHeight=bounds[3]-bounds[1];
- const colors=[shirt,pants,shoes].map(color=>[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)));
- const shapes=bodyPaintShapes[direction];
- const paint=(polygons,rgb)=>{
-  const mask=document.createElement('canvas');mask.width=layer.width;mask.height=layer.height;
-  const mg=mask.getContext('2d',{willReadFrequently:true});mg.fillStyle='#fff';
-  for(const polygon of polygons){
-   mg.beginPath();
-   polygon.forEach(([px,py],i)=>{
-    const x=minX+(px-bounds[0])/sourceWidth*(maxX-minX+1);
-    const y=minY+(py-bounds[1])/sourceHeight*(maxY-minY+1);
-    if(i===0)mg.moveTo(x,y);else mg.lineTo(x,y);
-   });
-   mg.closePath();mg.fill();
-  }
-  const md=mg.getImageData(0,0,layer.width,layer.height).data;
-  for(let i=0;i<d.length;i+=4){
-   if(md[i+3]<128||d[i+3]<170)continue;
-   const r=d[i],green=d[i+1],blue=d[i+2];
-   if(Math.max(r,green,blue)<70)continue; // retain pixel outlines
-   const shade=Math.max(r,green,blue)<140?.82:Math.max(r,green,blue)<190?.92:1;
-   for(let j=0;j<3;j++)d[i+j]=Math.round(rgb[j]*shade);
-  }
- };
- const moving=poseIndex===1||poseIndex===3;
- const clothing={shirt:shapes.shirt,pants:shapes.pants,shoes:shapes.shoes};
- if(moving&&(direction==='left'||direction==='right')){
-  // Separate moving-leg coverage rather than painting a stationary trouser box.
-  clothing.pants=direction==='left'
-   ?[[[171,183],[201,183],[209,200],[225,218],[213,228],[191,209],[164,229],[151,218]]]
-   :[[[180,182],[211,182],[218,204],[239,222],[222,232],[196,210],[162,230],[151,219]]];
-  clothing.shoes=direction==='left'
-   ?[[[147,221],[171,220],[169,241],[137,241]],[[206,220],[229,220],[229,244],[203,244]]]
-   :[[[147,220],[170,220],[171,244],[139,244]],[[219,220],[250,220],[250,244],[218,244]]];
- }
- // Shoes, pants, then shirt, so shirt covers the waistband.
- paint(clothing.shoes,colors[2]);paint(clothing.pants,colors[1]);paint(clothing.shirt,colors[0]);
- g.putImageData(pixels,0,0);variants.set(key,layer);return layer;
-}
-
-const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
-const hairFrames=new Map();
-const hairOffsets={};
-try{Object.assign(hairOffsets,JSON.parse(localStorage.getItem('roots-hair-offsets')||'{}'))}catch(e){}
-for(const name of hairNames)for(const direction of ['front','left','right','back'])for(const pose of ['idle_1','idle_2','walk_1','walk_2']){
- const key=name+'_'+direction+'_'+pose,img=new Image();
- hairFrames.set(key,img);img.onload=()=>renderPreview();
- img.src='assets/player/hairstyles/'+key+'.png';
-}
-const hairstyleFits={
- short:{front:[0.49,0.83,0,-0.035],left:[0.49,0.83,0,-0.005],right:[0.49,0.83,0,-0.005],back:[0.49,0.83,0,-0.045]},
- messy:{front:[0.53,0.88,0,-0.055],left:[0.53,0.88,0,-0.025],right:[0.53,0.88,0,-0.025],back:[0.53,0.88,0,-0.055]},
- ponytail:{front:[0.46,0.88,-0.035,-0.095],left:[0.51,1.00,0.035,-0.065],right:[0.51,1.00,-0.035,-0.065],back:[0.51,1.03,0,-0.045]},
- bun:{front:[0.47,0.88,0,-0.105],left:[0.51,0.95,-0.01,-0.12],right:[0.51,0.95,0,-0.055],back:[0.51,0.95,0,-0.055]},
- long_straight:{front:[0.49,1.00,0,-0.09],left:[0.51,1.05,0.045,-0.245],right:[0.51,1.05,-0.035,-0.265],back:[0.51,1.06,0,-0.045]},
- wavy:{front:[0.51,1.00,0,-0.09],left:[0.53,1.05,0.045,-0.245],right:[0.53,1.05,-0.035,-0.265],back:[0.53,1.06,0,-0.045]},
- curly:{front:[0.55,0.95,0,-0.075],left:[0.55,0.98,0.025,-0.065],right:[0.55,0.98,-0.015,-0.25],back:[0.55,0.98,0,-0.055]}
-};
-function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
- const name=hairNames[s.hairStyle]||'short';
- const mirroredRightStyles=['braided'];
- const mirrorRight=direction==='right'&&mirroredRightStyles.includes(name);
- const sourceDirection=mirrorRight?'left':direction;
- const img=hairFrames.get(name+'_'+sourceDirection+'_'+pose);
- const fallback=hairFrames.get(name+'_'+sourceDirection+'_idle_1');
- const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
- if(!chosen)return;
- const offset=hairOffsets[name+'_'+direction]||[0,0];
- const braided=name==='braided';
- const fit=hairstyleFits[name]?.[direction]||[0.55,0.55,0,0];
- const hairW=baseW*(braided?(direction==='front'?0.47:0.53):fit[0]),hairH=baseH*(braided?(direction==='front'?0.92:1.0):fit[1]);
- const drawX=Math.round(baseX+(baseW-hairW)/2+(braided?0:fit[2]*baseW)+offset[0]*baseW/96);
- const drawY=Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):fit[3])+offset[1]*baseH/128);
- if(mirrorRight){
-  ctx.save();ctx.translate(drawX+hairW,0);ctx.scale(-1,1);
-  ctx.drawImage(chosen,0,drawY,Math.round(hairW),Math.round(hairH));ctx.restore();
- }else ctx.drawImage(chosen,drawX,drawY,Math.round(hairW),Math.round(hairH));
-}
-const braidSideOverlays={};
-for(const side of ['left','right']){
- const img=new Image();braidSideOverlays[side]=img;
- img.onload=()=>renderPreview();
- img.src='assets/player/hairstyles/'+side+'_braid.png';
-}
-function drawSideBraid(ctx,bx,by,bw,bh,direction){
- const img=braidSideOverlays[direction];
- if(!img?.naturalWidth)return;
- // The braid is a separate transparent PNG, anchored behind the ear and shoulder.
- const h=bh*0.27,w=h*img.naturalWidth/img.naturalHeight;
- const centerX=bx+bw*(direction==='left'?0.575:0.425);
- const top=by+bh*0.405;
- ctx.drawImage(img,Math.round(centerX-w/2),Math.round(top),Math.round(w),Math.round(h));
-}
-function drawUploadedBase(ctx,x,y,s,dir,step,scale){
- const direction=baseDirections[dir]||'front',moving=step>0;
- const gait=moving?Math.floor(performance.now()/140)%4:0;
- const pose=moving?(['idle_1','walk_1','idle_2','walk_2'][gait]):'idle_1';
- const img=baseFrames[direction+'_'+pose];
- const fallback=baseFrames[direction+'_idle_1'];
- const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
- if(!chosen)return false;
- // All source PNGs use the same rectangular cell. Keep the character centered and feet anchored.
- const size=scale*64,aspect=chosen.naturalWidth/chosen.naturalHeight;
- ctx.imageSmoothingEnabled=false;
- const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
- if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
- ctx.drawImage(coloredBase(chosen,s,direction,pose),left,top,width,height);
- drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
- return true;
-}
-function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,s,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
-const px=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x+a*scale),Math.round(y+b*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
-const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
-const walk=step?2:0;
-px(-8,6+walk,6,8,s.shoeColor||'#25272d');px(2,6-walk,6,8,s.shoeColor||'#25272d');
-px(-8,-8,16,15,bottom);if(s.bottom===1){px(-8,2,6,6,skin);px(2,2,6,6,skin)}if(s.bottom===2){px(-10,0,20,8,bottom)}
-px(-10,-13,20,15,shirt);px(-12,-10,4,12,skin);px(8,-10,4,12,skin);
-if(s.shirt===1){px(-2,-13,4,15,'#e5dfd0')}if(s.shirt===2){px(-10,-16,20,4,shirt)}if(s.shirt===3){px(-1,-10,2,10,'#e9ddc9');px(-1,-5,2,2,'#5a5b5b')}if(s.shirt===4){px(-7,-11,14,3,'#ffffff35')}
-px(-7,-29,14,16,skin);px(-9,-30,18,6,hair);
-if(s.hairStyle===1){px(-10,-26,4,15,hair);px(6,-26,4,15,hair)}
-if(s.hairStyle===2){px(-11,-27,5,29,hair);px(6,-27,5,29,hair)}
-if(s.hairStyle===3){for(let i=0;i<5;i++)px(-12+i*5,-33+(i%2)*2,6,7,hair);px(-12,-27,4,11,hair);px(8,-27,4,11,hair)}
-if(s.hairStyle===4){px(7,-25,7,17,hair);px(11,-13,4,9,hair)}
-if(s.hairStyle===5){px(-8,-30,16,3,hair)}
-if(dir==='down'){px(-4,-22,3,3,palettes.eyes[s.eyes]);px(2,-22,3,3,palettes.eyes[s.eyes]);px(-1,-17,2,1,'#a16d5c')}
-if(dir==='left'||dir==='right'){px(dir==='left'?-5:3,-22,3,3,palettes.eyes[s.eyes])}
-if(dir==='up'){px(-7,-27,14,12,hair)}
-}
-function renderPreview(){modal.querySelector('#hairPreviewName').textContent=hairstyleLabels[state.hairStyle]||'Short';const p=preview.getContext('2d');p.clearRect(0,0,120,144);p.fillStyle='#a9cba8';p.fillRect(0,0,120,144);p.fillStyle='#91b491';p.fillRect(0,116,120,28);draw(p,60,119,state,dirs[facing],0,1.45)}
-for(const k of Object.keys(defaults)){const el=modal.querySelector('#c-'+k);if(!el)continue;el.value=state[k];el.addEventListener('input',()=>{state[k]=typeof defaults[k]==='number'?Number(el.value):el.value;renderPreview()})}
-modal.querySelector('#rotateSprite').onclick=()=>{facing=(facing+1)%4;renderPreview()};
-function changeHair(delta){state.hairStyle=(Number(state.hairStyle)+delta+hairstyleLabels.length)%hairstyleLabels.length;modal.querySelector('#c-hairStyle').value=state.hairStyle;renderPreview()}
-modal.querySelector('#hairPrevious').onclick=()=>changeHair(-1);
-modal.querySelector('#hairNext').onclick=()=>changeHair(1);
-function open(){for(const k of Object.keys(defaults)){const el=modal.querySelector('#c-'+k);if(el)el.value=state[k]}modal.style.display='flex';renderPreview()}
+function render(){const ctx=preview.getContext('2d');ctx.clearRect(0,0,120,144);ctx.fillStyle='#b4d1b3';ctx.fillRect(0,0,120,144);draw(ctx,60,120,state,'down',0,1.8)}
+function open(){modal.querySelector('#c-name').value=state.name;modal.querySelector('#c-pronouns').value=state.pronouns;modal.style.display='flex';render()}
 function close(){modal.style.display='none';window.dispatchEvent(new Event('roots-character-close'))}
-modal.querySelector('#creatorSave').onclick=()=>{state.name=state.name.trim()||'Director';localStorage.setItem(SK,JSON.stringify(state));close()};
-modal.querySelector('#creatorCancel').onclick=()=>{if(localStorage.getItem(SK))close();else{state={...defaults};localStorage.setItem(SK,JSON.stringify(state));close()}};
-window.RootsCharacter={draw,get:()=>state,open,exists:()=>!!localStorage.getItem(SK)};
-if(!localStorage.getItem(SK))open();else close();
+modal.querySelector('#creatorSave').onclick=()=>{state.name=modal.querySelector('#c-name').value.trim()||'Director';state.pronouns=modal.querySelector('#c-pronouns').value;localStorage.setItem(KEY,JSON.stringify(state));close()};
+modal.querySelector('#creatorCancel').onclick=()=>{if(!localStorage.getItem(KEY))localStorage.setItem(KEY,JSON.stringify(state));close()};
+window.RootsCharacter={draw,get:()=>state,open,exists:()=>!!localStorage.getItem(KEY)};
+if(!localStorage.getItem(KEY))open();
 })();
