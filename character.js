@@ -22,7 +22,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing sprites saved · fitting in progress</p></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing fit preview · T-shirt and pants</p></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
@@ -99,9 +99,32 @@ function croppedClothing(img){
  const result={x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1};
  clothingCropCache.set(img,result);return result;
 }
-// Clothing overlays are temporarily disabled until each frame is aligned to the body.
-// The uploaded clothing PNGs are preserved in assets/clothes.
-function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){}
+function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
+ const pieces=[
+  ['pants',s.bottom===0?palettes.clothes[s.bottomColor]:null,.31,.32,.66],
+  ['tshirt',s.shirt===0?palettes.clothes[s.shirtColor]:null,.39,.29,.43]
+ ];
+ for(const [kind,color,width,height,top] of pieces){
+  if(color===null)continue;
+  const frames=clothingFrames[kind],img=frames.get(direction+'_'+pose);
+  const chosen=img?.naturalWidth?img:frames.get(direction+'_idle_1');
+  if(!chosen?.naturalWidth)continue;
+  const crop=croppedClothing(chosen);if(!crop)continue;
+  const w=bw*width,h=bh*height;
+  const tinted=tintedClothing(chosen,color);
+  ctx.drawImage(tinted,crop.x,crop.y,crop.w,crop.h,Math.round(bx+(bw-w)/2),Math.round(by+bh*top),Math.round(w),Math.round(h));
+ }
+ // Simple black shoes stay neutral regardless of pants color.
+ ctx.fillStyle='#25272d';
+ const shoeY=Math.round(by+bh*.965),shoeH=Math.max(2,Math.round(bh*.033));
+ if(direction==='front'||direction==='back'){
+  const shoeW=Math.max(3,Math.round(bw*.115));
+  ctx.fillRect(Math.round(bx+bw*.39),shoeY,shoeW,shoeH);
+  ctx.fillRect(Math.round(bx+bw*.54),shoeY,shoeW,shoeH);
+ }else{
+  ctx.fillRect(Math.round(bx+bw*.45),shoeY,Math.max(4,Math.round(bw*.20)),shoeH);
+ }
+}
 
 const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
 const hairFrames=new Map();
