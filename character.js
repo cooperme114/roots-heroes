@@ -66,11 +66,41 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
 const recoloredBodies=new WeakMap();
 // Pixel-level clothing mask. Every source animation frame is masked against
 // its own opaque silhouette, so no separately positioned sprites can drift.
-function coloredBase(img,s,direction='front'){
+// Hand-traced from the original 1536x1024 body sheet: four 384x256 cells per row.
+// Coordinates are relative to the original cell and converted to each cropped sprite.
+const bodySheetBounds={
+ front:[[137,23,247,245],[137,23,247,245],[137,23,247,245],[137,23,247,245]],
+ left:[[142,22,241,244],[136,22,245,241],[142,22,241,244],[141,22,242,241]],
+ right:[[143,21,241,244],[140,21,252,240],[142,21,242,244],[141,21,244,242]],
+ back:[[137,21,247,242],[137,21,247,242],[137,21,247,242],[137,21,247,242]]
+};
+const bodyPaintShapes={
+ front:{
+  shirt:[[[170,118],[213,118],[223,145],[215,179],[216,190],[169,190],[169,177],[160,151]],[[154,133],[173,132],[172,165],[145,163]],[[215,131],[231,134],[239,162],[216,164]]],
+  pants:[[[169,184],[217,184],[217,224],[196,224],[193,214],[189,224],[166,224]]],
+  shoes:[[[160,226],[194,226],[194,242],[157,242]],[[196,226],[225,226],[225,242],[196,242]]]
+ },
+ left:{
+  shirt:[[[173,118],[191,117],[201,136],[202,185],[171,185],[170,137]]],
+  pants:[[[172,182],[200,182],[202,217],[170,217]]],
+  shoes:[[[158,219],[212,219],[212,245],[157,245]]]
+ },
+ right:{
+  shirt:[[[184,117],[201,117],[210,137],[210,186],[180,186],[180,134]]],
+  pants:[[[179,181],[210,181],[211,217],[178,217]]],
+  shoes:[[[157,218],[224,218],[224,245],[157,245]]]
+ },
+ back:{
+  shirt:[[[169,119],[215,119],[223,144],[218,187],[166,187],[161,144]],[[145,139],[170,133],[168,166],[144,163]],[[215,133],[240,140],[239,165],[217,165]]],
+  pants:[[[168,183],[217,183],[220,225],[164,225]]],
+  shoes:[[[158,225],[225,225],[225,243],[158,243]]]
+ }
+};
+function coloredBase(img,s,direction='front',pose='idle_1'){
  const shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0];
  const pants=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
  const shoes=s.shoeColor||'#25272d';
- const key=[shirt,pants,shoes,direction].join('|');
+ const key=[shirt,pants,shoes,direction,pose].join('|');
  let variants=recoloredBodies.get(img);
  if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
  if(variants.has(key))return variants.get(key);
@@ -83,36 +113,44 @@ function coloredBase(img,s,direction='front'){
   minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
  }
  if(maxY<minY)return img;
- const w=maxX-minX+1,h=maxY-minY+1;
+ const poseIndex={idle_1:0,walk_1:1,idle_2:2,walk_2:3}[pose]??0;
+ const bounds=bodySheetBounds[direction][poseIndex],sourceWidth=bounds[2]-bounds[0],sourceHeight=bounds[3]-bounds[1];
  const colors=[shirt,pants,shoes].map(color=>[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)));
- // These are masks of the body itself, not scaled garment overlays.
- // Side-facing bodies have a narrower torso and legs than front/back bodies.
- const side=direction==='left'||direction==='right';
- const torso=side?[.37,.66]:[.31,.69];
- const legs=side?[.36,.67]:[.30,.70];
- const rowMask=(ry,rx)=>{
-  if(ry>=.935&&ry<=1&&rx>=.22&&rx<=.79)return 2;
-  if(ry>=.715&&ry<.935&&rx>=legs[0]&&rx<=legs[1])return 1;
-  if(ry>=.495&&ry<.715&&rx>=torso[0]&&rx<=torso[1])return 0;
-  if(ry>=.53&&ry<.62&&rx>=.20&&rx<torso[0]&&!side)return 0;
-  if(ry>=.53&&ry<.62&&rx>torso[1]&&rx<=.80&&!side)return 0;
-  return -1;
+ const shapes=bodyPaintShapes[direction];
+ const paint=(polygons,rgb)=>{
+  const mask=document.createElement('canvas');mask.width=layer.width;mask.height=layer.height;
+  const mg=mask.getContext('2d',{willReadFrequently:true});mg.fillStyle='#fff';
+  for(const polygon of polygons){
+   mg.beginPath();
+   polygon.forEach(([px,py],i)=>{
+    const x=minX+(px-bounds[0])/sourceWidth*(maxX-minX+1);
+    const y=minY+(py-bounds[1])/sourceHeight*(maxY-minY+1);
+    if(i===0)mg.moveTo(x,y);else mg.lineTo(x,y);
+   });
+   mg.closePath();mg.fill();
+  }
+  const md=mg.getImageData(0,0,layer.width,layer.height).data;
+  for(let i=0;i<d.length;i+=4){
+   if(md[i+3]<128||d[i+3]<170)continue;
+   const r=d[i],green=d[i+1],blue=d[i+2];
+   if(Math.max(r,green,blue)<70)continue; // retain pixel outlines
+   const shade=Math.max(r,green,blue)<140?.82:Math.max(r,green,blue)<190?.92:1;
+   for(let j=0;j<3;j++)d[i+j]=Math.round(rgb[j]*shade);
+  }
  };
- for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
-  const i=(y*layer.width+x)*4;
-  if(d[i+3]<180)continue;
-  const rx=(x-minX+.5)/w,ry=(y-minY+.5)/h;
-  const region=rowMask(ry,rx);
-  if(region<0)continue;
-  const r=d[i],green=d[i+1],blue=d[i+2];
-  // Preserve original black outlines, but cover both skin and gray underwear
-  // with the chosen clothing color inside the silhouette.
-  if(Math.max(r,green,blue)<65)continue;
-  const rgb=colors[region];
-  // Uniform chosen hue with only restrained pixel-art shadows.
-  const shade=Math.max(r,green,blue)<130?.78:Math.max(r,green,blue)<185?.9:1;
-  for(let channel=0;channel<3;channel++)d[i+channel]=Math.round(rgb[channel]*shade);
+ const moving=poseIndex===1||poseIndex===3;
+ const clothing={shirt:shapes.shirt,pants:shapes.pants,shoes:shapes.shoes};
+ if(moving&&(direction==='left'||direction==='right')){
+  // Separate moving-leg coverage rather than painting a stationary trouser box.
+  clothing.pants=direction==='left'
+   ?[[[171,183],[201,183],[209,200],[225,218],[213,228],[191,209],[164,229],[151,218]]]
+   :[[[180,182],[211,182],[218,204],[239,222],[222,232],[196,210],[162,230],[151,219]]];
+  clothing.shoes=direction==='left'
+   ?[[[147,221],[171,220],[169,241],[137,241]],[[206,220],[229,220],[229,244],[203,244]]]
+   :[[[147,220],[170,220],[171,244],[139,244]],[[219,220],[250,220],[250,244],[218,244]]];
  }
+ // Shoes, pants, then shirt, so shirt covers the waistband.
+ paint(clothing.shoes,colors[2]);paint(clothing.pants,colors[1]);paint(clothing.shirt,colors[0]);
  g.putImageData(pixels,0,0);variants.set(key,layer);return layer;
 }
 
@@ -182,7 +220,7 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
  if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
- ctx.drawImage(coloredBase(chosen,s,direction),left,top,width,height);
+ ctx.drawImage(coloredBase(chosen,s,direction,pose),left,top,width,height);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
