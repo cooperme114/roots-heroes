@@ -72,46 +72,40 @@ function coloredBase(img,s){
  let variants=recoloredBodies.get(img);
  if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
  if(variants.has(key))return variants.get(key);
- const layer=document.createElement('canvas');
- layer.width=img.naturalWidth;layer.height=img.naturalHeight;
+ const layer=document.createElement('canvas');layer.width=img.naturalWidth;layer.height=img.naturalHeight;
  const g=layer.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
  const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
  let minX=layer.width,minY=layer.height,maxX=-1,maxY=-1;
  for(let y=0;y<layer.height;y++)for(let x=0;x<layer.width;x++){
-  const i=(y*layer.width+x)*4;
-  if(d[i+3]<100)continue;
-  minX=Math.min(minX,x);maxX=Math.max(maxX,x);
-  minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+  const i=(y*layer.width+x)*4;if(d[i+3]<100)continue;
+  minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
  }
  if(maxY<minY)return img;
- const height=maxY-minY+1;
- const shirtRGB=[1,3,5].map((n,i)=>parseInt(shirt.slice(n,n+2),16));
- const pantsRGB=[1,3,5].map((n,i)=>parseInt(pants.slice(n,n+2),16));
- const shoesRGB=[1,3,5].map((n,i)=>parseInt(shoes.slice(n,n+2),16));
+ const w=maxX-minX+1,h=maxY-minY+1;
+ const rgbColors=[shirt,pants,shoes].map(color=>[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)));
  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
   const i=(y*layer.width+x)*4;
-  if(d[i+3]<100)continue;
+  if(d[i+3]<120)continue;
   const r=d[i],green=d[i+1],blue=d[i+2];
-  const hi=Math.max(r,green,blue),lo=Math.min(r,green,blue);
-  const relativeY=(y-minY)/height;
-  // The base character's vest and shorts are neutral gray; skin is warm orange.
-  // Leave outlines, skin, eyes, and hair pixels completely unchanged.
-  // The source underwear is gray, while skin has a pronounced warm/red cast.
-  // Detect neutral fabric rather than requiring almost identical RGB channels.
-  const neutral=Math.abs(r-green)<48&&Math.abs(green-blue)<48;
-  if(!neutral||hi<65||hi>245)continue;
-  let rgb;
-  if(relativeY>=.86&&relativeY<.99)rgb=shoesRGB;
-  else if(relativeY>=.51&&relativeY<.755)rgb=shirtRGB;
-  else if(relativeY>=.755&&relativeY<.86)rgb=pantsRGB;
-  else continue;
-  const shade=Math.max(.52,Math.min(1.15,(r+green+blue)/570));
-  for(let channel=0;channel<3;channel++)d[i+channel]=Math.round(Math.min(255,rgb[channel]*shade));
+  // Keep dark original pixel outlines; color over the body inside them.
+  if(Math.max(r,green,blue)<80)continue;
+  const rx=(x-minX+.5)/w,ry=(y-minY+.5)/h;
+  let region=-1;
+  // T-shirt torso plus short sleeves, leaving the hands exposed.
+  if(ry>=.505&&ry<.73&&rx>=.32&&rx<=.68)region=0;
+  else if(ry>=.545&&ry<.635&&((rx>=.22&&rx<.36)||(rx>.64&&rx<=.78)))region=0;
+  // Long trousers follow the leg silhouette on every source animation frame.
+  else if(ry>=.73&&ry<.935&&rx>=.29&&rx<=.71)region=1;
+  else if(ry>=.935&&rx>=.26&&rx<=.74)region=2;
+  if(region<0)continue;
+  const rgb=rgbColors[region];
+  const brightness=(r+green+blue)/3;
+  const shade=brightness<125?.63:brightness<175?.79:brightness<220?.93:1.05;
+  for(let channel=0;channel<3;channel++)d[i+channel]=Math.min(255,Math.round(rgb[channel]*shade));
  }
- g.putImageData(pixels,0,0);
- variants.set(key,layer);
- return layer;
+ g.putImageData(pixels,0,0);variants.set(key,layer);return layer;
 }
+
 const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
 const hairFrames=new Map();
 const hairOffsets={};
