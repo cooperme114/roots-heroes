@@ -75,8 +75,8 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  if(!chosen)return;
  const offset=hairOffsets[name+'_'+direction]||[0,0];
  const braided=name==='braided';
- const hairW=baseW*(braided?0.43:0.55),hairH=baseH*(braided?0.80:0.55);
- ctx.drawImage(chosen,Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96),Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.025,right:-0.025,back:-0.045}[direction]??0):({front:-0.025,left:0.015,right:0.015,back:-0.045}[direction]??0))+offset[1]*baseH/128),Math.round(hairW),Math.round(hairH));
+ const hairW=baseW*(braided?0.53:0.55),hairH=baseH*(braided?1.0:0.55);
+ ctx.drawImage(chosen,Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96),Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):({front:-0.025,left:0.015,right:0.015,back:-0.045}[direction]??0))+offset[1]*baseH/128),Math.round(hairW),Math.round(hairH));
 }
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
@@ -89,9 +89,8 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const size=scale*64,aspect=chosen.naturalWidth/chosen.naturalHeight;
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
- if(s.hairStyle===7&&direction==='back')drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  ctx.drawImage(chosen,left,top,width,height);
- if(!(s.hairStyle===7&&direction==='back'))drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
+ drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
 function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,s,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
