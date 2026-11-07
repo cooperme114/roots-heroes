@@ -75,7 +75,7 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  if(!chosen)return;
  const offset=hairOffsets[name+'_'+direction]||[0,0];
  const hairW=baseW*0.55,hairH=baseH*0.55;
- ctx.drawImage(chosen,Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96),Math.round(baseY-baseH*0.12+offset[1]*baseH/128),Math.round(hairW),Math.round(hairH));
+ ctx.drawImage(chosen,Math.round(baseX+(baseW-hairW)/2+offset[0]*baseW/96),Math.round(baseY+baseH*({front:-0.025,left:0.015,right:0.015,back:-0.045}[direction]??0)+offset[1]*baseH/128),Math.round(hairW),Math.round(hairH));
 }
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
