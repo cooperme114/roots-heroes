@@ -1,8 +1,9 @@
 (()=>{'use strict';
 const SK='roots-heroes-character-v1';
-const defaults={name:'Director',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0};
+const defaults={name:'Director',pronouns:'they/them',skin:3,hairStyle:0,hairColor:1,eyes:1,shirt:0,shirtColor:0,bottom:0,bottomColor:0,shoeColor:'#25272d'};
 const palettes={skin:['#43271f','#60392b','#7d4c36','#9c6144','#b87c57','#ce9870','#e4b38d','#f2d0af'],hair:['#28242b','#5c382c','#a16a3c','#e4b55f','#bcb9b4','#a44a3e','#523b75','#2c6680'],eyes:['#49372d','#3d6c9c','#51865a','#806049','#584a87'],clothes:['#d6a354','#7ca3c7','#b6759e','#6a9c81','#a68bcb','#e6d8c1','#424d61','#cf7565']};
 let state={...defaults};try{const saved=JSON.parse(localStorage.getItem(SK));if(saved)state={...defaults,...saved}}catch(e){}
+for(const k of ['shirtColor','bottomColor'])if(typeof state[k]==='number')state[k]=palettes.clothes[state[k]]||palettes.clothes[0];
 const modal=document.createElement('div');modal.id='characterCreator';modal.innerHTML=`
 <style>
 #characterCreator{position:fixed;inset:0;z-index:20;background:#111d25eF;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
@@ -15,6 +16,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 #characterCreator .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 #characterCreator label{display:block;font-size:12px;color:#e9d5aa}
 #characterCreator input,#characterCreator select{width:100%;margin-top:4px;padding:9px;border:1px solid #789195;border-radius:6px;background:#15272d;color:white;font:inherit}
+#characterCreator input[type=color]{height:40px;padding:3px;cursor:pointer}
 #characterCreator .buttons{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
 #characterCreator button{background:#e8ca87;color:#25343c;border:0;border-radius:7px;padding:11px 18px;font-weight:750;cursor:pointer}
 #characterCreator button.secondary{background:#4c6971;color:white}
@@ -22,7 +24,7 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 @media(max-width:640px){#characterCreator .layout{grid-template-columns:1fr}#characterCreator .preview{display:flex;align-items:center;justify-content:center;gap:12px}#characterCreator canvas{width:110px;height:132px}#characterCreator .fields{grid-template-columns:1fr 1fr}}
 </style>
 <div class="creator"><h2>Create Your Director</h2><p class="hint">Choose how you want to look in Roots Heroes. You can change your appearance later.</p><div class="layout">
-<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Clothing colors follow the original body animations</p></div></div>
+<div class="preview"><div><canvas id="creatorPreview" width="120" height="144"></canvas><p id="hairPreviewName">Short</p><div class="hair-controls"><button type="button" id="hairPrevious">◀ Previous</button><button type="button" id="hairNext">Next ▶</button></div><button type="button" id="rotateSprite">Turn ↻</button><p>Pick any shirt, pants, and shoe colors</p></div></div>
 <div class="fields">
 <label>Name<input id="c-name" maxlength="22" autocomplete="off"></label>
 
@@ -32,24 +34,25 @@ const modal=document.createElement('div');modal.id='characterCreator';modal.inne
 <label>Hair color<select id="c-hairColor"></select></label>
 <label>Eye color<select id="c-eyes"></select></label>
 <label>Shirt style<select id="c-shirt"><option value="0">T-shirt</option><option value="1">Jacket</option><option value="2">Hoodie</option><option value="3">Button-up</option><option value="4">Sweater</option></select></label>
-<label>Shirt color<select id="c-shirtColor"></select></label>
+<label>Shirt color<input type="color" id="c-shirtColor"></label>
 <label>Bottoms<select id="c-bottom"><option value="0">Pants</option><option value="1">Shorts</option><option value="2">Skirt</option></select></label>
-<label>Bottom color<select id="c-bottomColor"></select></label>
+<label>Pants color<input type="color" id="c-bottomColor"></label>
+<label>Shoe color<input type="color" id="c-shoeColor"></label>
 </div></div><div class="buttons"><button class="secondary" id="creatorCancel" type="button">Cancel</button><button id="creatorSave" type="button">Start Exploring</button></div></div>`;
 document.body.appendChild(modal);
 const selectOptions=(id,labels)=>{const el=modal.querySelector('#c-'+id);labels.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v;el.appendChild(o)})};
 selectOptions('skin',['Skin 1','Skin 2','Skin 3','Skin 4','Skin 5','Skin 6','Skin 7','Skin 8']);
 selectOptions('hairColor',['Black','Dark brown','Chestnut','Blonde','Silver','Auburn','Purple','Blue']);
 selectOptions('eyes',['Brown','Blue','Green','Hazel','Violet']);
-selectOptions('shirtColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
-selectOptions('bottomColor',['Gold','Blue','Pink','Green','Purple','Cream','Charcoal','Coral']);
+
+
 const hairstyleLabels=['Short','Messy','Ponytail','Bun','Long straight','Wavy','Curly','Braided'];let facing=0;const dirs=['down','right','up','left'];const preview=modal.querySelector('#creatorPreview');
 const sheets={};let loaded=0;for(const type of ['body','hair','tops','bottoms']){const im=new Image();im.onload=()=>{loaded++;renderPreview()};im.src='assets/player/'+type+'.svg';sheets[type]=im}
 const cache=new Map();
 function tile(type,row,d,step,color){const key=[type,row,d,step,color].join(':');if(cache.has(key))return cache.get(key);const im=sheets[type];if(!im.complete||!im.naturalWidth)return null;const tile=document.createElement('canvas');tile.width=32;tile.height=48;const cc=tile.getContext('2d',{willReadFrequently:true});cc.drawImage(im,(d*3+step)*32,row*48,32,48,0,0,32,48);
 if(color&&type!=='body'){const data=cc.getImageData(0,0,32,48),rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));for(let k=0;k<data.data.length;k+=4){if(data.data[k+3]===0)continue;const r=data.data[k],g=data.data[k+1],b=data.data[k+2];if(r+g+b<160||r+g+b>650)continue;const brightness=Math.max(.55,Math.min(1.25,(r+g+b)/370));for(let j=0;j<3;j++)data.data[k+j]=Math.min(255,Math.round(rgb[j]*brightness))}cc.putImageData(data,0,0)}
 cache.set(key,tile);return tile}
-function drawSheet(ctx,x,y,s,dir,step,scale){const d={down:0,left:1,right:2,up:3}[dir]??0;const layers=[['body',Math.min(7,s.skin),null],['bottoms',s.bottom,palettes.clothes[s.bottomColor]],['tops',s.shirt,palettes.clothes[s.shirtColor]],['hair',s.hairStyle,palettes.hair[s.hairColor]]];for(const [type,row,color] of layers){const tileCanvas=tile(type,row,d,step?1:0,color);if(!tileCanvas)return false;ctx.drawImage(tileCanvas,Math.round(x-16*scale),Math.round(y-34*scale),32*scale,48*scale)}return true}
+function drawSheet(ctx,x,y,s,dir,step,scale){const d={down:0,left:1,right:2,up:3}[dir]??0;const layers=[['body',Math.min(7,s.skin),null],['bottoms',s.bottom,typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]],['tops',s.shirt,typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]],['hair',s.hairStyle,palettes.hair[s.hairColor]]];for(const [type,row,color] of layers){const tileCanvas=tile(type,row,d,step?1:0,color);if(!tileCanvas)return false;ctx.drawImage(tileCanvas,Math.round(x-16*scale),Math.round(y-34*scale),32*scale,48*scale)}return true}
 
 const baseFrames={};let baseReady=false;
 const baseDirections={down:'front',left:'left',right:'right',up:'back'};
@@ -62,9 +65,10 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
 // drawing separately sized overlays. This keeps every walking frame aligned.
 const recoloredBodies=new WeakMap();
 function coloredBase(img,s){
- const shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0];
- const pants=palettes.clothes[s.bottomColor]||palettes.clothes[0];
- const key=shirt+'|'+pants;
+ const shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0];
+ const pants=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
+ const shoes=s.shoeColor||'#25272d';
+ const key=shirt+'|'+pants+'|'+shoes;
  let variants=recoloredBodies.get(img);
  if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
  if(variants.has(key))return variants.get(key);
@@ -83,6 +87,7 @@ function coloredBase(img,s){
  const height=maxY-minY+1;
  const shirtRGB=[1,3,5].map((n,i)=>parseInt(shirt.slice(n,n+2),16));
  const pantsRGB=[1,3,5].map((n,i)=>parseInt(pants.slice(n,n+2),16));
+ const shoesRGB=[1,3,5].map((n,i)=>parseInt(shoes.slice(n,n+2),16));
  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
   const i=(y*layer.width+x)*4;
   if(d[i+3]<100)continue;
@@ -91,9 +96,10 @@ function coloredBase(img,s){
   const relativeY=(y-minY)/height;
   // The base character's vest and shorts are neutral gray; skin is warm orange.
   // Leave outlines, skin, eyes, and hair pixels completely unchanged.
-  if(hi-lo>24||hi<75||hi>245)continue;
+  if(hi-lo>24||hi<55||hi>245)continue;
   let rgb;
-  if(relativeY>.48&&relativeY<.755)rgb=shirtRGB;
+  if(relativeY>=.88&&relativeY<.98)rgb=shoesRGB;
+  else if(relativeY>.48&&relativeY<.755)rgb=shirtRGB;
   else if(relativeY>=.755&&relativeY<.88)rgb=pantsRGB;
   else continue;
   const shade=Math.max(.42,Math.min(1.15,(r+green+blue)/570));
@@ -175,9 +181,9 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
 }
 function draw(ctx,x,y,s,dir='down',step=0,scale=1){if(baseReady&&drawUploadedBase(ctx,x,y,s,dir,step,scale))return;if(loaded===4){drawSheet(ctx,x,y,s,dir,step,scale);return}
 const px=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x+a*scale),Math.round(y+b*scale),Math.ceil(w*scale),Math.ceil(h*scale))};
-const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=palettes.clothes[s.bottomColor]||palettes.clothes[0];
+const skin=palettes.skin[s.skin]||palettes.skin[2],hair=palettes.hair[s.hairColor]||palettes.hair[1],shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0],bottom=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
 const walk=step?2:0;
-px(-8,6+walk,6,8,'#3b3a41');px(2,6-walk,6,8,'#3b3a41');
+px(-8,6+walk,6,8,s.shoeColor||'#25272d');px(2,6-walk,6,8,s.shoeColor||'#25272d');
 px(-8,-8,16,15,bottom);if(s.bottom===1){px(-8,2,6,6,skin);px(2,2,6,6,skin)}if(s.bottom===2){px(-10,0,20,8,bottom)}
 px(-10,-13,20,15,shirt);px(-12,-10,4,12,skin);px(8,-10,4,12,skin);
 if(s.shirt===1){px(-2,-13,4,15,'#e5dfd0')}if(s.shirt===2){px(-10,-16,20,4,shirt)}if(s.shirt===3){px(-1,-10,2,10,'#e9ddc9');px(-1,-5,2,2,'#5a5b5b')}if(s.shirt===4){px(-7,-11,14,3,'#ffffff35')}
