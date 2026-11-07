@@ -110,7 +110,7 @@ function croppedClothing(img){
 }
 function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
  const pieces=[
-  ['pants',s.bottom===0?palettes.clothes[s.bottomColor]:null,.214,.275,.677],
+  ['pants',s.bottom===0?palettes.clothes[s.bottomColor]:null,.198,.292,.660],
   ['tshirt',s.shirt===0?palettes.clothes[s.shirtColor]:null,.261,.276,.445]
  ];
  for(const [kind,color,width,height,top] of pieces){
