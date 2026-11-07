@@ -84,22 +84,6 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
   ctx.drawImage(chosen,0,drawY,Math.round(hairW),Math.round(hairH));ctx.restore();
  }else ctx.drawImage(chosen,drawX,drawY,Math.round(hairW),Math.round(hairH));
 }
-function drawBraidedExtensions(ctx,bx,by,bw,bh,direction){
- // Small pixel-art braid strands, positioned relative to the full body rectangle.
- const unit=Math.max(1,Math.round(bh/64));
- const rect=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.round(bx+x*bw/96),Math.round(by+y*bh/128),Math.max(unit,Math.round(w*bw/96)),Math.max(unit,Math.round(h*bh/128)))};
- const dark='#392017',mid='#74432b',light='#a66a45';
- if(direction==='left'||direction==='right'){
-  // Braid sits at the back of the head, not over the face.
-  const x=direction==='right'?18:68;
-  rect(x,39,10,23,dark);rect(x+2,40,6,7,mid);rect(x+1,48,8,6,light);
-  rect(x+2,56,7,8,mid);rect(x+3,64,5,7,dark);
-  rect(x+3,69,4,4,light);
- }else if(direction==='front'){
-  // Ends of the two front locks extend slightly below the jaw.
-  for(const x of [24,68]){rect(x,38,6,15,dark);rect(x+1,40,4,10,mid);rect(x+2,50,3,5,light)}
- }
-}
 function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const direction=baseDirections[dir]||'front',moving=step>0;
  const pose=moving?(Math.floor(performance.now()/180)%2?'walk_1':'walk_2'):'idle_1';
@@ -111,7 +95,6 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  const size=scale*64,aspect=chosen.naturalWidth/chosen.naturalHeight;
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
- if(s.hairStyle===7&&direction!=='back')drawBraidedExtensions(ctx,left,top,width,height,direction);
  ctx.drawImage(chosen,left,top,width,height);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
