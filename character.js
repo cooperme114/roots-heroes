@@ -78,7 +78,9 @@ const hairstyleFits={
 };
 function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  const name=hairNames[s.hairStyle]||'short';
- const sourceDirection=name==='braided'&&direction==='right'?'left':direction;
+ const mirroredRightStyles=['braided','ponytail','long_straight','wavy','curly'];
+ const mirrorRight=direction==='right'&&mirroredRightStyles.includes(name);
+ const sourceDirection=mirrorRight?'left':direction;
  const img=hairFrames.get(name+'_'+sourceDirection+'_'+pose);
  const fallback=hairFrames.get(name+'_'+sourceDirection+'_idle_1');
  const chosen=img?.naturalWidth?img:fallback?.naturalWidth?fallback:null;
@@ -89,7 +91,7 @@ function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  const hairW=baseW*(braided?(direction==='front'?0.47:0.53):fit[0]),hairH=baseH*(braided?(direction==='front'?0.92:1.0):fit[1]);
  const drawX=Math.round(baseX+(baseW-hairW)/2+(braided?0:fit[2]*baseW)+offset[0]*baseW/96);
  const drawY=Math.round(baseY+baseH*(braided?({front:-0.045,left:-0.04,right:-0.04,back:-0.045}[direction]??0):fit[3])+offset[1]*baseH/128);
- if(braided&&direction==='right'){
+ if(mirrorRight){
   ctx.save();ctx.translate(drawX+hairW,0);ctx.scale(-1,1);
   ctx.drawImage(chosen,0,drawY,Math.round(hairW),Math.round(hairH));ctx.restore();
  }else ctx.drawImage(chosen,drawX,drawY,Math.round(hairW),Math.round(hairH));
