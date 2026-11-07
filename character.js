@@ -66,23 +66,32 @@ for(const kind of ['tshirt','pants'])for(const direction of ['front','left','rig
  img.src='assets/clothes/'+kind+'_'+key+'.png';
 }
 const clothingTintCache=new WeakMap();
-function tintedClothing(img,color){
+function tintedClothing(img,color,kind){
  if(!color)return img;
  let colors=clothingTintCache.get(img);if(!colors){colors=new Map();clothingTintCache.set(img,colors)}
- if(colors.has(color))return colors.get(color);
+ const cacheKey=kind+':'+color;
+ if(colors.has(cacheKey))return colors.get(cacheKey);
  const layer=document.createElement('canvas');layer.width=img.naturalWidth;layer.height=img.naturalHeight;
  const g=layer.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
  const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
  const rgb=[1,3,5].map((_,i)=>parseInt(color.slice(1+i*2,3+i*2),16));
+ const crop=kind==='pants'?croppedClothing(img):null;
  for(let i=0;i<d.length;i+=4){
   if(d[i+3]<15)continue;
+  const y=Math.floor(i/4/layer.width);
+  if(crop&&y>=crop.y+crop.h*.79){
+   // The bottom of each pant leg becomes the shoe, keeping its original silhouette.
+   const shade=d[i]<100?0.65:1;
+   d[i]=Math.round(34*shade);d[i+1]=Math.round(36*shade);d[i+2]=Math.round(42*shade);
+   continue;
+  }
   const r=d[i],gr=d[i+1],b=d[i+2];
   // Preserve dark pixel outlines; tint only the white and gray fabric.
   if(Math.min(r,gr,b)<115||Math.max(r,gr,b)-Math.min(r,gr,b)>35)continue;
   const shade=Math.max(.55,Math.min(1.18,(r+gr+b)/660));
   for(let j=0;j<3;j++)d[i+j]=Math.round(Math.min(255,rgb[j]*shade));
  }
- g.putImageData(pixels,0,0);colors.set(color,layer);return layer;
+ g.putImageData(pixels,0,0);colors.set(cacheKey,layer);return layer;
 }
 const clothingCropCache=new WeakMap();
 function croppedClothing(img){
@@ -111,19 +120,10 @@ function drawClothing(ctx,bx,by,bw,bh,s,direction,pose){
   if(!chosen?.naturalWidth)continue;
   const crop=croppedClothing(chosen);if(!crop)continue;
   const w=bw*width,h=bh*height;
-  const tinted=tintedClothing(chosen,color);
+  const tinted=tintedClothing(chosen,color,kind);
   ctx.drawImage(tinted,crop.x,crop.y,crop.w,crop.h,Math.round(bx+(bw-w)/2),Math.round(by+bh*top),Math.round(w),Math.round(h));
  }
- // Simple black shoes stay neutral regardless of pants color.
- ctx.fillStyle='#25272d';
- const shoeY=Math.round(by+bh*.965),shoeH=Math.max(2,Math.round(bh*.033));
- if(direction==='front'||direction==='back'){
-  const shoeW=Math.max(3,Math.round(bw*.115));
-  ctx.fillRect(Math.round(bx+bw*.39),shoeY,shoeW,shoeH);
-  ctx.fillRect(Math.round(bx+bw*.54),shoeY,shoeW,shoeH);
- }else{
-  ctx.fillRect(Math.round(bx+bw*.45),shoeY,Math.max(4,Math.round(bw*.20)),shoeH);
- }
+
 }
 
 const hairNames=['short','messy','ponytail','bun','long_straight','wavy','curly','braided'];
