@@ -64,11 +64,13 @@ for(const direction of ['front','left','right','back'])for(const pose of ['idle_
 // Recolor the clothing already painted on each base sprite, rather than
 // drawing separately sized overlays. This keeps every walking frame aligned.
 const recoloredBodies=new WeakMap();
-function coloredBase(img,s){
+// Pixel-level clothing mask. Every source animation frame is masked against
+// its own opaque silhouette, so no separately positioned sprites can drift.
+function coloredBase(img,s,direction='front'){
  const shirt=typeof s.shirtColor==='string'?s.shirtColor:palettes.clothes[s.shirtColor]||palettes.clothes[0];
  const pants=typeof s.bottomColor==='string'?s.bottomColor:palettes.clothes[s.bottomColor]||palettes.clothes[0];
  const shoes=s.shoeColor||'#25272d';
- const key=shirt+'|'+pants+'|'+shoes;
+ const key=[shirt,pants,shoes,direction].join('|');
  let variants=recoloredBodies.get(img);
  if(!variants){variants=new Map();recoloredBodies.set(img,variants)}
  if(variants.has(key))return variants.get(key);
@@ -77,31 +79,39 @@ function coloredBase(img,s){
  const pixels=g.getImageData(0,0,layer.width,layer.height),d=pixels.data;
  let minX=layer.width,minY=layer.height,maxX=-1,maxY=-1;
  for(let y=0;y<layer.height;y++)for(let x=0;x<layer.width;x++){
-  const i=(y*layer.width+x)*4;if(d[i+3]<100)continue;
+  const i=(y*layer.width+x)*4;if(d[i+3]<128)continue;
   minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
  }
  if(maxY<minY)return img;
  const w=maxX-minX+1,h=maxY-minY+1;
- const rgbColors=[shirt,pants,shoes].map(color=>[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)));
+ const colors=[shirt,pants,shoes].map(color=>[1,3,5].map(n=>parseInt(color.slice(n,n+2),16)));
+ // These are masks of the body itself, not scaled garment overlays.
+ // Side-facing bodies have a narrower torso and legs than front/back bodies.
+ const side=direction==='left'||direction==='right';
+ const torso=side?[.37,.66]:[.31,.69];
+ const legs=side?[.36,.67]:[.30,.70];
+ const rowMask=(ry,rx)=>{
+  if(ry>=.935&&ry<=1&&rx>=.22&&rx<=.79)return 2;
+  if(ry>=.715&&ry<.935&&rx>=legs[0]&&rx<=legs[1])return 1;
+  if(ry>=.495&&ry<.715&&rx>=torso[0]&&rx<=torso[1])return 0;
+  if(ry>=.53&&ry<.62&&rx>=.20&&rx<torso[0]&&!side)return 0;
+  if(ry>=.53&&ry<.62&&rx>torso[1]&&rx<=.80&&!side)return 0;
+  return -1;
+ };
  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){
   const i=(y*layer.width+x)*4;
-  if(d[i+3]<120)continue;
-  const r=d[i],green=d[i+1],blue=d[i+2];
-  // Keep dark original pixel outlines; color over the body inside them.
-  if(Math.max(r,green,blue)<80)continue;
+  if(d[i+3]<180)continue;
   const rx=(x-minX+.5)/w,ry=(y-minY+.5)/h;
-  let region=-1;
-  // T-shirt torso plus short sleeves, leaving the hands exposed.
-  if(ry>=.505&&ry<.73&&rx>=.32&&rx<=.68)region=0;
-  else if(ry>=.545&&ry<.635&&((rx>=.22&&rx<.36)||(rx>.64&&rx<=.78)))region=0;
-  // Long trousers follow the leg silhouette on every source animation frame.
-  else if(ry>=.73&&ry<.935&&rx>=.29&&rx<=.71)region=1;
-  else if(ry>=.935&&rx>=.26&&rx<=.74)region=2;
+  const region=rowMask(ry,rx);
   if(region<0)continue;
-  const rgb=rgbColors[region];
-  const brightness=(r+green+blue)/3;
-  const shade=brightness<125?.63:brightness<175?.79:brightness<220?.93:1.05;
-  for(let channel=0;channel<3;channel++)d[i+channel]=Math.min(255,Math.round(rgb[channel]*shade));
+  const r=d[i],green=d[i+1],blue=d[i+2];
+  // Preserve original black outlines, but cover both skin and gray underwear
+  // with the chosen clothing color inside the silhouette.
+  if(Math.max(r,green,blue)<65)continue;
+  const rgb=colors[region];
+  // Uniform chosen hue with only restrained pixel-art shadows.
+  const shade=Math.max(r,green,blue)<130?.78:Math.max(r,green,blue)<185?.9:1;
+  for(let channel=0;channel<3;channel++)d[i+channel]=Math.round(rgb[channel]*shade);
  }
  g.putImageData(pixels,0,0);variants.set(key,layer);return layer;
 }
@@ -172,7 +182,7 @@ function drawUploadedBase(ctx,x,y,s,dir,step,scale){
  ctx.imageSmoothingEnabled=false;
  const left=Math.round(x-size*aspect/2),top=Math.round(y-size),width=Math.round(size*aspect),height=Math.round(size);
  if(s.hairStyle===7&&(direction==='left'||direction==='right'))drawSideBraid(ctx,left,top,width,height,direction);
- ctx.drawImage(coloredBase(chosen,s),left,top,width,height);
+ ctx.drawImage(coloredBase(chosen,s,direction),left,top,width,height);
  drawUploadedHair(ctx,left,top,width,height,s,direction,pose);
  return true;
 }
