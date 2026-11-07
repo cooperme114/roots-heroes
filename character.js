@@ -4,7 +4,8 @@ const KEY='roots-heroes-character-v1',COUNT=12;
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 let state={name:saved.name||'Director',pronouns:saved.pronouns||'they/them',avatar:Number.isInteger(+saved.avatar)&&+saved.avatar>=1&&+saved.avatar<=COUNT?+saved.avatar:1};
 let draftAvatar=state.avatar;
-const cache=new Map();
+const cache=new Map(),lastGood=new Map();
+function preload(n){for(const dir of ['front','back','left','right'])for(const frame of ['idle_1','walk_1','idle_2','walk_2'])sprite(n,dir,frame)}
 function sprite(n,dir,frame){
  const key=n+'/'+dir+'_'+frame;
  if(!cache.has(key)){
@@ -41,8 +42,8 @@ function sprite(n,dir,frame){
    }catch(e){}
    if(modal.style.display!=='none')render();
   };
-  img.src='assets/player/avatars/avatar'+n+'/'+dir+'_'+frame+'.png';
   cache.set(key,record);
+  img.src='assets/player/avatars/avatar'+n+'/'+dir+'_'+frame+'.png';
  }
  return cache.get(key);
 }
@@ -86,7 +87,7 @@ for(let i=1;i<=COUNT;i++){
  const btn=document.createElement('button');btn.type='button';btn.className='avatar-option';btn.dataset.avatar=i;
  const c=document.createElement('canvas');c.width=90;c.height=92;
  const label=document.createElement('span');label.textContent='Avatar '+i;
- btn.append(c,label);btn.onclick=()=>{draftAvatar=i;render()};
+ btn.append(c,label);btn.onclick=()=>{draftAvatar=i;preload(i);render()};
  grid.append(btn);
 }
 function render(){
@@ -103,16 +104,23 @@ function draw(ctx,x,y,s,dir='down',step=0,scale=1){
  const direction={down:'front',up:'back',left:'left',right:'right'}[dir]||'front';
  const frames=['idle_1','walk_1','idle_2','walk_2'];
  const frame=step?frames[Math.floor(Date.now()/140)%frames.length]:'idle_1';
- if(!paint(ctx,s.avatar||1,direction,frame,x,y+12*scale,55*scale)){
-  ctx.fillStyle='#e5b95e';ctx.fillRect(x-8*scale,y-20*scale,16*scale,28*scale);
+ const n=s.avatar||1,px=x,py=y+12*scale,h=55*scale;
+ if(paint(ctx,n,direction,frame,px,py,h)){
+  lastGood.set(n,{direction,frame});
+ }else{
+  const previous=lastGood.get(n);
+  if(previous&&!paint(ctx,n,previous.direction,previous.frame,px,py,h)){
+   paint(ctx,n,'front','idle_1',px,py,h);
+  }else if(!previous)paint(ctx,n,'front','idle_1',px,py,h);
  }
 }
-function open(){draftAvatar=state.avatar;modal.querySelector('#c-name').value=state.name;modal.querySelector('#c-pronouns').value=state.pronouns;modal.style.display='flex';render()}
+function open(){draftAvatar=state.avatar;preload(draftAvatar);modal.querySelector('#c-name').value=state.name;modal.querySelector('#c-pronouns').value=state.pronouns;modal.style.display='flex';render()}
 function close(){modal.style.display='none';window.dispatchEvent(new Event('roots-character-close'))}
 modal.querySelector('#avatarPrev').onclick=()=>{draftAvatar=draftAvatar===1?COUNT:draftAvatar-1;render()};
 modal.querySelector('#avatarNext').onclick=()=>{draftAvatar=draftAvatar===COUNT?1:draftAvatar+1;render()};
-modal.querySelector('#creatorSave').onclick=()=>{state={name:modal.querySelector('#c-name').value.trim()||'Director',pronouns:modal.querySelector('#c-pronouns').value,avatar:draftAvatar};localStorage.setItem(KEY,JSON.stringify(state));close()};
+modal.querySelector('#creatorSave').onclick=()=>{state={name:modal.querySelector('#c-name').value.trim()||'Director',pronouns:modal.querySelector('#c-pronouns').value,avatar:draftAvatar};preload(state.avatar);localStorage.setItem(KEY,JSON.stringify(state));close()};
 modal.querySelector('#creatorCancel').onclick=()=>{if(!localStorage.getItem(KEY))localStorage.setItem(KEY,JSON.stringify(state));close()};
 window.RootsCharacter={draw,get:()=>state,open,exists:()=>!!localStorage.getItem(KEY)};
+preload(state.avatar);
 if(!localStorage.getItem(KEY))open();
 })();
