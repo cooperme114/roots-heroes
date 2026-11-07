@@ -29,13 +29,22 @@ function sprite(n,dir,frame){
  }
  return cache.get(key);
 }
-function paint(ctx,n,dir,frame,cx,bottom,height){
+function paint(ctx,n,dir,frame,cx,bottom,height,sideStride=0){
  const rec=sprite(n,dir,frame);
  if(!rec.ready)return false;
  const b=rec.bounds||{x:0,y:0,w:rec.img.naturalWidth,h:rec.img.naturalHeight};
  const ratio=b.w/b.h,w=height*ratio;
  ctx.imageSmoothingEnabled=false;
- ctx.drawImage(rec.img,b.x,b.y,b.w,b.h,Math.round(cx-w/2),Math.round(bottom-height),Math.round(w),Math.round(height));
+ const left=Math.round(cx-w/2),top=Math.round(bottom-height),dw=Math.round(w),dh=Math.round(height);
+ if(sideStride){
+  const cut=Math.floor(b.h*.72),half=Math.floor(b.w/2);
+  const upperH=Math.round(dh*cut/b.h),legH=dh-upperH;
+  ctx.drawImage(rec.img,b.x,b.y,b.w,cut,left,top,dw,upperH);
+  const split=Math.round(dw*half/b.w);
+  const shift=Math.max(2,Math.round(height*.075))*sideStride;
+  ctx.drawImage(rec.img,b.x,b.y+cut,half,b.h-cut,left+shift,top+upperH,split,legH);
+  ctx.drawImage(rec.img,b.x+half,b.y+cut,b.w-half,b.h-cut,left+split-shift,top+upperH,dw-split,legH);
+ }else ctx.drawImage(rec.img,b.x,b.y,b.w,b.h,left,top,dw,dh);
  return true;
 }
 const modal=document.createElement('div');modal.id='characterCreator';
@@ -85,7 +94,8 @@ function render(){
 function draw(ctx,x,y,s,dir='down',step=0,scale=1){
  const direction={down:'front',up:'back',left:'left',right:'right'}[dir]||'front';
  const frame=step?('walk_'+(Math.floor(Date.now()/190)%2+1)):'idle_1';
- if(!paint(ctx,s.avatar||1,direction,frame,x,y+12*scale,55*scale)){
+ const stride=step&&(direction==='left'||direction==='right')?(Math.floor(Date.now()/190)%2?1:-1):0;
+ if(!paint(ctx,s.avatar||1,direction,frame,x,y+12*scale,55*scale,stride)){
   ctx.fillStyle='#e5b95e';ctx.fillRect(x-8*scale,y-20*scale,16*scale,28*scale);
  }
 }
