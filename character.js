@@ -70,15 +70,15 @@ for(const name of hairNames)for(const direction of ['front','left','right','back
 const hairstyleFits={
  short:{front:[0.49,0.83,0,-0.035],left:[0.49,0.83,0,-0.005],right:[0.49,0.83,0,-0.005],back:[0.49,0.83,0,-0.045]},
  messy:{front:[0.53,0.88,0,-0.055],left:[0.53,0.88,0,-0.025],right:[0.53,0.88,0,-0.025],back:[0.53,0.88,0,-0.055]},
- ponytail:{front:[0.46,0.88,0,-0.045],left:[0.51,1.00,0,-0.045],right:[0.51,1.00,0,-0.045],back:[0.51,1.03,0,-0.045]},
+ ponytail:{front:[0.46,0.88,0,-0.095],left:[0.51,1.00,0.035,-0.065],right:[0.51,1.00,-0.035,-0.065],back:[0.51,1.03,0,-0.045]},
  bun:{front:[0.47,0.88,0,-0.065],left:[0.51,0.95,0,-0.055],right:[0.51,0.95,0,-0.055],back:[0.51,0.95,0,-0.055]},
- long_straight:{front:[0.49,1.00,0,-0.045],left:[0.51,1.05,-0.02,-0.245],right:[0.51,1.05,0.02,-0.245],back:[0.51,1.06,0,-0.045]},
- wavy:{front:[0.51,1.00,0,-0.045],left:[0.53,1.05,-0.02,-0.245],right:[0.53,1.05,0.02,-0.245],back:[0.53,1.06,0,-0.045]},
- curly:{front:[0.55,0.95,0,-0.055],left:[0.55,0.98,-0.02,-0.215],right:[0.55,0.98,0.02,-0.215],back:[0.55,0.98,0,-0.055]}
+ long_straight:{front:[0.49,1.00,0,-0.075],left:[0.51,1.05,0.045,-0.245],right:[0.51,1.05,-0.045,-0.245],back:[0.51,1.06,0,-0.045]},
+ wavy:{front:[0.51,1.00,0,-0.075],left:[0.53,1.05,0.045,-0.245],right:[0.53,1.05,-0.045,-0.245],back:[0.53,1.06,0,-0.045]},
+ curly:{front:[0.55,0.95,0,-0.075],left:[0.55,0.98,0.045,-0.215],right:[0.55,0.98,-0.045,-0.215],back:[0.55,0.98,0,-0.055]}
 };
 function drawUploadedHair(ctx,baseX,baseY,baseW,baseH,s,direction,pose){
  const name=hairNames[s.hairStyle]||'short';
- const mirroredRightStyles=['braided','ponytail','long_straight','wavy','curly'];
+ const mirroredRightStyles=['braided'];
  const mirrorRight=direction==='right'&&mirroredRightStyles.includes(name);
  const sourceDirection=mirrorRight?'left':direction;
  const img=hairFrames.get(name+'_'+sourceDirection+'_'+pose);
