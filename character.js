@@ -9,13 +9,30 @@ function sprite(n,dir,frame){
  const key=n+'/'+dir+'_'+frame;
  if(!cache.has(key)){
   const img=new Image();
-  const record={img,ready:false,bounds:null};
+  const record={img,ready:false,bounds:null,cleaned:null};
   img.onload=()=>{
    record.ready=true;
    try{
     const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
     const cx=c.getContext('2d',{willReadFrequently:true});cx.drawImage(img,0,0);
-    const a=cx.getImageData(0,0,c.width,c.height).data;
+    const pixels=cx.getImageData(0,0,c.width,c.height),a=pixels.data;
+    const width=c.width,height=c.height,seen=new Uint8Array(width*height);
+    for(let y=Math.floor(height*.60);y<height;y++)for(let x=0;x<width;x++){
+     const start=y*width+x;
+     if(seen[start]||a[start*4+3]<=45)continue;
+     const queue=[start],component=[];seen[start]=1;
+     for(let q=0;q<queue.length;q++){
+      const p=queue[q],px=p%width,py=Math.floor(p/width);component.push(p);
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+       if(!dx&&!dy)continue;
+       const nx=px+dx,ny=py+dy;if(nx<0||nx>=width||ny<0||ny>=height)continue;
+       const np=ny*width+nx;
+       if(!seen[np]&&a[np*4+3]>45){seen[np]=1;queue.push(np)}
+      }
+     }
+     if(component.length<=35)for(const p of component)a[p*4+3]=0;
+    }
+    cx.putImageData(pixels,0,0);record.cleaned=c;
     let minX=c.width,minY=c.height,maxX=-1,maxY=-1;
     for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
      if(a[(y*c.width+x)*4+3]>45){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y)}
@@ -35,7 +52,7 @@ function paint(ctx,n,dir,frame,cx,bottom,height){
  const b=rec.bounds||{x:0,y:0,w:rec.img.naturalWidth,h:rec.img.naturalHeight};
  const ratio=b.w/b.h,w=height*ratio;
  ctx.imageSmoothingEnabled=false;
- ctx.drawImage(rec.img,b.x,b.y,b.w,b.h,Math.round(cx-w/2),Math.round(bottom-height),Math.round(w),Math.round(height));
+ ctx.drawImage(rec.cleaned||rec.img,b.x,b.y,b.w,b.h,Math.round(cx-w/2),Math.round(bottom-height),Math.round(w),Math.round(height));
  return true;
 }
 const modal=document.createElement('div');modal.id='characterCreator';
