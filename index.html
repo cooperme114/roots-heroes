@@ -20,6 +20,7 @@ const daySummary=document.getElementById('daySummary');let summaryOpen=false,sle
 function sleepUntilTomorrow(){const finishedDay=day;document.getElementById('summaryDay').textContent='Day '+finishedDay+' Complete';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
 document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:145,y:115,w:42,h:85};let bedDrag=null;
+const kitchenItems=[{key:'kFridge',x:405,y:270},{key:'kCabinet',x:475,y:270},{key:'kCabinet',x:520,y:270},{key:'kCabinet',x:565,y:270},{key:'kSink',x:485,y:354},{key:'kCounter',x:545,y:354},{key:'kCounter',x:590,y:354},{key:'kCounter',x:635,y:354},{key:'kStove',x:625,y:270},{key:'kMicrowave',x:560,y:315}];
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:94,y:70,w:165,h:132,doorX:176,color:'#cf9a73'},
@@ -76,7 +77,7 @@ const furnitureImages={};
 for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png',kCabinet:'Kitchen-cabinet-black.png',kCounter:'Kitchen-counter-marble-001.png',kFridge:'Kitchen-fridge-cozy-stainless-steel-001.png',kMicrowave:'Kitchen-microwave-steel-001.png',kSink:'Kitchen-sink-marble-001.png',kStove:'Kitchen-stove-stainless-steel-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=252&&y<=467)||(x>=115&&x<=390&&y>=106&&y<=270)}
-function bedAllowed(x,y){return x>=125&&x+bed.w<=380&&y>=110&&y+bed.h<=261}
+function bedAllowed(x,y){return x>=125&&x+bed.w<=380&&y>=108&&y+bed.h<=261}
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='home'){
@@ -107,14 +108,9 @@ rect(103,38,299,3,light);rect(390,182,307,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // Kitchen appliances use each source sprite's native pixel dimensions.
 const kitchenPiece=(key,x,y)=>{const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth)furniture(key,x,y,img.naturalWidth,img.naturalHeight)};
-kitchenPiece('kFridge',405,260);
-kitchenPiece('kCabinet',475,260);
-kitchenPiece('kSink',524,260);
-kitchenPiece('kCounter',573,260);
-kitchenPiece('kStove',622,260);
-kitchenPiece('kMicrowave',581,319);
+for(const item of kitchenItems){const img=furnitureImages[item.key];if(img&&img.complete&&img.naturalWidth)furniture(item.key,item.x,item.y,img.naturalWidth*2,img.naturalHeight*2)}
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
-furniture('doorRug',270,420,63,47);
+furniture('doorRug',270,443,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 furniture('bedTop',bed.x,bed.y+36,bed.w,49);
 return;
@@ -133,9 +129,9 @@ function collide(x,y){
 if(scene==='home'){
 if(!inHouse(x,y))return true;
 // Wallpaper is a solid wall, not walkable floor. The bedroom opening is x=221..300.
-if(x>=115&&x<=390&&y<108)return true;
-if(x>=115&&x<=390&&y>=207&&y<266&&(x<221||x>300))return true;
-if(x>=390&&y<255)return true;
+if(x>=115&&x<=390&&y<128)return true;
+if(x>=115&&x<=390&&y>=207&&y<283&&(x<221||x>300))return true;
+if(x>=390&&y<276)return true;
 // The front door is the opening beneath the blue entrance rug.
 if(y>=467&&(x<270||x>333))return true;
 return false;
@@ -144,19 +140,19 @@ if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
 if(x<12||x>788||y<12||y>516)return true;
 return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 }
-function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=Math.max(226,bed.y+36)&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
 window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-canvas.addEventListener('pointerdown',e=>{if(scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;bedDrag={id:e.pointerId,offsetX:p.x-bed.x,offsetY:p.y-bed.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
-canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const nx=Math.round(p.x-bedDrag.offsetX),ny=Math.round(p.y-bedDrag.offsetY);if(bedAllowed(nx,ny)){bed.x=nx;bed.y=ny;}return}canvas.style.cursor=scene==='home'&&p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h?'grab':'default'});
+canvas.addEventListener('pointerdown',e=>{if(scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+img.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+img.naturalHeight*2){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
+canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const nx=Math.round(p.x-bedDrag.offsetX),ny=Math.round(p.y-bedDrag.offsetY);if(bedDrag.item===bed){bed.x=Math.max(125,Math.min(338,nx));bed.y=Math.max(108,Math.min(176,ny));}else{const img=furnitureImages[bedDrag.item.key],w=img.naturalWidth*2,h=img.naturalHeight*2;bedDrag.item.x=Math.max(394,Math.min(680-w,nx));bedDrag.item.y=Math.max(266,Math.min(466-h,ny));}return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+im.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+im.naturalHeight*2}))?'grab':'default'});
 function endBedDrag(e){if(bedDrag&&e.pointerId===bedDrag.id){bedDrag=null;canvas.style.cursor='default'}}
 canvas.addEventListener('pointerup',endBedDrag);canvas.addEventListener('pointercancel',endBedDrag);
 canvas.addEventListener('click',()=>canvas.focus());document.getElementById('editCharacter').addEventListener('click',()=>window.RootsCharacter.open());
 function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Math.floor(minutes/60)%24;clockEl.textContent=(h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');day=1+Math.floor(minutes/1440);document.getElementById('day').textContent='Day '+day+' · '+['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][(day-1)%7]}
 function update(dt){if(summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;elapsed+=dt;updateClock();
-let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=Math.max(226,bed.y+36)&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
+let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
 if(districts.includes(scene)){let next=null;if(player.x<=13)next=scene==='town'?'government':scene==='commercial'?'town':'commercial';else if(player.x>=787)next=scene==='town'?'commercial':scene==='commercial'?'government':'town';if(next){const fromLeft=player.x<=13;scene=next;player.x=fromLeft?775:25;player.y=305;placeEl.textContent=districtNames[scene];keys.clear()}}
 if(scene==='town')for(const n of npcs){n.phase+=dt*.5;const nx=n.baseX+Math.sin(n.phase)*33,ny=n.baseY+Math.cos(n.phase*.7)*20;if(!collide(nx,ny)){n.x=nx;n.y=ny}}
 near=interactable();prompt.style.display=near?'block':'none';if(near)prompt.textContent='[ E ] '+near.label}
