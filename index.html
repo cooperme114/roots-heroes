@@ -47,6 +47,9 @@ tileArea('stone',288,0,96,H,'#c5bca9');
 for(const b of buildings){rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.id==='hq'?'#354f76':b.id==='home'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 for(let i=0;i<12;i++){let x=18+(i*73)%770,y=24+(i*103)%490;if(!buildings.some(b=>x>b.x-24&&x<b.x+b.w+24&&y>b.y-24&&y<b.y+b.h+24)&&!(x>260&&x<425)){rect(x-8,y-3,16,12,'#567d49');rect(x-12,y-14,24,18,'#487f51');rect(x-6,y-20,12,10,'#60975c')}}
 for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
+const furnitureImages={};
+for(const [key,file] of Object.entries({bed:'Bed-classic-blue-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
+function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function drawInterior(){
 const info=interiors[scene];
 rect(0,0,W,H,'#30484a');
@@ -60,10 +63,9 @@ rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 if(scene==='home'){
 // A simple pixel-art bed: headboard, pillow, quilt, and wooden frame.
-rect(155,251,104,102,'#654535');rect(162,259,90,87,'#a77a54');
-rect(168,265,78,22,'#f2e9d6');rect(168,291,78,48,'#7393b3');
-rect(168,291,78,6,'#a4bfd3');rect(168,333,78,6,'#526f94');
-rect(160,348,13,10,'#543a2c');rect(242,348,13,10,'#543a2c');
+if(!furniture('bed',155,251,104,102)){
+rect(155,251,104,102,'#654535');rect(168,265,78,22,'#f2e9d6');rect(168,291,78,48,'#7393b3');
+}
 }else rect(155,260,115,75,'#b4a17f');
 rect(530,260,115,75,'#b4a17f');
 rect(359,430,82,52,'#5c4c43');
