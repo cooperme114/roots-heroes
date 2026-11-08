@@ -23,8 +23,11 @@ for(const name of ['grass','stone','wood','tile','carpet','futuristic']){
   img.onload=()=>{groundTiles[name]=ctx.createPattern(img,'repeat')};
 }
 function tileArea(name,x,y,w,h,fallback){
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
   ctx.fillStyle=groundTiles[name]||fallback;
   ctx.fillRect(x,y,w,h);
+  ctx.restore();
 }
 function drawTown(){
 tileArea('grass',0,0,W,H,'#80b783');
