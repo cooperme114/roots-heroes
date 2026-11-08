@@ -63,15 +63,15 @@ rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 if(scene==='home'){
 // A simple pixel-art bed: headboard, pillow, quilt, and wooden frame.
-furniture('bedBottom',178,255,37,75);
+furniture('bedBottom',178,255,42,85);
 }else rect(155,260,115,75,'#b4a17f');
 rect(530,260,115,75,'#b4a17f');
 rect(359,430,82,52,'#5c4c43');
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
-if(scene==='home')furniture('bedTop',178,255,37,43);
+if(scene==='home')furniture('bedTop',178,291,42,49);
 }
 function collide(x,y){if(scene!=='town'){if(x<115||x>685||y<226||y>467)return true;return false;}if(x<12||x>788||y<12||y>516)return true;return buildings.some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8)}
-function interactable(){if(scene!=='town'){if(scene==='home'&&player.x>=178&&player.x<=215&&player.y>=298&&player.y<=373)return {kind:'sleep',label:'Sleep until tomorrow'};return Math.abs(player.x-400)<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of buildings){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:'door',building:b,label:'Enter '+b.name}}return null}
+function interactable(){if(scene!=='town'){if(scene==='home'&&player.x>=178&&player.x<=220&&player.y>=291&&player.y<=340)return {kind:'sleep',label:'Sleep until tomorrow'};return Math.abs(player.x-400)<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of buildings){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:'door',building:b,label:'Enter '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){elapsed=day*1440;day+=1;keys.clear();updateClock();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='door'){scene=a.building.id;player.x=400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene='town';const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent='Town Square'}}
