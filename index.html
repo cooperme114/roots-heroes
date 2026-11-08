@@ -19,8 +19,8 @@ document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{aw
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 function sleepUntilTomorrow(){const finishedDay=day;document.getElementById('summaryDay').textContent='Day '+finishedDay+' Complete';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
 document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
-const bed={x:115,y:55,w:42,h:85};let bedDrag=null;
-const kitchenItems=[{key:'kFridge',x:455,y:222},{key:'kCabinet',x:421,y:197},{key:'kCabinet',x:549,y:197},{key:'kCabinet',x:581,y:197},{key:'kSink',x:486,y:222},{key:'kCounter',x:421,y:222},{key:'kCounter',x:549,y:222},{key:'kCounter',x:581,y:222},{key:'kStove',x:519,y:222},{key:'kMicrowave',x:581,y:222}];
+const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
+const kitchenItems=[{key:'kFridge',x:487,y:222},{key:'kCabinet',x:453,y:197},{key:'kCabinet',x:581,y:197},{key:'kCabinet',x:613,y:197},{key:'kSink',x:518,y:222},{key:'kCounter',x:453,y:222},{key:'kCounter',x:581,y:222},{key:'kCounter',x:613,y:222},{key:'kStove',x:551,y:222},{key:'kMicrowave',x:613,y:222}];
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:94,y:70,w:165,h:132,doorX:176,color:'#cf9a73'},
@@ -104,6 +104,8 @@ rect(103,38,299,12,trim);rect(103,38,12,442,trim);
 rect(390,38,12,156,trim);rect(390,195,307,12,trim);
 rect(685,182,12,298,trim);
 rect(103,467,167,13,trim);rect(333,467,364,13,trim);
+// The doorway is cut through the underlying outer-wall layer, not just the trim.
+rect(270,467,63,13,'#090b10');
 rect(103,38,299,3,light);rect(390,195,307,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // Kitchen appliances use each source sprite's native pixel dimensions.
@@ -136,6 +138,13 @@ if(x>=115&&x<=390&&y>=207&&y<283&&(x<221||x>300))return true;
 if(x>=390&&y<266)return true;
 // The front door is the opening beneath the blue entrance rug.
 if(y>=467&&(x<270||x>333))return true;
+// Only the bed is walkable. All other furniture blocks the player's feet.
+for(const item of kitchenItems){const img=furnitureImages[item.key];if(!img||!img.naturalWidth)continue;const w=img.naturalWidth*2,h=img.naturalHeight*2;
+// Wall cabinets only block walking when placed down in the usable floor area.
+const top=item.key==='kCabinet'?item.y+h-18:item.y+Math.min(12,h*0.25);
+const bottom=item.y+h;
+if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
+}
 return false;
 }
 if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
