@@ -4,6 +4,7 @@ const KEY='roots-heroes-character-v1',COUNT=12;
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
 let state={name:saved.name||'Director',pronouns:saved.pronouns||'they/them',avatar:Number.isInteger(+saved.avatar)&&+saved.avatar>=1&&+saved.avatar<=COUNT?+saved.avatar:1};
 let draftAvatar=state.avatar;
+let firstChoice=true;
 const cache=new Map(),lastGood=new Map();
 function preload(n){for(const dir of ['front','back','left','right'])for(const frame of ['idle_1','walk_1','idle_2','walk_2'])sprite(n,dir,frame)}
 function sprite(n,dir,frame){
@@ -115,12 +116,14 @@ function draw(ctx,x,y,s,dir='down',step=0,scale=1){
  }
 }
 function open(){draftAvatar=state.avatar;preload(draftAvatar);modal.querySelector('#c-name').value=state.name;modal.querySelector('#c-pronouns').value=state.pronouns;modal.style.display='flex';render()}
-function close(){modal.style.display='none';window.dispatchEvent(new Event('roots-character-close'))}
+function close(){firstChoice=false;modal.style.display='none';window.dispatchEvent(new Event('roots-character-close'))}
 modal.querySelector('#avatarPrev').onclick=()=>{draftAvatar=draftAvatar===1?COUNT:draftAvatar-1;render()};
 modal.querySelector('#avatarNext').onclick=()=>{draftAvatar=draftAvatar===COUNT?1:draftAvatar+1;render()};
 modal.querySelector('#creatorSave').onclick=()=>{state={name:modal.querySelector('#c-name').value.trim()||'Director',pronouns:modal.querySelector('#c-pronouns').value,avatar:draftAvatar};preload(state.avatar);localStorage.setItem(KEY,JSON.stringify(state));close()};
-modal.querySelector('#creatorCancel').onclick=()=>{if(!localStorage.getItem(KEY))localStorage.setItem(KEY,JSON.stringify(state));close()};
-window.RootsCharacter={draw,get:()=>state,open,exists:()=>!!localStorage.getItem(KEY)};
+modal.querySelector('#creatorCancel').onclick=()=>{if(!firstChoice)close()};
+function setCharacter(value){if(!value||typeof value!=='object'||!Number.isInteger(value.avatar)||value.avatar<1||value.avatar>COUNT)throw Error('Invalid avatar');state={name:String(value.name||'Director').slice(0,22),pronouns:['she/her','he/him','they/them'].includes(value.pronouns)?value.pronouns:'they/them',avatar:value.avatar};localStorage.setItem(KEY,JSON.stringify(state));preload(state.avatar);close()}
+function setFirstChoice(){firstChoice=true;modal.querySelector('#creatorCancel').style.display='none';open()}
+window.RootsCharacter={draw,get:()=>({...state}),open,setCharacter,exists:()=>!!localStorage.getItem(KEY)};
 preload(state.avatar);
-if(!localStorage.getItem(KEY))open();
+setFirstChoice();
 })();
