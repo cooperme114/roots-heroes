@@ -48,7 +48,7 @@ for(const b of buildings){rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+1
 for(let i=0;i<12;i++){let x=18+(i*73)%770,y=24+(i*103)%490;if(!buildings.some(b=>x>b.x-24&&x<b.x+b.w+24&&y>b.y-24&&y<b.y+b.h+24)&&!(x>260&&x<425)){rect(x-8,y-3,16,12,'#567d49');rect(x-12,y-14,24,18,'#487f51');rect(x-6,y-20,12,10,'#60975c')}}
 for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
 const furnitureImages={};
-for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
+for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function drawInterior(){
 const info=interiors[scene];
@@ -66,7 +66,7 @@ if(scene==='home'){
 furniture('bedBottom',178,255,42,85);
 }else rect(155,260,115,75,'#b4a17f');
 rect(530,260,115,75,'#b4a17f');
-rect(359,430,82,52,'#5c4c43');
+furniture('doorRug',369,426,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 if(scene==='home')furniture('bedTop',178,291,42,49);
 }
