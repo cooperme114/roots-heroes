@@ -15,11 +15,11 @@ function showSave(isLoad){loadingCode=isLoad;savePanel.style.display='flex';save
 document.getElementById('saveGame').onclick=()=>showSave(false);
 document.getElementById('loadGame').onclick=()=>showSave(true);
 document.getElementById('saveClose').onclick=()=>savePanel.style.display='none';
-document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(115,Math.min(643,data.bed.x));bed.y=Math.max(178,Math.min(382,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
+document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(125,Math.min(338,data.bed.x));bed.y=Math.max(126,Math.min(182,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 function sleepUntilTomorrow(){const finishedDay=day;document.getElementById('summaryDay').textContent='Day '+finishedDay+' Complete';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
 document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
-const bed={x:178,y:255,w:42,h:85};let bedDrag=null;
+const bed={x:178,y:155,w:42,h:85};let bedDrag=null;
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:94,y:70,w:165,h:132,doorX:176,color:'#cf9a73'},
@@ -75,34 +75,63 @@ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),pla
 const furnitureImages={};
 for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
+function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=270&&y<=467)||(x>=115&&x<=390&&y>=126&&y<=270)}
+function bedAllowed(x,y){return x>=125&&x+bed.w<=380&&y>=126&&y+bed.h<=267}
 function drawInterior(){
 const info=interiors[scene];
+if(scene==='home'){
+rect(0,0,W,H,'#090b10');
+// Bedroom at the rear-left, living room below, kitchen on the right.
+rect(103,114,299,366,'#75563d');
+rect(390,258,307,222,'#75563d');
+rect(115,126,275,144,'#e8d9b9');
+rect(115,270,275,197,'#e8d9b9');
+rect(390,270,295,197,'#e8d9b9');
+tileArea('Floors-classic-medium-wood-001',115,270,275,197,'#b8916d');
+tileArea('Floors-classic-medium-wood-001',115,126,275,144,'#b8916d');
+ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,126,275,341);
+tileArea('tile',390,270,295,197,'#b7b5ac');
+// Partial walls create a bedroom opening; kitchen is open to living room.
+rect(115,263,106,9,'#79563e');rect(300,263,90,9,'#79563e');
+rect(115,263,106,3,'#cda77c');rect(300,263,90,3,'#cda77c');
+rect(103,114,299,9,'#79563e');rect(103,114,9,366,'#79563e');
+rect(390,258,307,9,'#79563e');rect(685,258,12,222,'#79563e');
+text('Bedroom',254,146,14,'#5d4839');
+text('Living Room',250,301,14,'#5d4839');
+text('Kitchen',538,301,14,'#5d4839');
+furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
+furniture('doorRug',270,432,63,47);
+window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+furniture('bedTop',bed.x,bed.y+36,bed.w,49);
+return;
+}
 rect(0,0,W,H,'#30484a');
-// A solid-color wallpaper tile repeats across the back wall.
 rect(95,46,610,168,wallpaperColors[buildingWallpaper[scene]].hex);
-// Wooden trim separates the wall from the floor.
 rect(95,201,610,13,'#79563e');rect(95,201,610,3,'#cda77c');
-tileArea(scene==='home'?'Floors-classic-medium-wood-001':'wood',95,214,610,268,'#b8916d');
-if(scene==='home'){ctx.save();ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(95,214,610,268);ctx.restore()}
+tileArea('wood',95,214,610,268,'#b8916d');
 rect(95,46,610,8,'#78573e');rect(95,46,610,3,'#cda77c');
 rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
-if(scene==='home'){
-// A simple pixel-art bed: headboard, pillow, quilt, and wooden frame.
-furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
-}
 furniture('doorRug',369,439,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
-if(scene==='home')furniture('bedTop',bed.x,bed.y+36,bed.w,49);
 }
-function collide(x,y){if(!districts.includes(scene)){if(x<115||x>685||y<226||y>467)return true;return false;}if(x<12||x>788||y<12||y>516)return true;return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8)}
-function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=Math.max(226,bed.y+36)&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-400)<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function collide(x,y){
+if(scene==='home'){
+if(!inHouse(x,y))return true;
+if(y>=260&&y<=275&&x>=115&&x<=390&&(x<221||x>300))return true;
+return false;
+}
+if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
+if(x<12||x>788||y<12||y>516)return true;
+return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
+}
+function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=Math.max(226,bed.y+36)&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
-function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
+function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
 window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
 canvas.addEventListener('pointerdown',e=>{if(scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;bedDrag={id:e.pointerId,offsetX:p.x-bed.x,offsetY:p.y-bed.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
-canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){bed.x=Math.round(Math.max(115,Math.min(643,p.x-bedDrag.offsetX)));bed.y=Math.round(Math.max(178,Math.min(382,p.y-bedDrag.offsetY)));return}canvas.style.cursor=scene==='home'&&p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h?'grab':'default'});
+canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const nx=Math.round(p.x-bedDrag.offsetX),ny=Math.round(p.y-bedDrag.offsetY);if(bedAllowed(nx,ny)){bed.x=nx;bed.y=ny;}return}canvas.style.cursor=scene==='home'&&p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h?'grab':'default'});
 function endBedDrag(e){if(bedDrag&&e.pointerId===bedDrag.id){bedDrag=null;canvas.style.cursor='default'}}
 canvas.addEventListener('pointerup',endBedDrag);canvas.addEventListener('pointercancel',endBedDrag);
 canvas.addEventListener('click',()=>canvas.focus());document.getElementById('editCharacter').addEventListener('click',()=>window.RootsCharacter.open());
