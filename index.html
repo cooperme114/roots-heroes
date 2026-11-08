@@ -48,7 +48,7 @@ function text(t,x,y,size=14,color='#f8f0d7'){ctx.font='bold '+size+'px system-ui
 function person(x,y,skin,shirt,face=false){rect(x-8,y-8,16,13,shirt);rect(x-6,y-19,12,12,skin);rect(x-6,y+5,5,8,'#35434d');rect(x+1,y+5,5,8,'#35434d');rect(x-8,y-20,16,5,'#43382f');if(face){rect(x-3,y-13,2,2,'#25343b');rect(x+3,y-13,2,2,'#25343b')}}
 // Load the actual 32px seamless textures from assets/tiles.
 const groundTiles={};
-for(const name of ['grass','stone','wood','tile','carpet','futuristic','Floors-classic-medium-wood-001']){
+for(const name of ['grass','stone','asphalt','sidewalk','wood','tile','carpet','futuristic','Floors-classic-medium-wood-001']){
   const img=new Image();
   img.src='assets/tiles/'+name+'.png?v=terrain-v5';
   img.onload=()=>{groundTiles[name]=ctx.createPattern(img,'repeat')};
@@ -75,12 +75,12 @@ function drawPlayerHouse(b){
 function drawTown(){
 tileArea('grass',0,0,W,H,'#80b783');
 // The town's original crossing paths, now built with the repeatable stone tile.
-tileArea('stone',384,0,64,H,'#c5bca9');
+tileArea('asphalt',384,0,64,H,'#45474b');
 // Two 32px rows of street, touching the buildings on both sides.
-tileArea('stone',0,256,W,64,'#a7a7a7');
+tileArea('asphalt',0,256,W,64,'#45474b');
 // One 32px row of gray sidewalk on each side of the street.
-tileArea('tile',0,224,W,32,'#d3d3d3');
-tileArea('tile',0,320,W,32,'#d3d3d3');
+tileArea('sidewalk',0,224,W,32,'#c5c5c5');
+tileArea('sidewalk',0,320,W,32,'#c5c5c5');
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
