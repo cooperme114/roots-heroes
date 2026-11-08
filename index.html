@@ -23,7 +23,7 @@ const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
 const kitchenItems=[{key:'kFridge',x:527,y:222},{key:'kCabinet',x:493,y:197},{key:'kCabinet',x:621,y:197},{key:'kCabinet',x:653,y:197},{key:'kSink',x:558,y:222},{key:'kCounter',x:493,y:222},{key:'kCounter',x:621,y:222},{key:'kCounter',x:653,y:222},{key:'kStove',x:591,y:222},{key:'kMicrowave',x:653,y:222}];
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
-{id:'home',district:'town',name:'Your House',x:128,y:64,w:256,h:192,doorX:256,color:'#cf9a73'},
+{id:'home',district:'town',name:'Your House',x:96,y:32,w:288,h:192,doorX:240,color:'#cf9a73'},
 {id:'neighbor1',district:'town',name:'Neighbors',x:512,y:112,w:160,h:132,doorX:592,color:'#c8a68b'},
 {id:'bakery',district:'town',name:'Bakery',x:100,y:320,w:170,h:132,doorX:185,color:'#d5a878'},
 {id:'grocery',district:'town',name:'Grocery Store',x:510,y:320,w:170,h:132,doorX:595,color:'#9bad7a'},
@@ -64,11 +64,11 @@ const playerHouseImage=new Image();playerHouseImage.src='assets/buildings/Player
 function drawPlayerHouse(b){
  if(!playerHouseImage.complete||!playerHouseImage.naturalWidth)return false;
  // Fit the entire sprite inside the house's existing town footprint, preserving its aspect ratio.
- const maxW=256,maxH=192;
+ const maxW=288,maxH=216;
  const scale=Math.min(maxW/playerHouseImage.naturalWidth,maxH/playerHouseImage.naturalHeight);
  const w=Math.round(playerHouseImage.naturalWidth*scale),h=Math.round(playerHouseImage.naturalHeight*scale);
  // Align the left edge and front foundation to the 32px town grid.
- const x=b.x,y=266-h;
+ const x=b.x,y=234-h;
  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(playerHouseImage,x,y,w,h);ctx.restore();
  return true;
 }
@@ -77,7 +77,10 @@ tileArea('grass',0,0,W,H,'#80b783');
 // The town's original crossing paths, now built with the repeatable stone tile.
 tileArea('stone',384,0,64,H,'#c5bca9');
 // Two 32px rows of street, touching the buildings on both sides.
-tileArea('stone',0,256,W,64,'#c5bca9');
+tileArea('stone',0,256,W,64,'#a7a7a7');
+// One 32px row of gray sidewalk on each side of the street.
+tileArea('stone',0,224,W,32,'#d3d3d3');
+tileArea('stone',0,320,W,32,'#d3d3d3');
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
@@ -163,7 +166,7 @@ if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
 if(x<12||x>788||y<12||y>516)return true;
 return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 }
-function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.id==='home'?268:b.y+b.h+11;if(Math.abs(player.x-b.doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.id==='home'?247:b.y+b.h+11;if(Math.abs(player.x-b.doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
