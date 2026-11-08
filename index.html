@@ -93,7 +93,7 @@ tileArea('sidewalk',0,320,W,32,'#c5c5c5');
 // Lower row: reuse the red house sprite, showing only its upper portion over the road.
 if(scene==='town'&&neighborHouseImage.complete&&neighborHouseImage.naturalWidth){const scale=Math.min(224/neighborHouseImage.naturalWidth,216/neighborHouseImage.naturalHeight),ww=Math.round(neighborHouseImage.naturalWidth*scale),hh=Math.round(neighborHouseImage.naturalHeight*scale);ctx.save();ctx.imageSmoothingEnabled=false;for(let x=-80;x<W+ww;x+=176)ctx.drawImage(neighborHouseImage,x,288,ww,hh);ctx.restore();}
 // Iron fence behind the upper townhouse row, visible in the gaps between buildings.
-if(scene==='town'){ctx.save();ctx.fillStyle='#17191d';for(let x=0;x<W;x+=12)ctx.fillRect(x,152,3,82);ctx.fillRect(0,165,W,4);ctx.fillRect(0,210,W,4);ctx.restore();}
+if(scene==='town'){ctx.save();ctx.fillStyle='#17191d';for(let x=0;x<W;x+=12)ctx.fillRect(x,152,3,70);ctx.fillRect(0,165,W,4);ctx.fillRect(0,205,W,4);ctx.restore();}
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
