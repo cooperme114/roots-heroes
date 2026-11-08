@@ -24,7 +24,7 @@ const kitchenItems=[{key:'kFridge',x:527,y:222},{key:'kCabinet',x:493,y:197},{ke
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:128,y:64,w:256,h:192,doorX:256,color:'#cf9a73'},
-{id:'neighbor1',district:'town',name:'Neighbors',x:505,y:70,w:165,h:132,doorX:587,color:'#c8a68b'},
+{id:'neighbor1',district:'town',name:'Neighbors',x:512,y:112,w:160,h:132,doorX:592,color:'#c8a68b'},
 {id:'bakery',district:'town',name:'Bakery',x:100,y:320,w:170,h:132,doorX:185,color:'#d5a878'},
 {id:'grocery',district:'town',name:'Grocery Store',x:510,y:320,w:170,h:132,doorX:595,color:'#9bad7a'},
 {id:'cafe',district:'commercial',name:'The Corner Café',x:90,y:65,w:170,h:132,doorX:175,color:'#bc8eaa'},
@@ -75,16 +75,14 @@ function drawPlayerHouse(b){
 function drawTown(){
 tileArea('grass',0,0,W,H,'#80b783');
 // The town's original crossing paths, now built with the repeatable stone tile.
-tileArea('stone',0,256,W,96,'#c5bca9');
-tileArea('stone',288,0,96,H,'#c5bca9');
-// A 32px-grid walkway connects the house's front door to the town road.
-if(scene==='town')tileArea('stone',240,256,48,64,'#c5bca9');
+tileArea('stone',384,0,64,H,'#c5bca9');
+// Two 32px rows of street, touching the buildings on both sides.
+tileArea('stone',0,256,W,64,'#c5bca9');
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
-for(let i=0;i<12;i++){let x=18+(i*73)%770,y=24+(i*103)%490;if(!districtBuildings().some(b=>x>b.x-24&&x<b.x+b.w+24&&y>b.y-24&&y<b.y+b.h+24)&&!(x>260&&x<425)){rect(x-8,y-3,16,12,'#567d49');rect(x-12,y-14,24,18,'#487f51');rect(x-6,y-20,12,10,'#60975c')}}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
-rect(0,240,68,45,'#253b43');rect(732,240,68,45,'#253b43');
-text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,265,11);
-text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,265,11);
+rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
+text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
+text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,290,11);
 text(districtNames[scene],400,28,19);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
 const furnitureImages={};
