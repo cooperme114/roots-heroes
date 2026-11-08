@@ -63,7 +63,7 @@ rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 if(scene==='home'){
 // A simple pixel-art bed: headboard, pillow, quilt, and wooden frame.
-if(!furniture('bed',170,242,60,128)){
+if(!furniture('bed',178,255,45,96)){
 rect(155,251,104,102,'#654535');rect(168,265,78,22,'#f2e9d6');rect(168,291,78,48,'#7393b3');
 }
 }else rect(155,260,115,75,'#b4a17f');
@@ -71,8 +71,8 @@ rect(530,260,115,75,'#b4a17f');
 rect(359,430,82,52,'#5c4c43');
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 }
-function collide(x,y){if(scene!=='town'){if(x<115||x>685||y<226||y>467)return true;if(scene==='home'&&x>160&&x<240&&y>232&&y<380)return true;return false;}if(x<12||x>788||y<12||y>516)return true;return buildings.some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8)}
-function interactable(){if(scene!=='town'){if(scene==='home'&&player.x>=235&&player.x<=305&&player.y>=240&&player.y<=390)return {kind:'sleep',label:'Sleep until tomorrow'};return Math.abs(player.x-400)<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of buildings){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:'door',building:b,label:'Enter '+b.name}}return null}
+function collide(x,y){if(scene!=='town'){if(x<115||x>685||y<226||y>467)return true;if(scene==='home'&&x>168&&x<233&&y>245&&y<361)return true;return false;}if(x<12||x>788||y<12||y>516)return true;return buildings.some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8)}
+function interactable(){if(scene!=='town'){if(scene==='home'&&player.x>=225&&player.x<=295&&player.y>=245&&player.y<=375)return {kind:'sleep',label:'Sleep until tomorrow'};return Math.abs(player.x-400)<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of buildings){const doorY=b.y+b.h+11;if(Math.abs(player.x-b.doorX)<38&&Math.abs(player.y-doorY)<48)return {kind:'door',building:b,label:'Enter '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){elapsed=day*1440;day+=1;player.x=265;player.y=330;keys.clear();updateClock();}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='door'){scene=a.building.id;player.x=400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene='town';const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent='Town Square'}}
