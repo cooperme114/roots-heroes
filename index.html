@@ -68,8 +68,7 @@ rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 if(scene==='home'){
 // A simple pixel-art bed: headboard, pillow, quilt, and wooden frame.
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
-}else rect(155,260,115,75,'#b4a17f');
-rect(530,260,115,75,'#b4a17f');
+}
 furniture('doorRug',369,439,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 if(scene==='home')furniture('bedTop',bed.x,bed.y+36,bed.w,49);
