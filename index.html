@@ -20,7 +20,18 @@ const groundTiles={};
 for(const name of ['grass','stone','wood','tile','carpet','futuristic']){
   const img=new Image();
   img.src='assets/tiles/'+name+'.png';
-  img.onload=()=>{groundTiles[name]=ctx.createPattern(img,'repeat')};
+  img.onload=()=>{
+    // Enlarge the original 32px artwork using nearest-neighbor scaling.
+    // This reduces the number of visible repeats and preserves hard pixel edges.
+    const scale=(name==='grass'||name==='stone')?2:1;
+    const tile=document.createElement('canvas');
+    tile.width=img.naturalWidth*scale;
+    tile.height=img.naturalHeight*scale;
+    const tileCtx=tile.getContext('2d');
+    tileCtx.imageSmoothingEnabled=false;
+    tileCtx.drawImage(img,0,0,tile.width,tile.height);
+    groundTiles[name]=ctx.createPattern(tile,'repeat');
+  };
 }
 function tileArea(name,x,y,w,h,fallback){
   ctx.save();
