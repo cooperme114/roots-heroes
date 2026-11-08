@@ -91,14 +91,23 @@ tileArea('Floors-classic-medium-wood-001',115,270,275,197,'#b8916d');
 tileArea('Floors-classic-medium-wood-001',115,126,275,144,'#b8916d');
 ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,126,275,341);
 tileArea('tile',390,270,295,197,'#b7b5ac');
-// Partial walls create a bedroom opening; kitchen is open to living room.
-rect(115,263,106,9,'#79563e');rect(300,263,90,9,'#79563e');
-rect(115,263,106,3,'#cda77c');rect(300,263,90,3,'#cda77c');
-rect(103,114,299,9,'#79563e');rect(103,114,9,366,'#79563e');
-rect(390,258,307,9,'#79563e');rect(685,258,12,222,'#79563e');
-text('Bedroom',254,146,14,'#5d4839');
-text('Living Room',250,301,14,'#5d4839');
-text('Kitchen',538,301,14,'#5d4839');
+// Visible vertical wallpapered back walls, wooden baseboards and outer side walls.
+// The black region beyond the L remains outside the house.
+const wall='#e8d9b9', trim='#79563e', light='#cda77c';
+rect(115,126,275,34,wall);rect(115,158,275,6,trim);rect(115,158,275,2,light);
+rect(115,273,275,34,wall);rect(115,305,275,6,trim);rect(115,305,275,2,light);
+rect(390,270,295,37,wall);rect(390,305,295,6,trim);rect(390,305,295,2,light);
+// Bedroom divider has a wide, walkable doorway.
+rect(115,263,106,10,trim);rect(300,263,90,10,trim);
+rect(115,263,106,3,light);rect(300,263,90,3,light);
+// Exterior edges and the step in the L-shaped footprint.
+rect(103,114,299,12,trim);rect(103,114,12,366,trim);
+rect(390,114,12,156,trim);rect(390,258,307,12,trim);
+rect(685,258,12,222,trim);
+rect(103,467,594,13,trim);
+rect(103,114,299,3,light);rect(390,258,307,3,light);
+// Slim inside-wall edge trim makes the rooms feel enclosed.
+rect(112,126,3,341,light);rect(682,270,3,197,light);
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
 furniture('doorRug',270,432,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
