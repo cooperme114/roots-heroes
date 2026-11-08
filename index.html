@@ -40,7 +40,7 @@ const districts=['town','commercial','government'];
 const districtNames={town:'Residential District',commercial:'Commercial District',government:'Government District'};
 const districtBuildings=()=>buildings.filter(b=>b.district===scene);
 let lastDistrict='town';
-const npcs=[{name:'Morgan',x:350,y:245,baseX:350,baseY:245,color:'#eb9d69',shirt:'#7d5da4',phase:0,text:'Good morning, Director! This town has more going on than you might think.'},{name:'Jules',x:630,y:244,baseX:630,baseY:244,color:'#a36c50',shirt:'#4b96a1',phase:2,text:'I like to take the long way through town. You never know who you will run into.'}];
+const npcs=[];
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3};
 const interiors={hq:{name:'Hero Headquarters',color:'#8298ad',message:'One day, you will recruit heroes and dispatch them to missions from here.'},home:{name:'Your House',color:'#a78c7b',message:'Your future home! Eventually you can decorate, sleep, and save here.'},cafe:{name:'The Corner Café',color:'#ae8999',message:'The café will become a place to meet friends, buy treats, and go on dates.'}};
