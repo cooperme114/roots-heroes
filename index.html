@@ -20,7 +20,7 @@ const daySummary=document.getElementById('daySummary');let summaryOpen=false,sle
 function sleepUntilTomorrow(){const finishedDay=day;document.getElementById('summaryDay').textContent='Day '+finishedDay+' Complete';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
 document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
-const kitchenItems=[{key:'kFridge',x:487,y:222},{key:'kCabinet',x:453,y:197},{key:'kCabinet',x:581,y:197},{key:'kCabinet',x:613,y:197},{key:'kSink',x:518,y:222},{key:'kCounter',x:453,y:222},{key:'kCounter',x:581,y:222},{key:'kCounter',x:613,y:222},{key:'kStove',x:551,y:222},{key:'kMicrowave',x:613,y:222}];
+const kitchenItems=[{key:'kFridge',x:527,y:222},{key:'kCabinet',x:493,y:197},{key:'kCabinet',x:621,y:197},{key:'kCabinet',x:653,y:197},{key:'kSink',x:558,y:222},{key:'kCounter',x:493,y:222},{key:'kCounter',x:621,y:222},{key:'kCounter',x:653,y:222},{key:'kStove',x:591,y:222},{key:'kMicrowave',x:653,y:222}];
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:94,y:70,w:165,h:132,doorX:176,color:'#cf9a73'},
