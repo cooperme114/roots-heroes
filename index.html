@@ -15,11 +15,11 @@ function showSave(isLoad){loadingCode=isLoad;savePanel.style.display='flex';save
 document.getElementById('saveGame').onclick=()=>showSave(false);
 document.getElementById('loadGame').onclick=()=>showSave(true);
 document.getElementById('saveClose').onclick=()=>savePanel.style.display='none';
-document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(125,Math.min(338,data.bed.x));bed.y=Math.max(126,Math.min(182,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
+document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(125,Math.min(338,data.bed.x));bed.y=Math.max(164,Math.min(176,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 function sleepUntilTomorrow(){const finishedDay=day;document.getElementById('summaryDay').textContent='Day '+finishedDay+' Complete';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
 document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
-const bed={x:178,y:155,w:42,h:85};let bedDrag=null;
+const bed={x:178,y:170,w:42,h:85};let bedDrag=null;
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:94,y:70,w:165,h:132,doorX:176,color:'#cf9a73'},
@@ -76,7 +76,7 @@ const furnitureImages={};
 for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=270&&y<=467)||(x>=115&&x<=390&&y>=126&&y<=270)}
-function bedAllowed(x,y){return x>=125&&x+bed.w<=380&&y>=126&&y+bed.h<=267}
+function bedAllowed(x,y){return x>=125&&x+bed.w<=380&&y>=164&&y+bed.h<=261}
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='home'){
@@ -95,7 +95,7 @@ tileArea('tile',390,270,295,197,'#b7b5ac');
 // The black region beyond the L remains outside the house.
 const wall='#e8d9b9', trim='#79563e', light='#cda77c';
 rect(115,126,275,34,wall);rect(115,158,275,6,trim);rect(115,158,275,2,light);
-rect(115,273,275,34,wall);rect(115,305,275,6,trim);rect(115,305,275,2,light);
+rect(115,273,106,34,wall);rect(300,273,90,34,wall);rect(115,305,106,6,trim);rect(300,305,90,6,trim);rect(115,305,106,2,light);rect(300,305,90,2,light);
 rect(390,270,295,37,wall);rect(390,305,295,6,trim);rect(390,305,295,2,light);
 // Bedroom divider has a wide, walkable doorway.
 rect(115,263,106,10,trim);rect(300,263,90,10,trim);
@@ -104,7 +104,7 @@ rect(115,263,106,3,light);rect(300,263,90,3,light);
 rect(103,114,299,12,trim);rect(103,114,12,366,trim);
 rect(390,114,12,156,trim);rect(390,258,307,12,trim);
 rect(685,258,12,222,trim);
-rect(103,467,594,13,trim);
+rect(103,467,167,13,trim);rect(333,467,364,13,trim);
 rect(103,114,299,3,light);rect(390,258,307,3,light);
 // Slim inside-wall edge trim makes the rooms feel enclosed.
 rect(112,126,3,341,light);rect(682,270,3,197,light);
@@ -127,7 +127,12 @@ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),pla
 function collide(x,y){
 if(scene==='home'){
 if(!inHouse(x,y))return true;
-if(y>=260&&y<=275&&x>=115&&x<=390&&(x<221||x>300))return true;
+// Wallpaper is a solid wall, not walkable floor. The bedroom opening is x=221..300.
+if(x>=115&&x<=390&&y<164)return true;
+if(x>=115&&x<=390&&y>=263&&y<311&&(x<221||x>300))return true;
+if(x>=390&&y<311)return true;
+// The front door is the opening beneath the blue entrance rug.
+if(y>=467&&(x<270||x>333))return true;
 return false;
 }
 if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
