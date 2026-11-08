@@ -23,10 +23,10 @@ const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
 const kitchenItems=[{key:'kFridge',x:527,y:222},{key:'kCabinet',x:493,y:197},{key:'kCabinet',x:621,y:197},{key:'kCabinet',x:653,y:197},{key:'kSink',x:558,y:222},{key:'kCounter',x:493,y:222},{key:'kCounter',x:621,y:222},{key:'kCounter',x:653,y:222},{key:'kStove',x:591,y:222},{key:'kMicrowave',x:653,y:222}];
 const player={x:390,y:345,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
-{id:'home',district:'town',name:'Your House',x:32,y:32,w:288,h:192,doorX:140,color:'#cf9a73'},
-{id:'neighbor1',district:'town',name:'Neighbors',x:512,y:112,w:160,h:132,doorX:592,color:'#c8a68b'},
-{id:'bakery',district:'town',name:'Bakery',x:100,y:320,w:170,h:132,doorX:185,color:'#d5a878'},
-{id:'grocery',district:'town',name:'Grocery Store',x:510,y:320,w:170,h:132,doorX:595,color:'#9bad7a'},
+{id:'home',district:'town',name:'Your House',x:256,y:32,w:288,h:192,doorX:400,color:'#cf9a73'},
+{id:'neighbor1',district:'town',name:'Neighbors',x:600,y:92,w:160,h:132,doorX:680,color:'#c8a68b'},
+{id:'bakery',district:'town',name:'Bakery',x:100,y:352,w:170,h:132,doorX:185,color:'#d5a878'},
+{id:'grocery',district:'town',name:'Grocery Store',x:510,y:352,w:170,h:132,doorX:595,color:'#9bad7a'},
 {id:'cafe',district:'commercial',name:'The Corner Café',x:90,y:65,w:170,h:132,doorX:175,color:'#bc8eaa'},
 {id:'newspaper',district:'commercial',name:'Newspaper Office',x:510,y:65,w:180,h:132,doorX:600,color:'#b5a6a0'},
 {id:'clothing',district:'commercial',name:'Clothing Store',x:90,y:325,w:170,h:132,doorX:175,color:'#9cb3c5'},
@@ -75,7 +75,7 @@ function drawPlayerHouse(b){
 function drawTown(){
 tileArea('grass',0,0,W,H,'#80b783');
 // The town's original crossing paths, now built with the repeatable stone tile.
-tileArea('asphalt',384,0,64,H,'#45474b');
+if(scene!=='town')tileArea('asphalt',384,0,64,H,'#45474b');
 // Two 32px rows of street, touching the buildings on both sides.
 tileArea('asphalt',0,256,W,64,'#45474b');
 // One 32px row of gray sidewalk on each side of the street.
