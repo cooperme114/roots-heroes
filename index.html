@@ -118,7 +118,10 @@ rect(115,50,275,417,'#b8916d');rect(390,206,295,261,'#b7b5ac');
 // Floors, including the bedroom extended upward by one tile.
 tileArea('Floors-classic-medium-wood-001',115,106,275,361,'#b8916d');
 ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,106,275,361);
-tileArea('tile',390,252,295,215,'#b7b5ac');
+// Give the living room two additional 32px columns of wood flooring.
+tileArea('Floors-classic-medium-wood-001',390,266,64,201,'#b8916d');
+ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(390,266,64,201);
+tileArea('tile',454,266,231,201,'#b7b5ac');
 // Full-height wallpaper, with baseboards at the floor line.
 rect(115,50,275,56,wall);rect(115,104,275,4,trim);rect(115,104,275,2,light);
 // Bedroom divider: visible wall sections with a doorway at x=221..300.
