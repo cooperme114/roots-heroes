@@ -27,7 +27,7 @@ function text(t,x,y,size=14,color='#f8f0d7'){ctx.font='bold '+size+'px system-ui
 function person(x,y,skin,shirt,face=false){rect(x-8,y-8,16,13,shirt);rect(x-6,y-19,12,12,skin);rect(x-6,y+5,5,8,'#35434d');rect(x+1,y+5,5,8,'#35434d');rect(x-8,y-20,16,5,'#43382f');if(face){rect(x-3,y-13,2,2,'#25343b');rect(x+3,y-13,2,2,'#25343b')}}
 // Load the actual 32px seamless textures from assets/tiles.
 const groundTiles={};
-for(const name of ['grass','stone','wood','tile','carpet','futuristic']){
+for(const name of ['grass','stone','wood','tile','carpet','futuristic','Floors-classic-medium-wood-001']){
   const img=new Image();
   img.src='assets/tiles/'+name+'.png?v=terrain-v5';
   img.onload=()=>{groundTiles[name]=ctx.createPattern(img,'repeat')};
@@ -57,7 +57,7 @@ rect(0,0,W,H,'#30484a');
 rect(95,46,610,168,wallpaperColors[buildingWallpaper[scene]].hex);
 // Wooden trim separates the wall from the floor.
 rect(95,201,610,13,'#79563e');rect(95,201,610,3,'#cda77c');
-tileArea('wood',95,214,610,268,'#b8916d');
+tileArea(scene==='home'?'Floors-classic-medium-wood-001':'wood',95,214,610,268,'#b8916d');
 rect(95,46,610,8,'#78573e');rect(95,46,610,3,'#cda77c');
 rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
