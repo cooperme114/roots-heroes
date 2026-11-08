@@ -15,8 +15,22 @@ const interiors={hq:{name:'Hero Headquarters',color:'#8298ad',message:'One day, 
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=14,color='#f8f0d7'){ctx.font='bold '+size+'px system-ui';ctx.textAlign='center';ctx.fillStyle='#16232b';ctx.fillText(t,x+1,y+2);ctx.fillStyle=color;ctx.fillText(t,x,y)}
 function person(x,y,skin,shirt,face=false){rect(x-8,y-8,16,13,shirt);rect(x-6,y-19,12,12,skin);rect(x-6,y+5,5,8,'#35434d');rect(x+1,y+5,5,8,'#35434d');rect(x-8,y-20,16,5,'#43382f');if(face){rect(x-3,y-13,2,2,'#25343b');rect(x+3,y-13,2,2,'#25343b')}}
-function drawTown(){rect(0,0,W,H,'#80b783');for(let i=0;i<26;i++)for(let j=0;j<17;j++){let x=i*32+9,y=j*32+7;if((i*7+j*11)%5===0)rect(x,y,3,3,'#75a975')}
-rect(0,263,W,82,'#d7c6a4');rect(284,0,120,H,'#d7c6a4');for(let i=0;i<25;i++){rect(i*33,299,17,2,'#c2b18f')}for(let i=0;i<16;i++){rect(342,i*34,2,16,'#c2b18f')}
+// Load the actual 32px seamless textures from assets/tiles.
+const groundTiles={};
+for(const name of ['grass','stone','wood','tile','carpet','futuristic']){
+  const img=new Image();
+  img.src='assets/tiles/'+name+'.png';
+  img.onload=()=>{groundTiles[name]=ctx.createPattern(img,'repeat')};
+}
+function tileArea(name,x,y,w,h,fallback){
+  ctx.fillStyle=groundTiles[name]||fallback;
+  ctx.fillRect(x,y,w,h);
+}
+function drawTown(){
+tileArea('grass',0,0,W,H,'#80b783');
+// The town's original crossing paths, now built with the repeatable stone tile.
+tileArea('stone',0,263,W,82,'#c5bca9');
+tileArea('stone',284,0,120,H,'#c5bca9');
 for(const b of buildings){rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.id==='hq'?'#354f76':b.id==='home'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 for(let i=0;i<12;i++){let x=18+(i*73)%770,y=24+(i*103)%490;if(!buildings.some(b=>x>b.x-24&&x<b.x+b.w+24&&y>b.y-24&&y<b.y+b.h+24)&&!(x>260&&x<425)){rect(x-8,y-3,16,12,'#567d49');rect(x-12,y-14,24,18,'#487f51');rect(x-6,y-20,12,10,'#60975c')}}
 for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
