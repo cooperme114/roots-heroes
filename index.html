@@ -82,8 +82,18 @@ function drawNeighborHouse(b){
  const x=b.x+Math.round((b.w-w)/2),y=234-h;
  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(neighborHouseImage,x,y,w,h);ctx.restore();return true;
 }
+function skyColor(){
+  const minuteOfDay=(480+Math.floor(elapsed))%1440;
+  const hour=minuteOfDay/60;
+  const day=[125,191,235],night=[13,24,69];
+  const t=Math.max(0,Math.min(1,(hour-17)/2));
+  const eased=t*t*(3-2*t);
+  return 'rgb('+day.map((v,i)=>Math.round(v+(night[i]-v)*eased)).join(',')+')';
+}
 function drawTown(){
 rect(0,0,W,H,'#747779');
+// The sky is visible above and between the upper buildings, changing from 5 PM to 7 PM.
+if(scene==='town')rect(0,0,W,224,skyColor());
 // The town's original crossing paths, now built with the repeatable stone tile.
 if(scene!=='town')tileArea('asphalt',384,0,64,H,'#45474b');
 // Two 32px rows of street, touching the buildings on both sides.
