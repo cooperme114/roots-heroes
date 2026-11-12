@@ -53,6 +53,8 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
   // Both v3 sheets are 1536x1024, with 4 columns of 384px and 4 rows of 256px.
   // Crop the character centered inside its own cell, never across neighboring frames.
+  const row={down:0,left:1,right:2,up:3}[face]??0;
+  const col=walking?Math.floor(time*5)%4:0;
   const cellW=img.naturalWidth/4,cellH=img.naturalHeight/4;
   const sx=col*cellW+94*(cellW/384),sy=row*cellH;
   const fw=196*(cellW/384),fh=cellH;
