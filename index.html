@@ -42,6 +42,26 @@ const districtNames={town:'Residential District',commercial:'Commercial District
 const districtBuildings=()=>buildings.filter(b=>b.district===scene);
 let lastDistrict='town';
 const npcs=[];
+// NPC sprite sheets: each 4x4 sheet is used whole, without slicing PNG files.
+// Rows: down, left, right, up. Columns: idle, step A, idle, step B.
+const npcSheets={};
+for(const [id,file] of Object.entries({
+  danielle:'assets/npcs/starshine/Starshine_Civvies.png',
+  starshine:'assets/npcs/starshine/Starshine_Super.png'
+})){const img=new Image();img.src=file;npcSheets[id]=img;}
+function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
+  const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
+  const columns=4,rows=4,fw=img.naturalWidth/columns,fh=img.naturalHeight/rows;
+  const row={down:0,left:1,right:2,up:3}[face]??0;
+  const col=walking?Math.floor(time*5)%4:0;
+  // Draw at the same on-screen height as the player; preserve the source aspect ratio.
+  const height=48,width=height*fw/fh;
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(img,col*fw,row*fh,fw,fh,x-width/2,y-height+8,width,height);
+  ctx.restore();return true;
+}
+const npcActors=[{id:'danielle',name:'Danielle',scene:'government',x:170,y:244,face:'down',walking:false}];
+
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3,hospital:0};
 const interiors={hospital:{name:'Hospital',color:'#dbe5e8',message:'A quiet place to recover.'},hq:{name:'Hero Headquarters',color:'#8298ad',message:'One day, you will recruit heroes and dispatch them to missions from here.'},home:{name:'Your House',color:'#a78c7b',message:'Your future home! Eventually you can decorate, sleep, and save here.'},cafe:{name:'The Corner Café',color:'#ae8999',message:'The café will become a place to meet friends, buy treats, and go on dates.'}};
@@ -115,6 +135,7 @@ for(let x=0;x<W;x+=78){rect(x,149,7,74,'#111820');rect(x-2,148,11,5,'#111820');r
 ctx.restore();}
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
+for(const n of npcActors){if(n.scene===scene&&drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed))text(n.name,n.x,n.y-50,11)}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
 text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
 text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,290,11);
