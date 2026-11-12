@@ -94,7 +94,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  const row={down:0,left:1,right:2,up:3}[face]??0;
  const col=walking?Math.floor(time*5)%4:0;
  const f=frames[row*4+col];if(!f||f.right<=f.left)return false;
- const scale=(id==='ximena'?64:70)/256;
+ const scale=(id==='ximena'?66:70)/256;
  const w=(f.right-f.left+1)*scale,h=(f.bottom-f.top+1)*scale;
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(f.canvas,f.left,f.top,f.right-f.left+1,f.bottom-f.top+1,
