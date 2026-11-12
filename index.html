@@ -55,12 +55,12 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const row={down:0,left:1,right:2,up:3}[face]??0;
   const col=walking?Math.floor(time*5)%4:0;
   // Draw at the same on-screen height as the player; preserve the source aspect ratio.
-  const height=48,width=height*fw/fh;
+  const height=60,width=height*fw/fh;
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(img,col*fw,row*fh,fw,fh,x-width/2,y-height+8,width,height);
   ctx.restore();return true;
 }
-const npcActors=[{id:'danielle',name:'Danielle',scene:'government',x:170,y:244,face:'down',walking:false}];
+const npcActors=[{id:'danielle',scene:'government',x:170,y:244,baseX:170,phase:0,face:'right',walking:true}];
 
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3,hospital:0};
@@ -135,7 +135,7 @@ for(let x=0;x<W;x+=78){rect(x,149,7,74,'#111820');rect(x-2,148,11,5,'#111820');r
 ctx.restore();}
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
-for(const n of npcActors){if(n.scene===scene&&drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed))text(n.name,n.x,n.y-50,11)}
+for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
 text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
 text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,290,11);
@@ -238,6 +238,8 @@ return false;
 if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
 if(x<12||x>788||y<12||y>(scene==='town'?255:516))return true;
 if(scene==='town'&&y<230)return true;
+// NPCs are solid: the player cannot walk through them.
+if(npcActors.some(n=>n.scene===scene&&Math.abs(x-n.x)<19&&Math.abs(y-n.y)<17))return true;
 return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 }
 function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
@@ -268,6 +270,11 @@ function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Mat
 function update(dt){if(summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const midnight=day*1440-480;
 if(elapsed+dt>=midnight){elapsed=midnight;sleepUntilTomorrow(scene==='home'?'home':'outside');return;}
 elapsed+=dt;updateClock();
+// Danielle patrols a short stretch of sidewalk, reversing direction at each end.
+for(const n of npcActors){if(n.scene!==scene)continue;const oldX=n.x;n.phase+=dt*0.65;n.x=n.baseX+Math.sin(n.phase)*65;n.face=n.x>=oldX?'right':'left';n.walking=Math.abs(n.x-oldX)>0.02;
+// Do not let a moving NPC overlap the player.
+if(Math.abs(player.x-n.x)<19&&Math.abs(player.y-n.y)<17){n.x=oldX;n.phase-=dt*0.65;n.walking=false;}}
+
 let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
 if(districts.includes(scene)){let next=null;if(player.x<=13)next=scene==='town'?'government':scene==='commercial'?'town':'commercial';else if(player.x>=787)next=scene==='town'?'commercial':scene==='commercial'?'government':'town';if(next){const fromLeft=player.x<=13;scene=next;player.x=fromLeft?775:25;placeEl.textContent=districtNames[scene];keys.clear()}}
 if(scene==='town')for(const n of npcs){n.phase+=dt*.5;const nx=n.baseX+Math.sin(n.phase)*33,ny=244;if(!collide(nx,ny)){n.x=nx;n.y=ny}}
