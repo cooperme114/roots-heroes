@@ -64,7 +64,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   ctx.drawImage(img,sx,sy,fw,fh,Math.round(x-width/2),Math.round(y+12-height),Math.round(width),height);
   ctx.restore();return true;
 }
-const npcActors=[{id:'danielle',scene:'government',x:170,y:244,baseX:170,phase:0,face:'right',walking:true}];
+const npcActors=[{id:'danielle',scene:'government',x:325,y:235,baseX:325,phase:0,face:'right',walking:true}];
 
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3,hospital:0};
@@ -274,10 +274,22 @@ function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Mat
 function update(dt){if(summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const midnight=day*1440-480;
 if(elapsed+dt>=midnight){elapsed=midnight;sleepUntilTomorrow(scene==='home'?'home':'outside');return;}
 elapsed+=dt;updateClock();
-// Danielle patrols a short stretch of sidewalk, reversing direction at each end.
-for(const n of npcActors){if(n.scene!==scene)continue;const oldX=n.x;n.phase+=dt*0.65;n.x=n.baseX+Math.sin(n.phase)*65;n.face=n.x>=oldX?'right':'left';n.walking=Math.abs(n.x-oldX)>0.02;
-// Do not let a moving NPC overlap the player.
-if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){n.x=oldX;n.phase-=dt*0.65;n.walking=false;}}
+// Danielle walks a small clockwise rectangle to demonstrate all four sprite directions.
+for(const n of npcActors){
+ if(n.scene!==scene)continue;
+ const oldX=n.x,oldY=n.y,oldPhase=n.phase;
+ const speed=35,w=100,h=50,perimeter=2*(w+h);
+ n.phase=(n.phase+dt*speed/perimeter)%1;
+ const distance=n.phase*perimeter;
+ if(distance<w){n.x=n.baseX+distance;n.y=235;n.face='right';}
+ else if(distance<w+h){n.x=n.baseX+w;n.y=235+(distance-w);n.face='down';}
+ else if(distance<2*w+h){n.x=n.baseX+w-(distance-w-h);n.y=235+h;n.face='left';}
+ else {n.x=n.baseX;n.y=235+h-(distance-2*w-h);n.face='up';}
+ n.walking=true;
+ if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){
+  n.x=oldX;n.y=oldY;n.phase=oldPhase;n.walking=false;
+ }
+}
 
 let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
 if(districts.includes(scene)){let next=null;if(player.x<=13)next=scene==='town'?'government':scene==='commercial'?'town':'commercial';else if(player.x>=787)next=scene==='town'?'commercial':scene==='commercial'?'government':'town';if(next){const fromLeft=player.x<=13;scene=next;player.x=fromLeft?775:25;placeEl.textContent=districtNames[scene];keys.clear()}}
