@@ -47,7 +47,9 @@ const npcs=[];
 const npcSheets={};
 for(const [id,file] of Object.entries({
   danielle:'assets/npcs/starshine/Starshine_Civvies3.png?v=5',
-  starshine:'assets/npcs/starshine/Starshine_Super3.png?v=5'
+  starshine:'assets/npcs/starshine/Starshine_Super3.png?v=5',
+  ximena:'assets/npcs/sombra/sombra_civvies2.png?v=1',
+  sombra:'assets/npcs/sombra/Sombra_Super.png?v=1'
 })){const img=new Image();img.src=file;npcSheets[id]=img;}
 function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
@@ -64,7 +66,11 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   ctx.drawImage(img,sx,sy,fw,fh,Math.round(x-width/2),Math.round(y+12-height),Math.round(width),height);
   ctx.restore();return true;
 }
-const npcActors=[{id:'danielle',scene:'government',x:325,y:235,baseX:325,phase:0,face:'right',walking:true}];
+const npcActors=[
+ {id:'danielle',scene:'government',x:320,y:235,face:'right',walking:true},
+ {id:'ximena',scene:'government',x:490,y:235,face:'left',walking:true}
+];
+let coupleCycle=0;
 
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3,hospital:0};
@@ -274,20 +280,27 @@ function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Mat
 function update(dt){if(summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const midnight=day*1440-480;
 if(elapsed+dt>=midnight){elapsed=midnight;sleepUntilTomorrow(scene==='home'?'home':'outside');return;}
 elapsed+=dt;updateClock();
-// Danielle walks a small clockwise rectangle to demonstrate all four sprite directions.
-for(const n of npcActors){
- if(n.scene!==scene)continue;
- const oldX=n.x,oldY=n.y,oldPhase=n.phase;
- const speed=35,w=100,h=50,perimeter=2*(w+h);
- n.phase=(n.phase+dt*speed/perimeter)%1;
- const distance=n.phase*perimeter;
- if(distance<w){n.x=n.baseX+distance;n.y=235;n.face='right';}
- else if(distance<w+h){n.x=n.baseX+w;n.y=235+(distance-w);n.face='down';}
- else if(distance<2*w+h){n.x=n.baseX+w-(distance-w-h);n.y=235+h;n.face='left';}
- else {n.x=n.baseX;n.y=235+h-(distance-2*w-h);n.face='up';}
- n.walking=true;
+// Danielle and Ximena approach one another, pause together, then wander apart.
+// The cycle repeats, keeping their sprite animations and facing synchronized.
+const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
+coupleCycle=(coupleCycle+dt)%19;
+const t=coupleCycle;
+const routes=[
+ [{x:320,y:235},{x:385,y:235},{x:385,y:235},{x:320,y:235},{x:320,y:285},{x:350,y:285},{x:320,y:235}],
+ [{x:490,y:235},{x:425,y:235},{x:425,y:235},{x:490,y:235},{x:490,y:285},{x:460,y:285},{x:490,y:235}]
+];
+const stops=[0,2.5,6,8.5,11,13,15,19];
+for(let i=0;i<npcActors.length;i++){
+ const n=npcActors[i],route=routes[i];if(n.scene!==scene)continue;
+ let segment=0;while(segment<stops.length-2&&t>=stops[segment+1])segment++;
+ const a=route[segment],b=route[segment+1];
+ const fraction=Math.min(1,Math.max(0,(t-stops[segment])/(stops[segment+1]-stops[segment])));
+ n.x=a.x+(b.x-a.x)*fraction;n.y=a.y+(b.y-a.y)*fraction;
+ n.walking=Math.abs(b.x-a.x)+Math.abs(b.y-a.y)>0;
+ if(n.walking)n.face=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)?(b.x>a.x?'right':'left'):(b.y>a.y?'down':'up');
+ else if(segment===1)n.face=i===0?'right':'left';
  if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){
-  n.x=oldX;n.y=oldY;n.phase=oldPhase;n.walking=false;
+   n.x=oldPositions[i].x;n.y=oldPositions[i].y;n.walking=false;
  }
 }
 
