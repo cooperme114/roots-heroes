@@ -318,15 +318,15 @@ elapsed+=dt;updateClock();
 // Danielle and Ximena approach one another, pause together, then wander apart.
 // The cycle repeats, keeping their sprite animations and facing synchronized.
 const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
-coupleCycle=(coupleCycle+dt)%19;
+coupleCycle=(coupleCycle+dt)%24;
 const t=coupleCycle;
 const routes=[
- [{x:320,y:235},{x:385,y:235},{x:385,y:235},{x:320,y:235},{x:320,y:285},{x:350,y:285},{x:320,y:235}],
- [{x:490,y:235},{x:425,y:235},{x:425,y:235},{x:490,y:235},{x:490,y:285},{x:460,y:285},{x:490,y:235}]
+ [{x:320,y:235},{x:265,y:235},{x:265,y:285},{x:265,y:285},{x:265,y:235},{x:375,y:235},{x:375,y:235},{x:320,y:235},{x:320,y:235}],
+ [{x:490,y:235},{x:490,y:235},{x:490,y:285},{x:545,y:285},{x:545,y:285},{x:545,y:235},{x:415,y:235},{x:415,y:235},{x:490,y:235}]
 ];
-const stops=[0,2.5,6,8.5,11,13,19];
+const schedules=[[0,3,5,10,12,15,18,21,24],[0,5,7,10,12,14,17,18,24]];
 for(let i=0;i<npcActors.length;i++){
- const n=npcActors[i],route=routes[i];if(n.scene!==scene)continue;
+ const n=npcActors[i],route=routes[i],stops=schedules[i];if(n.scene!==scene)continue;
  let segment=0;while(segment<route.length-2&&t>=stops[segment+1])segment++;
  const a=route[segment],b=route[segment+1];
  const fraction=Math.min(1,Math.max(0,(t-stops[segment])/(stops[segment+1]-stops[segment])));
