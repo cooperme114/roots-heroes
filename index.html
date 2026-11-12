@@ -46,8 +46,8 @@ const npcs=[];
 // Rows: down, left, right, up. Columns: idle, step A, idle, step B.
 const npcSheets={};
 for(const [id,file] of Object.entries({
-  danielle:'assets/npcs/starshine/Starshine_Civvies2.png?v=3',
-  starshine:'assets/npcs/starshine/Starshine_Super2.png?v=3'
+  danielle:'assets/npcs/starshine/Starshine_Civvies2.png?v=4',
+  starshine:'assets/npcs/starshine/Starshine_Super2.png?v=4'
 })){const img=new Image();img.src=file;npcSheets[id]=img;}
 function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
@@ -57,7 +57,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const col=walking?Math.floor(time*5)%4:0;
   const scaleX=img.naturalWidth/1536,scaleY=img.naturalHeight/1024;
   const sx=(205+col*300)*scaleX,sy=(row*256)*scaleY;
-  const fw=200*scaleX,fh=256*scaleY;
+  const fw=200*scaleX,fh=244*scaleY; // Exclude the dark row-divider pixels below the feet.
   const height=72,width=height*(200/256);
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(img,sx,sy,fw,fh,x-width/2,y-height+8,width,height);
