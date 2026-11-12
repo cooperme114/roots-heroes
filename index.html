@@ -243,7 +243,7 @@ if(!districts.includes(scene))return x<115||x>685||y<226||y>467;
 if(x<12||x>788||y<12||y>(scene==='town'?255:516))return true;
 if(scene==='town'&&y<230)return true;
 // NPCs are solid: the player cannot walk through them.
-if(npcActors.some(n=>n.scene===scene&&Math.abs(x-n.x)<19&&Math.abs(y-n.y)<17))return true;
+if(npcActors.some(n=>n.scene===scene&&Math.abs(x-n.x)<31&&Math.abs(y-n.y)<22))return true;
 return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 }
 function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
@@ -277,7 +277,7 @@ elapsed+=dt;updateClock();
 // Danielle patrols a short stretch of sidewalk, reversing direction at each end.
 for(const n of npcActors){if(n.scene!==scene)continue;const oldX=n.x;n.phase+=dt*0.65;n.x=n.baseX+Math.sin(n.phase)*65;n.face=n.x>=oldX?'right':'left';n.walking=Math.abs(n.x-oldX)>0.02;
 // Do not let a moving NPC overlap the player.
-if(Math.abs(player.x-n.x)<19&&Math.abs(player.y-n.y)<17){n.x=oldX;n.phase-=dt*0.65;n.walking=false;}}
+if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){n.x=oldX;n.phase-=dt*0.65;n.walking=false;}}
 
 let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
 if(districts.includes(scene)){let next=null;if(player.x<=13)next=scene==='town'?'government':scene==='commercial'?'town':'commercial';else if(player.x>=787)next=scene==='town'?'commercial':scene==='commercial'?'government':'town';if(next){const fromLeft=player.x<=13;scene=next;player.x=fromLeft?775:25;placeEl.textContent=districtNames[scene];keys.clear()}}
