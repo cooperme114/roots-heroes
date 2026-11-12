@@ -45,26 +45,56 @@ const npcs=[];
 // NPC sprite sheets: each 4x4 sheet is used whole, without slicing PNG files.
 // Rows: down, left, right, up. Columns: idle, step A, idle, step B.
 const npcSheets={};
+const npcFrames={};
 for(const [id,file] of Object.entries({
-  danielle:'assets/npcs/starshine/Starshine_Civvies3.png?v=5',
-  starshine:'assets/npcs/starshine/Starshine_Super3.png?v=5',
-  ximena:'assets/npcs/sombra/sombra_civvies2.png?v=1',
-  sombra:'assets/npcs/sombra/Sombra_Super.png?v=1'
-})){const img=new Image();img.src=file;npcSheets[id]=img;}
-function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
-  const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
-  // Both v3 sheets are 1536x1024, with 4 columns of 384px and 4 rows of 256px.
-  // Crop the character centered inside its own cell, never across neighboring frames.
-  const row={down:0,left:1,right:2,up:3}[face]??0;
-  const col=walking?Math.floor(time*5)%4:0;
+  danielle:'assets/npcs/starshine/Starshine_Civvies3.png?v=6',
+  starshine:'assets/npcs/starshine/Starshine_Super3.png?v=6',
+  ximena:'assets/npcs/sombra/sombra_civvies2.png?v=6',
+  sombra:'assets/npcs/sombra/Sombra_Super.png?v=6'
+})){
+ const img=new Image();npcSheets[id]=img;
+ img.onload=()=>{
   const cellW=img.naturalWidth/4,cellH=img.naturalHeight/4;
-  const sx=col*cellW+94*(cellW/384),sy=row*cellH;
-  const fw=196*(cellW/384),fh=cellH;
-  // The sheet has transparent padding inside each cell; scale the full crop to 74px so the visible figure matches the player's height, keeping feet aligned.
-  const height=70,width=height*(196/256);
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(img,sx,sy,fw,fh,Math.round(x-width/2),Math.round(y+12-height),Math.round(width),height);
-  ctx.restore();return true;
+  const frames=[];
+  for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+   const canvas=document.createElement('canvas');canvas.width=cellW;canvas.height=cellH;
+   const c=canvas.getContext('2d',{willReadFrequently:true});
+   c.drawImage(img,col*cellW,row*cellH,cellW,cellH,0,0,cellW,cellH);
+   const pixels=c.getImageData(0,0,cellW,cellH);
+   const p=pixels.data;
+   // The uploaded sheets have white backgrounds rather than transparency.
+   // Remove near-white pixels before displaying any frame.
+   for(let k=0;k<p.length;k+=4){
+    if(p[k]>239&&p[k+1]>239&&p[k+2]>239) p[k+3]=0;
+   }
+   c.putImageData(pixels,0,0);
+   // Find each figure's actual position independently. The generated sprites
+   // are not centered identically in every cell, especially walking poses.
+   let left=cellW,top=cellH,right=0,bottom=0;
+   for(let y=0;y<cellH;y++)for(let x=0;x<cellW;x++){
+    if(p[(y*cellW+x)*4+3]<100)continue;
+    // Ignore stray artifacts far from the character's central region.
+    if(x<cellW*.14||x>cellW*.86)continue;
+    if(x<left)left=x;if(x>right)right=x;
+    if(y<top)top=y;if(y>bottom)bottom=y;
+   }
+   frames.push({canvas,left,top,right,bottom});
+  }
+  npcFrames[id]=frames;
+ };
+ img.src=file;
+}
+function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
+ const frames=npcFrames[id];if(!frames)return false;
+ const row={down:0,left:1,right:2,up:3}[face]??0;
+ const col=walking?Math.floor(time*5)%4:0;
+ const f=frames[row*4+col];if(!f||f.right<=f.left)return false;
+ const scale=70/256;
+ const w=(f.right-f.left+1)*scale,h=(f.bottom-f.top+1)*scale;
+ ctx.save();ctx.imageSmoothingEnabled=false;
+ ctx.drawImage(f.canvas,f.left,f.top,f.right-f.left+1,f.bottom-f.top+1,
+  Math.round(x-w/2),Math.round(y+12-h),Math.round(w),Math.round(h));
+ ctx.restore();return true;
 }
 const npcActors=[
  {id:'danielle',scene:'government',x:320,y:235,face:'right',walking:true},
