@@ -46,18 +46,21 @@ const npcs=[];
 // Rows: down, left, right, up. Columns: idle, step A, idle, step B.
 const npcSheets={};
 for(const [id,file] of Object.entries({
-  danielle:'assets/npcs/starshine/Starshine_Civvies2.png?v=2',
-  starshine:'assets/npcs/starshine/Starshine_Super2.png?v=2'
+  danielle:'assets/npcs/starshine/Starshine_Civvies2.png?v=3',
+  starshine:'assets/npcs/starshine/Starshine_Super2.png?v=3'
 })){const img=new Image();img.src=file;npcSheets[id]=img;}
 function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
-  const columns=4,rows=4,fw=img.naturalWidth/columns,fh=img.naturalHeight/rows;
+  // The supplied 1536x1024 sheets have 300px-spaced sprite centers,
+  // not four equal-width columns. Crop each figure individually.
   const row={down:0,left:1,right:2,up:3}[face]??0;
   const col=walking?Math.floor(time*5)%4:0;
-  // Draw at the same on-screen height as the player; preserve the source aspect ratio.
-  const height=60,width=height*fw/fh;
+  const scaleX=img.naturalWidth/1536,scaleY=img.naturalHeight/1024;
+  const sx=(205+col*300)*scaleX,sy=(row*256)*scaleY;
+  const fw=200*scaleX,fh=256*scaleY;
+  const height=72,width=height*(200/256);
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(img,col*fw,row*fh,fw,fh,x-width/2,y-height+8,width,height);
+  ctx.drawImage(img,sx,sy,fw,fh,x-width/2,y-height+8,width,height);
   ctx.restore();return true;
 }
 const npcActors=[{id:'danielle',scene:'government',x:170,y:244,baseX:170,phase:0,face:'right',walking:true}];
