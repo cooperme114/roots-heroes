@@ -59,7 +59,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const sx=col*cellW+94*(cellW/384),sy=row*cellH;
   const fw=196*(cellW/384),fh=cellH;
   // The sheet has transparent padding inside each cell; scale the full crop to 74px so the visible figure matches the player's height, keeping feet aligned.
-  const height=74,width=height*(196/256);
+  const height=70,width=height*(196/256);
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.drawImage(img,sx,sy,fw,fh,Math.round(x-width/2),Math.round(y+12-height),Math.round(width),height);
   ctx.restore();return true;
