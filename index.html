@@ -49,7 +49,7 @@ const npcFrames={};
 for(const [id,file] of Object.entries({
   danielle:'assets/npcs/starshine/Starshine_Civvies3.png?v=6',
   starshine:'assets/npcs/starshine/Starshine_Super3.png?v=6',
-  ximena:'assets/npcs/sombra/sombra_civvies2.png?v=6',
+  ximena:'assets/npcs/sombra/sombra_civvies2.png?v=7',
   sombra:'assets/npcs/sombra/Sombra_Super.png?v=6'
 })){
  const img=new Image();npcSheets[id]=img;
@@ -74,10 +74,15 @@ for(const [id,file] of Object.entries({
    for(let y=0;y<cellH;y++)for(let x=0;x<cellW;x++){
     if(p[(y*cellW+x)*4+3]<100)continue;
     // Ignore stray artifacts far from the character's central region.
-    if(x<cellW*.14||x>cellW*.86)continue;
+    // Do not discard outer pixels: walking legs, hair and arms can extend
+    // beyond the central 72% of a frame.
     if(x<left)left=x;if(x>right)right=x;
     if(y<top)top=y;if(y>bottom)bottom=y;
    }
+   // Add breathing room so no hair, shoes or swinging limbs get clipped.
+   const pad=12;
+   left=Math.max(0,left-pad);top=Math.max(0,top-pad);
+   right=Math.min(cellW-1,right+pad);bottom=Math.min(cellH-1,bottom+pad);
    frames.push({canvas,left,top,right,bottom});
   }
   npcFrames[id]=frames;
