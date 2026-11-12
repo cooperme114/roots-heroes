@@ -46,8 +46,8 @@ const npcs=[];
 // Rows: down, left, right, up. Columns: idle, step A, idle, step B.
 const npcSheets={};
 for(const [id,file] of Object.entries({
-  danielle:'assets/npcs/starshine/Starshine_Civvies.png',
-  starshine:'assets/npcs/starshine/Starshine_Super.png'
+  danielle:'assets/npcs/starshine/Starshine_Civvies2.png?v=2',
+  starshine:'assets/npcs/starshine/Starshine_Super2.png?v=2'
 })){const img=new Image();img.src=file;npcSheets[id]=img;}
 function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
   const img=npcSheets[id];if(!img||!img.complete||!img.naturalWidth)return false;
