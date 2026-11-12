@@ -25,10 +25,10 @@ const kitchenItems=[{key:'kFridge',x:527,y:254},{key:'kCabinet',x:493,y:229},{ke
 const player={x:390,y:244,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:283,y:32,w:288,h:192,doorX:427,color:'#cf9a73'},
-{id:'neighborFarLeft',district:'town',name:'Neighbors',x:-69,y:32,w:176,h:192,doorX:48,color:'#c8a68b'},
-{id:'neighborLeft',district:'town',name:'Neighbors',x:107,y:32,w:176,h:192,doorX:224,color:'#c8a68b'},
-{id:'neighbor1',district:'town',name:'Neighbors',x:571,y:32,w:176,h:192,doorX:576,color:'#c8a68b'},
-{id:'neighborFarRight',district:'town',name:'Neighbors',x:747,y:32,w:176,h:192,doorX:752,color:'#c8a68b'},
+{id:'neighborFarLeft',district:'town',name:'Neighbors',x:-64,y:32,w:224,h:192,doorX:48,color:'#c8a68b'},
+{id:'neighborLeft',district:'town',name:'Neighbors',x:112,y:32,w:224,h:192,doorX:224,color:'#c8a68b'},
+{id:'neighbor1',district:'town',name:'Neighbors',x:464,y:32,w:224,h:192,doorX:576,color:'#c8a68b'},
+{id:'neighborFarRight',district:'town',name:'Neighbors',x:640,y:32,w:224,h:192,doorX:752,color:'#c8a68b'},
 {id:'cafe',district:'commercial',name:'The Corner Café',x:90,y:65,w:170,h:132,doorX:175,color:'#bc8eaa'},
 {id:'newspaper',district:'commercial',name:'Newspaper Office',x:510,y:65,w:180,h:132,doorX:600,color:'#b5a6a0'},
 {id:'clothing',district:'commercial',name:'Clothing Store',x:90,y:325,w:170,h:132,doorX:175,color:'#9cb3c5'},
@@ -171,13 +171,17 @@ tileArea('sidewalk',0,224,W,32,'#c5c5c5');
 tileArea('sidewalk',0,320,W,32,'#c5c5c5');
 // Lower row: reuse the red house sprite, showing only its upper portion over the road.
 if(scene==='town'&&neighborHouseImage.complete&&neighborHouseImage.naturalWidth){const scale=Math.min(224/neighborHouseImage.naturalWidth,216/neighborHouseImage.naturalHeight),ww=Math.round(neighborHouseImage.naturalWidth*scale),hh=Math.round(neighborHouseImage.naturalHeight*scale);ctx.save();ctx.imageSmoothingEnabled=false;for(let x=-80;x<W+ww;x+=176)ctx.drawImage(neighborHouseImage,x,288,ww,hh);ctx.restore();}
-// Iron fence behind the upper townhouse row, visible in the gaps between buildings.
-if(scene==='town'){ctx.save();
-// Narrow wrought-iron pickets, pointed finials, two rails and heavier support posts.
-for(let x=2;x<W;x+=13){rect(x,153,3,68,'#101820');rect(x-2,153,7,3,'#101820');rect(x-1,150,5,3,'#101820');rect(x,147,3,3,'#101820');}
-rect(0,169,W,5,'#151d25');rect(0,204,W,5,'#151d25');
-for(let x=0;x<W;x+=78){rect(x,149,7,74,'#111820');rect(x-2,148,11,5,'#111820');rect(x,145,7,3,'#111820');rect(x+2,143,3,2,'#111820');}
-ctx.restore();}
+// Simple fence behind the houses: avoid doubled black outlines at narrow gaps.
+if(scene==='town'){
+ ctx.save();
+ for(let x=4;x<W;x+=13){
+  rect(x,154,3,67,'#101820');
+  rect(x-1,151,5,3,'#101820');
+ }
+ rect(0,174,W,3,'#151d25');
+ rect(0,207,W,3,'#151d25');
+ ctx.restore();
+}
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
