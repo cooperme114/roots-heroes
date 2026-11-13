@@ -310,7 +310,16 @@ if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
 }
 return false;
 }
-if(!districts.includes(scene))return x<115||x>685||y<226||y>467||(scene==='hq'&&Math.abs(x-wildfire.x)<29&&Math.abs(y-wildfire.y)<22);
+if(!districts.includes(scene)){
+ if(x<115||x>685||y<226||y>467)return true;
+ if(scene==='hq'){
+  const oldDistance=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
+  const newDistance=Math.hypot(x-wildfire.x,y-wildfire.y);
+  // If Wildfire walked into the player, always allow movement away to escape.
+  if(newDistance<30&&!(oldDistance<30&&newDistance>oldDistance))return true;
+ }
+ return false;
+}
 if(x<12||x>788||y<12||y>(scene==='town'?255:516))return true;
 if(scene==='town'&&y<230)return true;
 // NPCs are solid: the player cannot walk through them.
@@ -351,8 +360,11 @@ if(scene==='hq'){
  else {
   const target=wildfireStops[(wildfireStop+1)%wildfireStops.length];
   const dx=target.x-wildfire.x,dy=target.y-wildfire.y,dist=Math.hypot(dx,dy),step=38*dt;
-  if(dist<=step){wildfire.x=target.x;wildfire.y=target.y;wildfireStop=(wildfireStop+1)%wildfireStops.length;wildfireWait=target.wait;wildfire.walking=false;}
-  else {wildfire.x+=dx/dist*step;wildfire.y+=dy/dist*step;wildfire.face=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');wildfire.walking=true;}
+  const nextX=dist<=step?target.x:wildfire.x+dx/dist*step;
+  const nextY=dist<=step?target.y:wildfire.y+dy/dist*step;
+  if(Math.hypot(nextX-player.x,nextY-player.y)<39){wildfire.walking=false;}
+  else if(dist<=step){wildfire.x=target.x;wildfire.y=target.y;wildfireStop=(wildfireStop+1)%wildfireStops.length;wildfireWait=target.wait;wildfire.walking=false;}
+  else {wildfire.x=nextX;wildfire.y=nextY;wildfire.face=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');wildfire.walking=true;}
  }
 }
 
