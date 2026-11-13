@@ -109,6 +109,16 @@ const npcActors=[
  {id:'ximena',scene:'government',x:490,y:235,face:'left',walking:true}
 ];
 let coupleCycle=0;
+// One emoji at a time during their 12-second conversation, beginning after one second.
+const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍯'],['ximena','😏'],['danielle','❤️'],['ximena','❤️']];
+function drawCoupleBubble(n,emoji){
+ const x=Math.round(n.x),y=Math.round(n.y-72);
+ ctx.save();ctx.fillStyle='#fffaf1';ctx.strokeStyle='#24333b';ctx.lineWidth=2;
+ ctx.beginPath();ctx.roundRect(x-18,y-17,36,31,8);ctx.fill();ctx.stroke();
+ ctx.beginPath();ctx.moveTo(x-5,y+13);ctx.lineTo(x,y+21);ctx.lineTo(x+5,y+13);ctx.fill();ctx.stroke();
+ ctx.font='19px "Segoe UI Emoji","Apple Color Emoji",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#20242a';ctx.fillText(emoji,x,y);ctx.restore();
+}
+
 
 const wallpaperColors=[{name:'Cream',hex:'#e8d9b9'},{name:'Sage',hex:'#b2c9b2'},{name:'Sky Blue',hex:'#a8c9d9'},{name:'Rose',hex:'#d8b1b8'},{name:'Lavender',hex:'#b9aed7'},{name:'Warm Gray',hex:'#c4c0b9'}];
 const buildingWallpaper={hq:2,home:0,cafe:3,hospital:0};
@@ -188,6 +198,11 @@ if(scene==='town'){
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
+if(scene==='government'&&coupleCycle>=24&&coupleCycle<35){
+ const seconds=coupleCycle-23;
+ const index=Math.floor(seconds-1);
+ if(index>=0&&index<coupleMessages.length){const [id,emoji]=coupleMessages[index];const n=npcActors.find(actor=>actor.id===id);if(n)drawCoupleBubble(n,emoji)}
+}
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
 text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
 text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,290,11);
@@ -325,13 +340,13 @@ elapsed+=dt;updateClock();
 // Danielle and Ximena approach one another, pause together, then wander apart.
 // The cycle repeats, keeping their sprite animations and facing synchronized.
 const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
-coupleCycle=(coupleCycle+dt)%29;
+coupleCycle=(coupleCycle+dt)%41;
 const t=coupleCycle;
 const routes=[
  [{x:320,y:235},{x:265,y:235},{x:265,y:285},{x:265,y:285},{x:265,y:235},{x:375,y:235},{x:375,y:235},{x:320,y:235},{x:320,y:235}],
  [{x:490,y:235},{x:490,y:235},{x:490,y:285},{x:545,y:285},{x:545,y:285},{x:545,y:235},{x:415,y:235},{x:415,y:235},{x:490,y:235}]
 ];
-const schedules=[[0,3,5,10,12,15,23,26,29],[0,5,7,10,12,14,17,23,29]];
+const schedules=[[0,3,5,10,12,15,23,38,41],[0,5,7,10,12,14,17,38,41]];
 for(let i=0;i<npcActors.length;i++){
  const n=npcActors[i],route=routes[i],stops=schedules[i];if(n.scene!==scene)continue;
  let segment=0;while(segment<route.length-2&&t>=stops[segment+1])segment++;
@@ -340,7 +355,7 @@ for(let i=0;i<npcActors.length;i++){
  n.x=a.x+(b.x-a.x)*fraction;n.y=a.y+(b.y-a.y)*fraction;
  n.walking=Math.abs(b.x-a.x)+Math.abs(b.y-a.y)>0;
  if(n.walking)n.face=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)?(b.x>a.x?'right':'left'):(b.y>a.y?'down':'up');
- else if(segment===1)n.face=i===0?'right':'left';
+ else if(segment===1||segment===6||segment===7)n.face=i===0?'right':'left';
  if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){
    n.x=oldPositions[i].x;n.y=oldPositions[i].y;n.walking=false;
  }
