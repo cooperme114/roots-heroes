@@ -427,9 +427,9 @@ document.getElementById('openMissions').onclick=()=>{dossierSection.hidden=true;
 const dossierPages={NPCs:0,Heroes:0,Villains:0};
 function renderDossier(category){
  const profiles=[
- {category:'Heroes',known:true,title:'WILDFIRE',details:'<b>Hero name:</b> Wildfire<br><b>Real name:</b> Finn<br><b>Abilities:</b> Fire powers<br><b>Location:</b> Hero Headquarters<br><b>Status:</b> Not recruited'},
- {category:'Heroes',known:true,title:'STARSHINE',details:'<b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented'},
- {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',details:'<b>Name:</b> Ximena<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office'+(revealedXimenaIdentity?'<br><b>Secret identity:</b> Sombra<br><b>Classification:</b> Villain':'<br><b>Other information:</b> Not yet documented')}
+ {category:'Heroes',known:true,title:'WILDFIRE',details:'<b>Hero name:</b> Wildfire<br><b>Real name:</b> Finn Buckley<br><b>Abilities:</b> Fire powers<br><b>Location:</b> Hero Headquarters<br><b>Status:</b> Not recruited'},
+ {category:'Heroes',known:true,title:'STARSHINE',details:'<b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle Miller':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented'},
+ {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',details:'<b>Name:</b> Ximena Hernández<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office'+(revealedXimenaIdentity?'<br><b>Secret identity:</b> Sombra<br><b>Classification:</b> Villain':'<br><b>Other information:</b> Not yet documented')}
  ];
  const entries=profiles.filter(p=>p.known&&p.category===category);
  document.getElementById('dossierTitle').textContent=category+' Dossiers';
