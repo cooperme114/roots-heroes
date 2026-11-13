@@ -260,7 +260,11 @@ if(scene==='town'){
 }
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
-for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
+// Render characters by foot position: characters farther down cover those behind them.
+const characters=npcActors.filter(n=>n.scene===scene).map(n=>({y:n.y,draw:()=>drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}));
+characters.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
+characters.sort((a,b)=>a.y-b.y);
+for(const character of characters)character.draw();
 if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
  // First bubble 1s after they meet; 2s visible, then 0.5s blank between bubbles.
  const bubbleElapsed=coupleCycle-24;
@@ -272,7 +276,7 @@ rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
 text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
 text(scene==='town'?'SHOPS':scene==='commercial'?'GOVT':'HOME',766,290,11);
 text(districtNames[scene],400,28,19);
-window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
+}
 const furnitureImages={};
 for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png',kCabinet:'Kitchen-cabinet-black.png',kCounter:'Kitchen-counter-marble-001.png',kFridge:'Kitchen-fridge-cozy-stainless-steel-001.png',kMicrowave:'Kitchen-microwave-steel-001.png',kSink:'Kitchen-sink-marble-001.png',kStove:'Kitchen-stove-stainless-steel-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
@@ -457,7 +461,7 @@ for(let i=0;i<npcActors.length;i++){
  n.walking=Math.abs(b.x-a.x)+Math.abs(b.y-a.y)>0;
  if(n.walking)n.face=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)?(b.x>a.x?'right':'left'):(b.y>a.y?'down':'up');
  else if((i===0&&segment===6)||(i===1&&segment===6))n.face=i===0?'right':'left';
- if(Math.abs(player.x-n.x)<31&&Math.abs(player.y-n.y)<22){
+ if(Math.hypot(player.x-n.x,player.y-n.y)<38){
    n.x=oldPositions[i].x;n.y=oldPositions[i].y;n.walking=false;
  }
 }
