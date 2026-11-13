@@ -93,10 +93,10 @@ const buildings=[
 {id:'newspaper',district:'commercial',name:'Newspaper Office',x:510,y:65,w:180,h:132,doorX:600,color:'#b5a6a0'},
 {id:'clothing',district:'commercial',name:'Clothing Store',x:90,y:325,w:170,h:132,doorX:175,color:'#9cb3c5'},
 {id:'furniture',district:'commercial',name:'Furniture Store',x:510,y:325,w:180,h:132,doorX:600,color:'#a98b70'},
-{id:'hq',district:'government',name:'Hero Headquarters',x:90,y:65,w:180,h:132,doorX:180,color:'#5e87ad'},
-{id:'hospital',district:'government',name:'Hospital',x:510,y:65,w:180,h:132,doorX:600,color:'#e4e3df'},
-{id:'police',district:'government',name:'Police Station',x:510,y:325,w:180,h:132,doorX:600,color:'#7c9db6'},
-{id:'lab',district:'government',name:'Research Lab',x:90,y:325,w:180,h:132,doorX:180,color:'#9aaeb5'}];
+{id:'hq',district:'government',name:'Hero Headquarters',x:42,y:65,w:210,h:132,doorX:147,color:'#5e87ad'},
+{id:'hospital',district:'government',name:'Hospital',x:295,y:65,w:210,h:132,doorX:400,color:'#e4e3df'},
+{id:'police',district:'government',name:'Police Station',x:548,y:65,w:210,h:132,doorX:653,color:'#7c9db6'}
+];
 const districts=['town','commercial','government'];
 const districtNames={town:'Residential District',commercial:'Commercial District',government:'Government District'};
 const districtBuildings=()=>buildings.filter(b=>b.district===scene);
@@ -249,12 +249,12 @@ function skyColor(){
 function drawTown(){
 rect(0,0,W,H,'#747779');
 // The sky is visible above and between the upper buildings, changing from 5 PM to 7 PM.
-if(scene==='town'){rect(0,0,W,224,skyColor());
+if(scene==='town'||scene==='government'){rect(0,0,W,224,skyColor());
 // Gray masonry boundary behind the houses: sky remains visible above it.
 rect(0,181,W,43,'#777b80');rect(0,181,W,4,'#a0a4a7');
 for(let x=0;x<W;x+=32){rect(x,203,1,20,'#62676d');rect(x+16,185,1,18,'#62676d');}rect(0,202,W,1,'#646a70');}
 // The town's original crossing paths, now built with the repeatable stone tile.
-if(scene!=='town')tileArea('asphalt',384,0,64,H,'#45474b');
+if(scene!=='town'&&scene!=='government')tileArea('asphalt',384,0,64,H,'#45474b');
 // Two 32px rows of street, touching the buildings on both sides.
 tileArea('asphalt',0,256,W,64,'#45474b');
 // One 32px row of gray sidewalk on each side of the street.
@@ -399,8 +399,8 @@ if(!districts.includes(scene)){
 }
 // In the neighborhood, the player may cross the upper sidewalk into the road,
 // but must stop before the roofs of the houses across the street (which begin at y=288).
-if(x<12||x>788||y<12||y>(scene==='town'?286:516))return true;
-if(scene==='town'&&y<230)return true;
+if(x<12||x>788||y<12||y>((scene==='town'||scene==='government')?286:516))return true;
+if((scene==='town'||scene==='government')&&y<230)return true;
 // NPCs are solid: the player cannot walk through them.
 if(npcActors.some(n=>{
  if(n.scene!==scene)return false;
