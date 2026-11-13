@@ -404,9 +404,9 @@ if(scene==='town'&&y<230)return true;
 // Only the lower quarter of the player's sprite is solid against buildings.
 // The player's drawing anchor is near the feet, so let the upper body overlap
 // the building artwork while preventing the feet from walking into the facade.
-if(scene==='government'&&y<210){
+if(scene==='government'&&y<216){
  // If an older save starts inside the boundary, permit movement outward.
- if(player.y<210&&y>player.y)return false;
+ if(player.y<216&&y>player.y)return false;
  return true;
 }
 // NPCs are solid: the player cannot walk through them.
