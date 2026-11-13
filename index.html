@@ -18,7 +18,7 @@ function showSave(isLoad){loadingCode=isLoad;savePanel.style.display='flex';save
 document.getElementById('saveGame').onclick=()=>showSave(false);
 document.getElementById('loadGame').onclick=()=>showSave(true);
 document.getElementById('saveClose').onclick=()=>savePanel.style.display='none';
-document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);knowsDanielle=!!data.knowsDanielle;knowsXimena=!!data.knowsXimena;revealedXimenaIdentity=!!data.revealedXimenaIdentity;window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene==='hospital'?'government':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(scene==='town'?250:516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(115,Math.min(643,data.bed.x));bed.y=Math.max(55,Math.min(395,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
+document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);knowsDanielle=!!data.knowsDanielle;knowsXimena=!!data.knowsXimena;revealedXimenaIdentity=!!data.revealedXimenaIdentity;refreshOpenDossier();window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene==='hospital'?'government':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(scene==='town'?250:516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(115,Math.min(643,data.bed.x));bed.y=Math.max(55,Math.min(395,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 let wakeLocation='home';
 function sleepUntilTomorrow(reason='sleep'){const finishedDay=day;wakeLocation=reason==='outside'?'hospital':'home';document.getElementById('summaryDay').textContent=reason==='sleep'?'Day '+finishedDay+' Complete':reason==='outside'?'You Passed Out — Hospital':'You Passed Out — Home';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';document.getElementById('summaryMessage').textContent=reason==='outside'?'You were away from home at midnight. You wake up safely at the hospital.':reason==='home'?'You passed out at midnight, but you were safe at home.':'You got some rest and are ready for a new day.';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
@@ -297,7 +297,7 @@ return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 function interactable(){if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
-function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='heroNpc'){if(a.npc.id==='danielle'){knowsDanielle=true;talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
+function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='heroNpc'){if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
 window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
 canvas.addEventListener('pointerdown',e=>{if(scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+img.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+img.naturalHeight*2){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
 // Furniture may be placed anywhere in the L-shaped house, regardless of its type.
@@ -356,32 +356,29 @@ const dossierSection=document.getElementById('dossierSection'),missionsSection=d
 document.getElementById('openDossiers').onclick=()=>{dossierSection.hidden=false;missionsSection.hidden=true;document.getElementById('openDossiers').classList.add('active');document.getElementById('openMissions').classList.remove('active')};
 document.getElementById('openMissions').onclick=()=>{dossierSection.hidden=true;missionsSection.hidden=false;document.getElementById('openDossiers').classList.remove('active');document.getElementById('openMissions').classList.add('active')};
 
-document.querySelectorAll('[data-menu]').forEach(btn=>btn.addEventListener('click',()=>{
-// Classification follows what the player has discovered, not secret lore.
-// When an identity is revealed later, the same record moves categories.
-const profiles=[
- {id:'starshine',category:'Heroes',known:true,title:'STARSHINE',
-  details:'<b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented'},
- {id:'ximena',category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,
-  title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',
-  details:'<b>Name:</b> Ximena<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office'+(revealedXimenaIdentity?'<br><b>Secret identity:</b> Sombra<br><b>Classification:</b> Villain':'<br><b>Other information:</b> Not yet documented')}
-];
-if(['NPCs','Heroes','Villains'].includes(btn.dataset.menu)){
- const category=btn.dataset.menu;
+function renderDossier(category){
+ const profiles=[
+ {category:'Heroes',known:true,title:'STARSHINE',details:'<b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented'},
+ {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',details:'<b>Name:</b> Ximena<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office'+(revealedXimenaIdentity?'<br><b>Secret identity:</b> Sombra<br><b>Classification:</b> Villain':'<br><b>Other information:</b> Not yet documented')}
+ ];
  const entries=profiles.filter(p=>p.known&&p.category===category);
- const panel=document.getElementById('dossierPanel');
- const wasOpen=panel.style.display!=='none'&&panel.dataset.category===category;
- document.querySelectorAll('.dossierTabs button').forEach(b=>b.classList.toggle('active',b===btn&&!wasOpen));
- if(wasOpen){panel.style.display='none';panel.dataset.category='';return;}
- panel.dataset.category=category;
  document.getElementById('dossierTitle').textContent=category+' Dossiers';
- document.getElementById('dossierContent').innerHTML=entries.length?
- entries.map(p=>'<b>'+p.title+'</b><br>'+p.details).join('<hr>'):
- 'No '+category.toLowerCase()+' profiles discovered yet.';
- panel.style.display='block';
- return;
+ document.getElementById('dossierContent').innerHTML=entries.length?entries.map(p=>'<b>'+p.title+'</b><br>'+p.details).join('<hr>'):'No '+category.toLowerCase()+' profiles discovered yet.';
 }
-talk(btn.dataset.menu,btn.dataset.menu+' is a placeholder for a future update.');
+function refreshOpenDossier(){
+ const panel=document.getElementById('dossierPanel');
+ if(panel.style.display!=='none'&&panel.dataset.category)renderDossier(panel.dataset.category);
+}
+document.querySelectorAll('[data-menu]').forEach(btn=>btn.addEventListener('click',()=>{
+ const category=btn.dataset.menu;
+ if(['NPCs','Heroes','Villains'].includes(category)){
+  const panel=document.getElementById('dossierPanel');
+  const wasOpen=panel.style.display!=='none'&&panel.dataset.category===category;
+  document.querySelectorAll('.dossierTabs button').forEach(b=>b.classList.toggle('active',b===btn&&!wasOpen));
+  if(wasOpen){panel.style.display='none';panel.dataset.category='';return;}
+  panel.dataset.category=category;renderDossier(category);panel.style.display='block';return;
+ }
+ talk(category,category+' is a placeholder for a future update.');
 }));
 function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);ctx.clearRect(0,0,W,H);if(districts.includes(scene))drawTown();else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
