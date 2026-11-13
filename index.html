@@ -350,7 +350,16 @@ if(scene==='town'&&player.y>250)player.y=244;
 document.querySelector('.game').classList.toggle('townView',districts.includes(scene));document.getElementById('hudLocation').textContent=districtNames[scene]||interiors[scene]?.name||'Roots Heroes';document.getElementById('hudDay').textContent='📅 Day '+day;document.getElementById('hudTime').textContent='☀ '+clockEl.textContent;
 near=interactable();prompt.style.display=near?'block':'none';if(near)prompt.textContent='[ E ] '+near.label}
 document.querySelectorAll('[data-menu]').forEach(btn=>btn.addEventListener('click',()=>{
-if(btn.dataset.menu==='Heroes'){const starshine='<b>STARSHINE</b><br><b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented<br><b>Notes:</b> A superhero operating in the city. More information can be discovered through conversations.';const ximena=knowsXimena?'<hr><b>XIMENA</b><br><b>Name:</b> Ximena<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office<br><b>Other information:</b> Not yet documented':'';talk('DOSSIERS',starshine+ximena);return;}
+if(btn.dataset.menu==='Heroes'){
+ talk('HERO DOSSIER — STARSHINE','<b>Hero name:</b> Starshine<br><b>Real name:</b> '+(knowsDanielle?'Danielle':'Unknown')+'<br><b>Status:</b> Not recruited<br><b>Abilities:</b> Not yet documented<br><b>Notes:</b> A superhero already known to operate in the city. Meeting Danielle reveals her civilian name.');
+ return;
+}
+if(btn.dataset.menu==='Journal'){
+ talk('DIRECTOR’S NOTEBOOK — PEOPLE MET',knowsXimena?
+ '<b>NEW CONTACT: XIMENA</b><br><b>Name:</b> Ximena<br><b>Occupation:</b> Journalist<br><b>Workplace:</b> Newspaper office<br><b>Notes:</b> Met in the Government District. Why is she here? More to learn.':
+ 'No new contacts recorded yet. Meet people around the city to begin their entries.');
+ return;
+}
 talk(btn.dataset.menu,btn.dataset.menu+' is a placeholder for a future update.');
 }));
 function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);ctx.clearRect(0,0,W,H);if(districts.includes(scene))drawTown();else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
