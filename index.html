@@ -492,7 +492,7 @@ function renderDossier(category){
  dossierPages[category]=Math.max(0,Math.min(dossierPages[category]||0,entries.length-1));
  const index=dossierPages[category],p=entries[index];
  const sprite=dossierSprite(p.sprite);
- const fieldRows=[['Hero name:',p.heroName],['Real name:',p.realName],['Abilities:',p.abilities],['Location:',p.location],['Status:',p.status]];
+ const fieldRows=[['Real name:',p.realName],['Alter ego:',p.heroName],['Abilities:',p.abilities],['Location:',p.location],['Status:',p.status]];
  const fields=fieldRows.map(([label,value])=>'<div class="dossierField"><span class="dossierLabel">'+label+'</span><span class="dossierValue">'+value+'</span></div>').join('');
  const hearts='<div class="dossierHearts" aria-label="'+p.hearts+' of 10 hearts">'+Array.from({length:10},(_,i)=>'<span class="'+(i<p.hearts?'filled':'empty')+'">♥</span>').join('')+'</div>';
  container.innerHTML='<article class="dossierSheet">'+
