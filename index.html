@@ -213,9 +213,9 @@ function drawGovernmentBuilding(b){
  const img=governmentBuildingImages[b.id];
  if(!img||!img.complete||!img.naturalWidth)return false;
  // Preserve proportions, keeping the doorway at the original building's lower edge.
- const scale=Math.min((b.w+16)/img.naturalWidth,238/img.naturalHeight);
+ const scale=Math.min((b.w+24)/img.naturalWidth,260/img.naturalHeight);
  const w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
- const x=b.x+(b.w-w)/2,y=224-h;
+ const x=b.x+(b.w-w)/2,y=256-h;
  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();
  return true;
 }
@@ -400,7 +400,10 @@ if(!districts.includes(scene)){
 // In the neighborhood, the player may cross the upper sidewalk into the road,
 // but must stop before the roofs of the houses across the street (which begin at y=288).
 if(x<12||x>788||y<12||y>((scene==='town'||scene==='government')?286:516))return true;
-if((scene==='town'||scene==='government')&&y<230)return true;
+if(scene==='town'&&y<230)return true;
+// Government building fronts are scenery: only the upper wall is inaccessible.
+// Allow the player's feet to reach the steps and doors without an invisible wall.
+if(scene==='government'&&y<244)return true;
 // NPCs are solid: the player cannot walk through them.
 if(npcActors.some(n=>{
  if(n.scene!==scene)return false;
@@ -412,11 +415,11 @@ if(npcActors.some(n=>{
 }))return true;
 return districtBuildings().some(b=>{
  // Exterior walls stop at the sidewalk; the player's feet, not their head, collide.
- if(b.district==='government')return x>b.x+6&&x<b.x+b.w-6&&y<224;
+ if(b.district==='government')return false;
  return x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8;
 });
 }
-function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.district==='government'?253:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function faceToward(n,target){
  const dx=target.x-n.x,dy=target.y-n.y;
  n.face=Math.abs(dx)>Math.abs(dy)?(dx>=0?'right':'left'):(dy>=0?'down':'up');
