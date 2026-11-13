@@ -491,7 +491,7 @@ function renderDossier(category){
  }).join('');
  container.innerHTML='<article class="dossierSheet">'+
  '<div class="dossierFolderTab">DOSSIER</div>'+
- '<div class="dossierSheetText"><div class="dossierHeader"><span class="fileName">'+p.title+'</span><span class="dossierSeal" aria-hidden="true">★</span></div>'+
+ '<div class="dossierSheetText"><div class="dossierHeader"><span class="fileName">'+p.title+'</span></div>'+
  '<div class="dossierBody"><div class="dossierCharacter">'+(sprite?'<img src="'+sprite+'" alt="Front-facing '+p.title+' character sprite">':'')+'</div><div class="dossierFacts">'+fields+'</div></div>'+
  '<div class="dossierNotes"><strong>NOTES:</strong><div>Additional information pending.</div></div></div>'+
  '<button type="button" class="dossierEdgeArrow dossierEdgeLeft" id="dossierPrevious" aria-label="Previous dossier" '+(index===0?'disabled':'')+'>◀</button>'+
