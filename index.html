@@ -200,8 +200,10 @@ if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text
 for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
 if(scene==='government'&&coupleCycle>=24&&coupleCycle<40){
  // Begin one second after Danielle arrives; each bubble stays for 1.6 seconds.
- const index=Math.floor((coupleCycle-24)/1.6);
- if(index>=0&&index<coupleMessages.length){const [id,emoji]=coupleMessages[index];const n=npcActors.find(actor=>actor.id===id);if(n)drawCoupleBubble(n,emoji)}
+ const bubbleElapsed=coupleCycle-24;
+ const index=Math.floor(bubbleElapsed/1.85);
+ const showBubble=(bubbleElapsed%1.85)<1.6;
+ if(showBubble&&index>=0&&index<coupleMessages.length){const [id,emoji]=coupleMessages[index];const n=npcActors.find(actor=>actor.id===id);if(n)drawCoupleBubble(n,emoji)}
 }
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
 text(scene==='town'?'GOVT':scene==='commercial'?'HOME':'SHOPS',34,290,11);
