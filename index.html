@@ -164,8 +164,8 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  ctx.restore();return true;
 }
 const npcActors=[
- {id:'danielle',scene:'government',x:305,y:235,face:'right',walking:true},
- {id:'ximena',scene:'government',x:475,y:235,face:'left',walking:true}
+ {id:'danielle',scene:'government',x:255,y:235,face:'right',walking:true},
+ {id:'ximena',scene:'government',x:425,y:235,face:'left',walking:true}
 ];
 let coupleCycle=0;
 // Wildfire strolls between a few spots in HQ, pausing at each one.
@@ -173,7 +173,7 @@ const wildfire={x:520,y:325,face:'down',walking:false,clock:0};
 const wildfireStops=[{x:520,y:325,wait:3},{x:580,y:295,wait:2},{x:470,y:285,wait:3},{x:320,y:330,wait:2},{x:520,y:325,wait:3}];
 let wildfireStop=0,wildfireWait=3;
 // After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
-const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['danielle','❤️'],['ximena','❤️']];
+const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['ximena','❤️'],['danielle','❤️']];
 function drawCoupleBubble(n,emoji){
  const x=Math.round(n.x),y=Math.round(n.y-72);
  ctx.save();ctx.fillStyle='#fffaf1';ctx.strokeStyle='#24333b';ctx.lineWidth=2;
@@ -477,8 +477,8 @@ const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
 coupleCycle=(coupleCycle+dt)%52;
 const t=coupleCycle;
 const routes=[
- [{x:305,y:235},{x:250,y:235},{x:250,y:285},{x:250,y:285},{x:250,y:235},{x:360,y:235},{x:360,y:235},{x:360,y:235},{x:305,y:235},{x:305,y:235}],
- [{x:475,y:235},{x:475,y:235},{x:475,y:285},{x:530,y:285},{x:530,y:285},{x:530,y:235},{x:400,y:235},{x:400,y:235},{x:400,y:235},{x:475,y:235}]
+ [{x:255,y:235},{x:200,y:235},{x:200,y:285},{x:200,y:285},{x:200,y:235},{x:310,y:235},{x:310,y:235},{x:310,y:235},{x:255,y:235},{x:255,y:235}],
+ [{x:425,y:235},{x:425,y:235},{x:425,y:285},{x:480,y:285},{x:480,y:285},{x:480,y:235},{x:350,y:235},{x:350,y:235},{x:350,y:235},{x:425,y:235}]
 ];
 const schedules=[[0,3,5,10,12,15,23,46.5,49.5,52],[0,5,7,10,12,14,17,46.5,49.5,52]];
 for(let i=0;i<npcActors.length;i++){
