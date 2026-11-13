@@ -109,7 +109,7 @@ const npcActors=[
  {id:'ximena',scene:'government',x:490,y:235,face:'left',walking:true}
 ];
 let coupleCycle=0;
-// One emoji at a time during their 12-second conversation, beginning after one second.
+// After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
 const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['danielle','❤️'],['ximena','❤️']];
 function drawCoupleBubble(n,emoji){
  const x=Math.round(n.x),y=Math.round(n.y-72);
@@ -198,11 +198,11 @@ if(scene==='town'){
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 for(const n of npcActors){if(n.scene===scene)drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}
-if(scene==='government'&&coupleCycle>=23.25&&coupleCycle<41){
- // Begin a quarter-second after Danielle arrives; each bubble lasts 1.6s with a 0.25s gap.
- const bubbleElapsed=coupleCycle-23.25;
- const index=Math.floor(bubbleElapsed/1.85);
- const showBubble=(bubbleElapsed%1.85)<1.6;
+if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
+ // First bubble 1s after they meet; 2s visible, then 0.5s blank between bubbles.
+ const bubbleElapsed=coupleCycle-24;
+ const index=Math.floor(bubbleElapsed/2.5);
+ const showBubble=(bubbleElapsed%2.5)<2;
  if(showBubble&&index>=0&&index<coupleMessages.length){const [id,emoji]=coupleMessages[index];const n=npcActors.find(actor=>actor.id===id);if(n)drawCoupleBubble(n,emoji)}
 }
 rect(0,265,68,45,'#253b43');rect(732,265,68,45,'#253b43');
@@ -342,13 +342,13 @@ elapsed+=dt;updateClock();
 // Danielle and Ximena approach one another, pause together, then wander apart.
 // The cycle repeats, keeping their sprite animations and facing synchronized.
 const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
-coupleCycle=(coupleCycle+dt)%47;
+coupleCycle=(coupleCycle+dt)%52;
 const t=coupleCycle;
 const routes=[
  [{x:320,y:235},{x:265,y:235},{x:265,y:285},{x:265,y:285},{x:265,y:235},{x:375,y:235},{x:375,y:235},{x:375,y:235},{x:320,y:235},{x:320,y:235}],
  [{x:490,y:235},{x:490,y:235},{x:490,y:285},{x:545,y:285},{x:545,y:285},{x:545,y:235},{x:415,y:235},{x:415,y:235},{x:415,y:235},{x:490,y:235}]
 ];
-const schedules=[[0,3,5,10,12,15,23,41,44,47],[0,5,7,10,12,14,17,41,44,47]];
+const schedules=[[0,3,5,10,12,15,23,46.5,49.5,52],[0,5,7,10,12,14,17,46.5,49.5,52]];
 for(let i=0;i<npcActors.length;i++){
  const n=npcActors[i],route=routes[i],stops=schedules[i];if(n.scene!==scene)continue;
  let segment=0;while(segment<route.length-2&&t>=stops[segment+1])segment++;
