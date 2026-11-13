@@ -164,8 +164,8 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  ctx.restore();return true;
 }
 const npcActors=[
- {id:'danielle',scene:'government',x:255,y:235,face:'right',walking:true},
- {id:'ximena',scene:'government',x:425,y:235,face:'left',walking:true}
+ {id:'danielle',scene:'government',x:205,y:235,face:'right',walking:true},
+ {id:'ximena',scene:'government',x:375,y:235,face:'left',walking:true}
 ];
 let coupleCycle=0;
 // Wildfire strolls between a few spots in HQ, pausing at each one.
@@ -477,8 +477,8 @@ const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
 coupleCycle=(coupleCycle+dt)%52;
 const t=coupleCycle;
 const routes=[
- [{x:255,y:235},{x:200,y:235},{x:200,y:285},{x:200,y:285},{x:200,y:235},{x:310,y:235},{x:310,y:235},{x:310,y:235},{x:255,y:235},{x:255,y:235}],
- [{x:425,y:235},{x:425,y:235},{x:425,y:285},{x:480,y:285},{x:480,y:285},{x:480,y:235},{x:350,y:235},{x:350,y:235},{x:350,y:235},{x:425,y:235}]
+ [{x:205,y:235},{x:150,y:235},{x:150,y:285},{x:150,y:285},{x:150,y:235},{x:260,y:235},{x:260,y:235},{x:260,y:235},{x:205,y:235},{x:205,y:235}],
+ [{x:375,y:235},{x:375,y:235},{x:375,y:285},{x:430,y:285},{x:430,y:285},{x:430,y:235},{x:300,y:235},{x:300,y:235},{x:300,y:235},{x:375,y:235}]
 ];
 const schedules=[[0,3,5,10,12,15,23,46.5,49.5,52],[0,5,7,10,12,14,17,46.5,49.5,52]];
 for(let i=0;i<npcActors.length;i++){
