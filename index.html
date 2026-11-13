@@ -382,7 +382,9 @@ if(!districts.includes(scene)){
  }
  return false;
 }
-if(x<12||x>788||y<12||y>(scene==='town'?255:516))return true;
+// In the neighborhood, the player may cross the upper sidewalk into the road,
+// but must stop before the roofs of the houses across the street (which begin at y=288).
+if(x<12||x>788||y<12||y>(scene==='town'?286:516))return true;
 if(scene==='town'&&y<230)return true;
 // NPCs are solid: the player cannot walk through them.
 if(npcActors.some(n=>{
