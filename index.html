@@ -366,7 +366,13 @@ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),pla
 }
 function collide(x,y){
 if(scene==='home'){
+// Use a character-width inset so the sprite cannot stand inside exterior walls.
+// Keep the doorway at the bottom accessible for leaving the house.
 if(!inHouse(x,y))return true;
+if(x<129||x>671)return true;
+if(y>455&&!(x>=282&&x<=321))return true;
+// The bedroom/living-room divider is solid except for its central doorway.
+if(y>=195&&y<283&&(x<233||x>288)&&x<390)return true;
 // Wallpaper is a solid wall, not walkable floor. The bedroom opening is x=221..300.
 if(x>=115&&x<=390&&y<128)return true;
 if(x>=115&&x<=390&&y>=199&&y<283&&(x<221||x>300))return true;
