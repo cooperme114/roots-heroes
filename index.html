@@ -110,6 +110,10 @@ const npcActors=[
  {id:'ximena',scene:'government',x:490,y:235,face:'left',walking:true}
 ];
 let coupleCycle=0;
+// Wildfire strolls between a few spots in HQ, pausing at each one.
+const wildfire={x:520,y:325,face:'down',walking:false,clock:0};
+const wildfireStops=[{x:520,y:325,wait:3},{x:580,y:295,wait:2},{x:470,y:285,wait:3},{x:320,y:330,wait:2},{x:520,y:325,wait:3}];
+let wildfireStop=0,wildfireWait=3;
 // After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
 const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['danielle','❤️'],['ximena','❤️']];
 function drawCoupleBubble(n,emoji){
@@ -283,7 +287,7 @@ rect(95,46,610,8,'#78573e');rect(95,46,610,3,'#cda77c');
 rect(95,46,8,436,'#78573e');rect(697,46,8,436,'#78573e');
 rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 furniture('doorRug',369,439,63,47);
-if(scene==='hq')drawNpcSheet('wildfire',520,325,'down',false,elapsed);
+if(scene==='hq')drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 }
 function collide(x,y){
@@ -306,14 +310,14 @@ if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
 }
 return false;
 }
-if(!districts.includes(scene))return x<115||x>685||y<226||y>467||(scene==='hq'&&Math.abs(x-520)<29&&Math.abs(y-325)<22);
+if(!districts.includes(scene))return x<115||x>685||y<226||y>467||(scene==='hq'&&Math.abs(x-wildfire.x)<29&&Math.abs(y-wildfire.y)<22);
 if(x<12||x>788||y<12||y>(scene==='town'?255:516))return true;
 if(scene==='town'&&y<230)return true;
 // NPCs are solid: the player cannot walk through them.
 if(npcActors.some(n=>n.scene===scene&&Math.abs(x-n.x)<31&&Math.abs(y-n.y)<22))return true;
 return districtBuildings().some(b=>x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8);
 }
-function interactable(){if(scene==='hq'&&Math.hypot(player.x-520,player.y-325)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.district==='town'?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='wildfire'){talk('Wildfire','Hey. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc')talk(a.npc.name,a.npc.text);else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
@@ -341,6 +345,17 @@ function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Mat
 function update(dt){if(summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const midnight=day*1440-480;
 if(elapsed+dt>=midnight){elapsed=midnight;sleepUntilTomorrow(scene==='home'?'home':'outside');return;}
 elapsed+=dt;updateClock();
+if(scene==='hq'){
+ wildfire.clock+=dt;
+ if(wildfireWait>0){wildfireWait=Math.max(0,wildfireWait-dt);wildfire.walking=false;}
+ else {
+  const target=wildfireStops[(wildfireStop+1)%wildfireStops.length];
+  const dx=target.x-wildfire.x,dy=target.y-wildfire.y,dist=Math.hypot(dx,dy),step=38*dt;
+  if(dist<=step){wildfire.x=target.x;wildfire.y=target.y;wildfireStop=(wildfireStop+1)%wildfireStops.length;wildfireWait=target.wait;wildfire.walking=false;}
+  else {wildfire.x+=dx/dist*step;wildfire.y+=dy/dist*step;wildfire.face=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');wildfire.walking=true;}
+ }
+}
+
 // Danielle and Ximena approach one another, pause together, then wander apart.
 // The cycle repeats, keeping their sprite animations and facing synchronized.
 const oldPositions=npcActors.map(n=>({x:n.x,y:n.y,face:n.face}));
