@@ -207,7 +207,7 @@ function tileArea(name,x,y,w,h,fallback){
 const playerHouseImage=new Image();playerHouseImage.src='assets/buildings/Player_House3.png';
 const neighborHouseImage=new Image();neighborHouseImage.src='assets/buildings/Neighbor_House1.png';
 const governmentBuildingImages={};
-for(const [id,filename] of Object.entries({hq:'HeroHQ.png',hospital:'Hospital.png',police:'Police.png'})){
+for(const [id,filename] of Object.entries({hq:'HeroHQ.png',hospital:'Hospital.png',police:'policestation.png'})){
  const img=new Image();img.src='assets/buildings/'+filename;governmentBuildingImages[id]=img;
 }
 function drawGovernmentBuilding(b){
@@ -240,7 +240,7 @@ function drawNeighborHouse(b){
  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(neighborHouseImage,x,y,w,h);ctx.restore();return true;
 }
 const commercialBuildingImages={};
-for(const [id,filename] of Object.entries({cafe:'cafe.png',newspaper:'newspaper.png',market:'market.png',books:'books.png'})){
+for(const [id,filename] of Object.entries({cafe:'cafe2.png',newspaper:'newspaper.png',market:'market.png',books:'boost.png'})){
  const img=new Image();img.src='assets/buildings/'+filename;commercialBuildingImages[id]=img;
 }
 function drawCommercialBuilding(b){
