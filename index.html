@@ -599,7 +599,10 @@ if(scene==='hospital'){
  const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
  // Keep the player's full sprite out of the upper and side walls,
  // not merely the point at their feet.
- if(x<ox+12||x>ox+16*t-12||y<oy+28||y>entranceY-8)return true;
+ // The upper wall now ends at oy+50 after its visual adjustments.
+ // Keep the player's feet below that visible wall base, rather than
+ // using the older boundary that allowed walking behind the headboards.
+ if(x<ox+12||x>ox+16*t-12||y<oy+54||y>entranceY-8)return true;
  // The tall entrance wall is solid across its entire visible face.
  // Only the central two-tile doorway can be walked through.
  // Previously only the wall's bottom edge was checked, allowing the
