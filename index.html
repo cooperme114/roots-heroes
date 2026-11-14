@@ -361,15 +361,41 @@ function bedAllowed(x,y){return x>=115&&x+bed.w<=390&&y>=55&&y+bed.h<=261}
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='hospital'){
-rect(0,0,W,H,'#1c2930');
-rect(95,46,610,436,'#d6e3e6');
-tileArea('tile',107,168,586,302,'#b8c6c9');
-rect(95,46,610,12,'#59747e');rect(95,46,12,436,'#59747e');rect(693,46,12,436,'#59747e');
-rect(95,467,250,15,'#59747e');rect(455,467,250,15,'#59747e');
-rect(107,156,586,12,'#73939c');
-rect(337,67,126,44,'#f4f8f8');text('HOSPITAL',400,95,18,'#376575');
-for(const x of [150,540]){rect(x,195,95,148,'#eaf3f3');rect(x+6,202,83,132,'#a1bec8');rect(x+12,214,71,104,'#f8fbfb');rect(x+17,220,61,28,'#d8e6eb');rect(x+17,263,61,49,'#eef5f6');rect(x,335,95,8,'#587780');}
-rect(332,181,136,54,'#76959d');rect(344,192,112,30,'#e4eef0');text('Reception',400,212,13,'#2d505a');
+// Haven General Hospital: four patient rooms, an open-ended dividing wall,
+// and a spacious lobby. Furniture will be added as separate sprites later.
+rect(0,0,W,H,'#18252b');
+rect(95,46,610,436,'#506d78');
+rect(107,58,586,412,'#dce8e6');
+tileArea('tile',107,58,586,412,'#dce8e6');
+// Four equal patient rooms along the north side.
+const roomXs=[107,254,401,548];
+for(let i=0;i<4;i++){
+ const x=roomXs[i];
+ rect(x,58,145,160,i%2?'#d7e7e8':'#e2eeec');
+ rect(x,58,145,8,'#71959e');
+ if(i>0){rect(x-5,58,8,160,'#607e86');rect(x-3,65,3,153,'#9bb5b9');}
+ // Door opening at the southern end of each patient room.
+ rect(x,214,46,8,'#607e86');
+ rect(x+91,214,54,8,'#607e86');
+ rect(x+46,214,45,8,'#dce8e6');
+ rect(x+46,214,45,2,'#a4c1c4');
+}
+// The divider separates patient wing from lobby, with passages at both ends.
+rect(171,246,458,12,'#55737d');
+rect(171,246,458,3,'#9cb5bb');
+// Subtle floor zoning for the waiting area; furniture comes later.
+rect(112,300,136,120,'#cbdcdb');
+rect(552,300,136,120,'#cbdcdb');
+// Reception location, marked with a floor inset until its desk sprite is made.
+rect(345,289,110,43,'#b7d0d0');
+rect(349,293,102,35,'#d9e7e3');
+// Exterior walls and centered entrance.
+rect(95,46,610,12,'#506d78');
+rect(95,46,12,436,'#506d78');
+rect(693,46,12,436,'#506d78');
+rect(95,470,271,12,'#506d78');
+rect(434,470,271,12,'#506d78');
+rect(366,470,68,12,'#79b8d0');
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);return;
 }
 if(scene==='home'){
@@ -428,6 +454,10 @@ furniture('doorRug',369,439,63,47);
 if(scene==='hq')drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 }
+function roomDoorBlocked(x){
+ // Patient-room south walls have a 45px opening in each room.
+ return [107,254,401,548].some(left=>x>=left&&x<left+145&&!(x>=left+46&&x<=left+91));
+}
 function collide(x,y){
 if(scene==='home'){
 // Use a character-width inset so the sprite cannot stand inside exterior walls.
@@ -453,6 +483,15 @@ const bottom=item.y+h;
 if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
 }
 return false;
+}
+if(scene==='hospital'){
+ // Match the hospital floor plan: full lobby, four rooms, and two side passages.
+ if(x<119||x>681||y<76||y>467)return true;
+ if(y>=241&&y<=267&&x>=171&&x<=629)return true;
+ // Patient-room partition walls, except for their southern door openings.
+ if(y<214&&[254,401,548].some(w=>Math.abs(x-w)<9))return true;
+ if(y>=214&&y<=226&&roomDoorBlocked(x))return true;
+ return false;
 }
 if(!districts.includes(scene)){
  if(x<115||x>685||y<226||y>467)return true;
