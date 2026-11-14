@@ -369,6 +369,8 @@ for(let i=0;i<4;i++){
  hospitalItems.push({key:'bed_hospital_bottom',x:148+i*128,y:88,kind:'bed',id:'bed'+i});
  hospitalItems.push({key:'iv',x:204+i*128,y:80});
  hospitalItems.push({key:'monitor',x:238+i*128,y:98});
+ // One sideways chair in each patient room, beside its front wall.
+ hospitalItems.push({key:i<2?'hospitalchairs_rightface':'hospitalchairs_leftface',x:151+i*128,y:194});
 }
 hospitalItems.push({key:'desk_hospital',x:348,y:416});
 hospitalItems.push({key:'clock_silver',x:306,y:344});
