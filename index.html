@@ -114,6 +114,13 @@ const buildings=[
 const districts=['town','commercial','government'];
 const districtNames={town:'Residential District',commercial:'Commercial District',government:'Government District'};
 const districtBuildings=()=>buildings.filter(b=>b.district===scene);
+function exteriorDoorPosition(b){
+ const x=b.id==='home'&&playerHouseImage.naturalWidth
+  ? b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2)
+  : b.doorX;
+ const y=b.id==='market'?520:(b.district==='town'||b.district==='government'||b.district==='commercial')?244:b.y+b.h+11;
+ return {x,y};
+}
 let lastDistrict='town';
 const npcs=[];
 // NPC sprite sheets: each 4x4 sheet is used whole, without slicing PNG files.
@@ -533,17 +540,19 @@ rect(115,201,106,2,light);rect(300,201,90,2,light);
 // Both sides of the bedroom opening have a full-height finished jamb.
 rect(218,207,3,54,trim);rect(300,207,3,54,trim);
 // Kitchen's back wall ends above the floor, leaving an open passage from living room.
-rect(390,201,295,INTERIOR_WALL_HEIGHT,wall);rect(390,207,295,6,trim);rect(390,207,295,2,light);rect(390,261,295,5,trim);rect(390,261,295,2,light);
+rect(402,207,283,INTERIOR_WALL_HEIGHT-6,wall);rect(390,261,295,5,trim);rect(390,261,295,2,light);
 // Outer wall trim, following the L shape.
 rect(103,38,299,12,trim);rect(103,38,12,442,trim);
-rect(390,38,12,157,trim);
+rect(390,38,12,163,trim);
 rect(685,195,12,285,trim);
 rect(103,467,167,13,trim);rect(333,467,364,13,trim);
 // The doorway is cut through the underlying outer-wall layer, not just the trim.
 rect(270,467,63,13,'#090b10');
-// Draw the kitchen's top cap last so it joins the bedroom corner cleanly.
-rect(390,195,307,12,trim);
-rect(103,38,299,3,light);rect(390,195,307,3,light);
+// A continuous 8px cap begins after the bedroom's side wall.
+// Its height matches the bedroom divider cap: no protruding ledge.
+rect(402,201,295,8,trim);
+rect(402,201,295,2,light);
+rect(103,38,299,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
 for(const item of kitchenItems)furniture(item.key,item.x,item.y,item.w,item.h);
@@ -690,7 +699,7 @@ return districtBuildings().some(b=>{
  return x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8;
 });
 }
-function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='hospital'&&Math.hypot(player.x-hospitalReceptionist.x,player.y-hospitalReceptionist.y)<75)return {kind:'hospitalReceptionist',label:'Talk to Dima'};if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.id==='market'?520:(b.district==='town'||b.district==='government'||b.district==='commercial')?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='hospital'&&Math.hypot(player.x-hospitalReceptionist.x,player.y-hospitalReceptionist.y)<75)return {kind:'hospitalReceptionist',label:'Talk to Dima'};if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const {x:doorX,y:doorY}=exteriorDoorPosition(b);if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function faceToward(n,target){
  const dx=target.x-n.x,dy=target.y-n.y;
  n.face=Math.abs(dx)>Math.abs(dy)?(dx>=0?'right':'left'):(dy>=0?'down':'up');
@@ -821,8 +830,9 @@ let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.
    const oldScene=scene;
    scene=lastDistrict;
    const b=buildings.find(b=>b.id===oldScene);
-   player.x=b?b.doorX:390;
-   player.y=b?b.y+b.h+37:345;
+   const door=b?exteriorDoorPosition(b):null;
+   player.x=door?door.x:390;
+   player.y=door?door.y+16:345;
    placeEl.textContent=districtNames[scene];
    near=null;
   }
