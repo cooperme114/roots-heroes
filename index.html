@@ -448,7 +448,7 @@ if(scene==='hospital'){
  };
  const drawHospitalFoot=(item)=>{
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
-  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
+  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.beginPath();ctx.rect(Math.round(item.x),Math.round(item.y+size.h-32),size.w,32);ctx.clip();ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
@@ -601,9 +601,8 @@ if(scene==='hospital'){
   if(item.key==='clock_silver')continue; // mounted on a wall
   const {w,h}=hospitalItemSize(item);
   if(item.kind==='bed'){
-   const insideBed=x>=item.x+10&&x<=item.x+w-10&&y>=item.y+28&&y<=item.y+h-14;
-   if(insideBed)continue;
-   if(x>=item.x-8&&x<=item.x+w+8&&y>=item.y+h-16&&y<=item.y+h+5)return true;
+   // Beds are walkable, like the bed in the player's house.
+   // Their front sprite is only a visual overlay, not a collision barrier.
    continue;
   }
   const pad=7;
