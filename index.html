@@ -411,25 +411,25 @@ if(scene==='hospital'){
   rect(tx+1,ty+31,30,1,'#a8b5b8');
  }
  // Distinct vertical wall faces for hanging decorations later.
- function wall(x,y,w,h=17){
+ function wall(x,y,w,h=46){
   rect(x,y,w,h,'#344d5b');
-  rect(x+1,y+1,w-2,4,'#819aa3');
-  rect(x+1,y+5,w-2,h-9,'#d5d0c3');
-  rect(x+1,y+h-4,w-2,3,'#506b77');
+  rect(x+2,y+5,w-4,Math.max(1,h-13),'#e2e5dc');
+  rect(x+2,y+5,w-4,5,'#8da6ac');
+  rect(x,y+h-5,w,5,'#486877');
  }
- wall(ox-12,oy-16,16*t+24,18);
+ wall(ox-12,oy-46,16*t+24,46);
  wall(ox-12,oy-16,12,entranceY-oy+32);
  wall(ox+16*t,oy-16,12,entranceY-oy+32);
  for(let i=1;i<4;i++)wall(ox+i*4*t-5,oy,10,5*t);
  for(let i=0;i<4;i++){
   const x=ox+i*4*t;
-  wall(x,roomBottom-6,38,15);
-  wall(x+90,roomBottom-6,38,15);
+  wall(x,roomBottom-44,38,46);
+  wall(x+90,roomBottom-44,38,46);
  }
  // Reception partition has a passage on either end.
- wall(ox+2*t,hallBottom-7,12*t,17);
- wall(ox-12,entranceY-5,7*t+12,17);
- wall(ox+9*t,entranceY-5,7*t+12,17);
+ wall(ox+2*t,hallBottom-44,12*t,46);
+ wall(ox-12,entranceY-44,7*t+12,46);
+ wall(ox+9*t,entranceY-44,7*t+12,46);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
  for(const item of hospitalItems)if(item.kind!=='bed')drawHospitalItem(item);
  for(const item of hospitalItems)if(item.kind==='bed')drawHospitalItem(item);
