@@ -420,6 +420,22 @@ function drawHospitalItem(item){
   ctx.save();ctx.strokeStyle='#415d6c';ctx.strokeRect(item.x,item.y,size.w,size.h);ctx.restore();
  }
 }
+// One source of truth for the hospital's visible wall faces and collision.
+const hospitalLayout=(()=>{
+ const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
+ const frontWalls=[];
+ for(let i=0;i<4;i++){
+  const x=ox+i*4*t;
+  frontWalls.push({x,y:roomBottom-60,w:38,h:62});
+  frontWalls.push({x:x+90,y:roomBottom-60,w:38,h:62});
+ }
+ frontWalls.push({x:ox+2*t,y:hallBottom-60,w:12*t,h:62});
+ frontWalls.push({x:ox-12,y:entranceY-60,w:7*t+12,h:62});
+ frontWalls.push({x:ox+9*t,y:entranceY-60,w:7*t+12,h:62});
+ const sideWalls=[{x:ox-12,y:oy-16,w:12,h:entranceY-oy+18},{x:ox+16*t,y:oy-16,w:12,h:entranceY-oy+18}];
+ for(let i=1;i<4;i++)sideWalls.push({x:ox+i*4*t-5,y:oy,w:10,h:7*t});
+ return {ox,oy,t,roomBottom,hallBottom,entranceY,frontWalls,sideWalls};
+})();
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='hospital'){
@@ -432,7 +448,7 @@ if(scene==='hospital'){
   rect(tx+2,ty+2,28,1,'#e0e5e4');
   rect(tx+1,ty+31,30,1,'#a8b5b8');
  }
- // Distinct vertical wall faces for hanging decorations later.
+ // All wall geometry comes from hospitalLayout; depth is handled below.
  function wall(x,y,w,h=62){
   rect(x,y,w,h,'#344d5b');
   rect(x+2,y+5,w-4,Math.max(1,h-13),'#e2e5dc');
@@ -440,18 +456,7 @@ if(scene==='hospital'){
   rect(x,y+h-5,w,5,'#486877');
  }
  wall(ox-12,oy-40,16*t+24,90);
- wall(ox-12,oy-16,12,entranceY-oy+18);
- wall(ox+16*t,oy-16,12,entranceY-oy+18);
- for(let i=1;i<4;i++)wall(ox+i*4*t-5,oy,10,7*t);
- for(let i=0;i<4;i++){
-  const x=ox+i*4*t;
-  wall(x,roomBottom-60,38,62);
-  wall(x+90,roomBottom-60,38,62);
- }
- // Reception partition has a passage on either end.
- wall(ox+2*t,hallBottom-60,12*t,62);
- wall(ox-12,entranceY-60,7*t+12,62);
- wall(ox+9*t,entranceY-60,7*t+12,62);
+ for(const segment of hospitalLayout.sideWalls)wall(segment.x,segment.y,segment.w,segment.h);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
  // Sort hospital furniture and the player by their feet, so objects in
  // front obscure characters behind them, and vice versa.
@@ -469,6 +474,12 @@ if(scene==='hospital'){
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
   player.y>=item.y+18&&player.y<=item.y+hospitalItemSize(item).h+3);
+ // Wall faces join the same feet-depth sort as characters and furniture.
+ // A character behind a wall is covered; a character in front is not.
+ const wallLayers=hospitalLayout.frontWalls.map(segment=>({
+  y:segment.y+segment.h+5,
+  draw:()=>wall(segment.x,segment.y,segment.w,segment.h)
+ }));
  const layers=hospitalItems.filter(item=>item.key!=='clock_silver').map(item=>({
   y:item.kind==='bed'?item.y+32:item.key==='desk_hospital'?item.y+hospitalItemSize(item).h-7:item.y+hospitalItemSize(item).h,
   draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
@@ -486,58 +497,12 @@ if(scene==='hospital'){
  // It must not suddenly appear or shift when the player enters the bed.
  for(const item of hospitalItems.filter(item=>item.kind==='bed'))
   layers.push({y:item.y+hospitalItemSize(item).h+1,draw:()=>drawHospitalFoot(item)});
+ layers.push(...wallLayers);
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
 
- // Foreground wall faces are a separate final layer, drawn after furniture.
- // Repaint every room-front wall as well as the reception and entrance walls
- // so chairs and other props cannot appear pasted over the wall surface.
- for(let i=0;i<4;i++){
-  const x=ox+i*4*t;
-  wall(x,roomBottom-60,38,62);
-  wall(x+90,roomBottom-60,38,62);
- }
- wall(ox+2*t,hallBottom-60,12*t,62);
- wall(ox-12,entranceY-60,7*t+12,62);
- wall(ox+9*t,entranceY-60,7*t+12,62);
- // Reception staff stand on the near side of the partition wall.
- // Redraw them after the foreground walls, then restore the desk in front
- // of their lower body so they still appear to be working behind the counter.
- if(hospitalReceptionist.y>=hallBottom+24){
-  if(!drawNpcSheet('dima',hospitalReceptionist.x,hospitalReceptionist.y,hospitalReceptionist.face)){
-   ctx.save();ctx.fillStyle='#6b556a';ctx.fillRect(hospitalReceptionist.x-9,hospitalReceptionist.y-26,18,26);ctx.fillStyle='#d3a482';ctx.fillRect(hospitalReceptionist.x-6,hospitalReceptionist.y-38,12,13);ctx.restore();
-  }
-  const receptionDesk=hospitalItems.find(item=>item.key==='desk_hospital');
-  if(receptionDesk)drawHospitalItem(receptionDesk);
- }
- // Wall-mounted clock must be drawn after the LAST foreground wall pass.
+ // Wall-mounted clock is always visible on the wall face.
  for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
- // Wall faces hide furniture, but never hide a player standing on the
- // near side of a wall. Repaint the player only at those wall boundaries;
- // elsewhere normal furniture/player depth sorting remains in effect.
- // Use the character's FEET to decide which side of the wall they're on.
- // The previous 30px cutoff made the wall clip the head as soon as the
- // player walked a little farther from its base.
- const nearWall=(x,y,w,bottom)=>player.x>=x-12&&player.x<=x+w+12&&
-   // A character's feet can be just above the wall base while their body
-   // already overlaps its front face. Keep the character in front at that edge.
-   player.y>=bottom-12&&player.y<=bottom+90;
- const playerInFrontOfWall=
-  Array.from({length:4},(_,i)=>{
-   const x=ox+i*4*t;
-   return nearWall(x,roomBottom-60,38,roomBottom+2)||
-          nearWall(x+90,roomBottom-60,38,roomBottom+2);
-  }).some(Boolean)||
-  (player.x>=ox+2*t-12&&player.x<=ox+14*t+12&&player.y>=hallBottom+6&&player.y<=hallBottom+92)||
-  nearWall(ox-12,entranceY-60,7*t+12,entranceY+2)||
-  nearWall(ox+9*t,entranceY-60,7*t+12,entranceY+2);
- if(playerInFrontOfWall){
-  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
-  // Keep the reception counter in front if the player is behind its top.
-  const desk=hospitalItems.find(item=>item.key==='desk_hospital');
-  if(desk&&player.x>=desk.x-8&&player.x<=desk.x+hospitalItemSize(desk).w+8&&
-     player.y<desk.y+hospitalItemSize(desk).h-7)drawHospitalItem(desk);
- }
  return;
 }
 if(scene==='home'){
@@ -627,32 +592,13 @@ if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
 return false;
 }
 if(scene==='hospital'){
- const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
- // Keep the player's full sprite out of the upper and side walls,
- // not merely the point at their feet.
- // The upper wall now ends at oy+50 after its visual adjustments.
- // Keep the player's feet below that visible wall base, rather than
- // using the older boundary that allowed walking behind the headboards.
+ const {ox,oy,t,entranceY,frontWalls,sideWalls}=hospitalLayout;
+ // Collide against the exact same wall segments used for drawing.
+ // Use the player's feet with a small horizontal margin, not the sprite's head.
  if(x<ox+12||x>ox+16*t-12||y<oy+54||y>entranceY-8)return true;
- // The tall entrance wall is solid across its entire visible face.
- // Only the central two-tile doorway can be walked through.
- // Previously only the wall's bottom edge was checked, allowing the
- // player to walk underneath the foreground wall and disappear.
- if(y>=entranceY-60){
-  const doorLeft=ox+7*t,doorRight=ox+9*t;
-  if(x<doorLeft+9||x>doorRight-9)return true;
- }
- if(y<roomBottom-6&&[1,2,3].some(i=>Math.abs(x-(ox+i*4*t))<13))return true;
- if(y>=roomBottom-60&&y<=roomBottom+17){
-  const local=(x-ox)%(4*t);
-  if(local<38||local>90)return true;
- }
- // Reception wall spans the entire visible face, not just its bottom edge.
- if(y>=hallBottom-60&&y<=hallBottom+4&&x>=ox+2*t-8&&x<=ox+14*t+8)return true;
- // The actual wall bases are solid; only the doorways remain passable.
- if(y>=roomBottom-14&&y<=roomBottom+17){
-  const local=(x-ox)%(4*t);
-  if(local<38+9||local>90-9)return true;
+ for(const segment of [...frontWalls,...sideWalls]){
+  if(x>=segment.x-7&&x<=segment.x+segment.w+7&&
+     y>=segment.y-2&&y<=segment.y+segment.h+7)return true;
  }
  // Beds have an accessible center for the two-layer tucked-in-bed effect.
  // All other hospital furniture blocks the character's feet.
