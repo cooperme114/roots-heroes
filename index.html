@@ -90,9 +90,9 @@ const buildings=[
 {id:'neighborLeft',district:'town',name:'Neighbors',x:112,y:32,w:224,h:192,doorX:224,color:'#c8a68b'},
 {id:'neighbor1',district:'town',name:'Neighbors',x:464,y:32,w:224,h:192,doorX:576,color:'#c8a68b'},
 {id:'neighborFarRight',district:'town',name:'Neighbors',x:640,y:32,w:224,h:192,doorX:752,color:'#c8a68b'},
-{id:'cafe',district:'commercial',name:'The Corner Café',x:5,y:12,w:260,h:212,doorX:135,color:'#bc8eaa'},
-{id:'newspaper',district:'commercial',name:'City News',x:270,y:12,w:260,h:212,doorX:400,color:'#b5a6a0'},
-{id:'market',district:'commercial',name:'Cornerstone Market',x:535,y:12,w:260,h:212,doorX:665,color:'#9cb3c5'},
+{id:'cafe',district:'commercial',name:'The Corner Café',x:315,y:12,w:170,h:212,doorX:400,color:'#bc8eaa'},
+{id:'newspaper',district:'commercial',name:'City News',x:0,y:12,w:310,h:212,doorX:155,color:'#b5a6a0'},
+{id:'market',district:'commercial',name:'Cornerstone Market',x:490,y:12,w:310,h:212,doorX:645,color:'#9cb3c5'},
 {id:'books',district:'commercial',name:'Between the Lines',x:260,y:508,w:280,h:212,doorX:400,color:'#a98b70'},
 {id:'hq',district:'government',name:'Hero Headquarters',x:8,y:12,w:246,h:212,doorX:131,color:'#5e87ad'},
 {id:'hospital',district:'government',name:'Hospital',x:273,y:12,w:246,h:212,doorX:396,color:'#e4e3df'},
@@ -246,8 +246,8 @@ for(const [id,filename] of Object.entries({cafe:'cafe.png',newspaper:'newspaper.
 function drawCommercialBuilding(b){
  const img=commercialBuildingImages[b.id];
  if(!img||!img.complete||!img.naturalWidth)return false;
- const targetWidth=b.id==='books'?280:270;
- const scale=Math.min(targetWidth/img.naturalWidth,310/img.naturalHeight);
+ const targetWidth=b.id==='books'?280:b.id==='cafe'?180:330;
+ const scale=Math.min(targetWidth/img.naturalWidth,350/img.naturalHeight);
  const w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='books'?728:232)-h,w,h);
