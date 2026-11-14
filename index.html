@@ -360,7 +360,7 @@ function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&
 function bedAllowed(x,y){return x>=115&&x+bed.w<=390&&y>=55&&y+bed.h<=261}
 // Movable hospital furnishings; sprites load from assets/furniture when uploaded.
 const hospitalSprites={};
-for(const name of ['bed_hospital_bottom','bed_hospital_top','desk_hospital','hospitalchairs_back','hospitalchairs_front','hospitalchairs_leftface','hospitalchairs_rightface','iv','monitor']){
+for(const name of ['bed_hospital_bottom','bed_hospital_top','desk_hospital','hospitalchairs_back','hospitalchairs_front','hospitalchairs_leftface','hospitalchairs_rightface','iv','monitor','clock_silver']){
  const img=new Image();img.src='assets/furniture/'+name+'.png';hospitalSprites[name]=img;
 }
 const hospitalItems=[];
@@ -371,6 +371,7 @@ for(let i=0;i<4;i++){
  hospitalItems.push({key:'monitor',x:x+91,y:82});
 }
 hospitalItems.push({key:'desk_hospital',x:345,y:332});
+hospitalItems.push({key:'clock_silver',x:382,y:310});
 for(let i=0;i<8;i++){
  hospitalItems.push({key:'hospitalchairs_rightface',x:115,y:295+i*20});
  hospitalItems.push({key:'hospitalchairs_leftface',x:660,y:295+i*20});
