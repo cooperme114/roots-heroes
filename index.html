@@ -431,17 +431,31 @@ if(scene==='hospital'){
  wall(ox-12,entranceY-44,7*t+12,46);
  wall(ox+9*t,entranceY-44,7*t+12,46);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
- for(const item of hospitalItems)if(item.kind!=='bed')drawHospitalItem(item);
- for(const item of hospitalItems)if(item.kind==='bed'){
+ // Sort hospital furniture and the player by their feet, so objects in
+ // front obscure characters behind them, and vice versa.
+ const drawHospitalBed=(item)=>{
   const img=hospitalSprites.bed_hospital_top,size=hospitalItemSize(item);
   if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
   else drawHospitalItem(item);
- }
- window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
- for(const item of hospitalItems)if(item.kind==='bed'){
-  const img=hospitalSprites.bed_hospital_bottom;
-  if(img&&img.complete&&img.naturalWidth){const size=hospitalItemSize(item);ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,size.h-36);ctx.restore();}
- }
+ };
+ const drawHospitalFoot=(item)=>{
+  const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
+  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,size.h-36);ctx.restore();}
+ };
+ const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
+  player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
+  player.y>=item.y+30&&player.y<=item.y+hospitalItemSize(item).h+8);
+ const layers=hospitalItems.map(item=>({
+  y:item.y+hospitalItemSize(item).h,
+  draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
+ }));
+ layers.push({y:player.y,draw:()=>{
+  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+ }});
+ // When the player is actually in a bed, keep its footboard over them.
+ if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
+ layers.sort((a,b)=>a.y-b.y);
+ for(const layer of layers)layer.draw();
  return;
 }
 if(scene==='home'){
