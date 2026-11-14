@@ -95,6 +95,7 @@ document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wak
 player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
 const kitchenItems=[{key:'kCozy',x:461,y:194,w:228,h:180}];
+const movingBoxes={x:193,y:329,w:65,h:52};
 const player={x:390,y:244,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:283,y:32,w:288,h:192,doorX:427,color:'#cf9a73'},
@@ -542,7 +543,7 @@ rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
 for(const item of kitchenItems)furniture(item.key,item.x,item.y,item.w,item.h);
 // Unpacked belongings in the center of the living room.
-furniture('movingBoxes',185,320,85,70);
+furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
 furniture('doorRug',270,433,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
@@ -583,6 +584,9 @@ if(x>=300&&x<390&&y>=195&&y<283)return true;
 // The front door is the opening beneath the blue entrance rug.
 if(y>=467&&(x<270||x>333))return true;
 // Only the bed is walkable. All other furniture blocks the player's feet.
+// Moving boxes are solid; use a slightly inset footprint so the player can walk around them.
+if(x>=movingBoxes.x+4&&x<=movingBoxes.x+movingBoxes.w-4&&
+   y>=movingBoxes.y+12&&y<=movingBoxes.y+movingBoxes.h+5)return true;
 for(const item of kitchenItems){
  // The back counter and the right-hand return form an L, leaving the floor open.
  if(x>=item.x-5&&x<=item.x+item.w+5&&
