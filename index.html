@@ -371,7 +371,7 @@ for(let i=0;i<4;i++){
  hospitalItems.push({key:'monitor',x:238+i*128,y:98});
 }
 hospitalItems.push({key:'desk_hospital',x:348,y:416});
-hospitalItems.push({key:'clock_silver',x:306,y:386});
+hospitalItems.push({key:'clock_silver',x:306,y:344});
 for(let i=0;i<8;i++){
  const row=i%4,col=Math.floor(i/4);
  hospitalItems.push({key:'hospitalchairs_rightface',x:151+col*4,y:436+row*35});
@@ -434,6 +434,8 @@ if(scene==='hospital'){
  }
  // Reception partition has a passage on either end.
  wall(ox+2*t,hallBottom-60,12*t,62);
+ // Wall-mounted clock is drawn on top of the reception wall, not on the floor.
+ for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
@@ -451,7 +453,7 @@ if(scene==='hospital'){
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
   player.y>=item.y+24&&player.y<=item.y+hospitalItemSize(item).h-4);
- const layers=hospitalItems.map(item=>({
+ const layers=hospitalItems.filter(item=>item.key!=='clock_silver').map(item=>({
   y:item.kind==='bed'?item.y+32:item.y+hospitalItemSize(item).h,
   draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
  }));
