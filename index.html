@@ -527,9 +527,11 @@ rect(115,50,275,417,'#b8916d');rect(402,206,283,261,'#b7b5ac');
 tileArea('Floors-classic-medium-wood-001',115,106,275,361,'#b8916d');
 ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,106,275,361);
 // Give the living room two additional 32px columns of wood flooring.
-tileArea('Floors-classic-medium-wood-001',390,266,64,201,'#b8916d');
-ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(390,266,64,201);
-tileArea('tile',454,266,231,201,'#b7b5ac');
+// Give the kitchen a full 32px tile column to the left of the fridge.
+// The wood/tile boundary is aligned to an 8px increment.
+tileArea('Floors-classic-medium-wood-001',390,266,40,201,'#b8916d');
+ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(390,266,40,201);
+tileArea('tile',430,266,255,201,'#b7b5ac');
 // Full-height wallpaper, with baseboards at the floor line.
 rect(115,44,275,INTERIOR_WALL_HEIGHT,wall);rect(115,104,275,4,trim);rect(115,104,275,2,light);
 // Bedroom divider: visible wall sections with a doorway at x=221..300.
