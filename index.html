@@ -641,7 +641,7 @@ if(scene==='hospital'){
   if(x<doorLeft+9||x>doorRight-9)return true;
  }
  if(y<roomBottom-6&&[1,2,3].some(i=>Math.abs(x-(ox+i*4*t))<13))return true;
- if(y>=roomBottom-13&&y<=roomBottom+17){
+ if(y>=roomBottom-60&&y<=roomBottom+17){
   const local=(x-ox)%(4*t);
   if(local<38||local>90)return true;
  }
