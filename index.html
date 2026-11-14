@@ -519,14 +519,14 @@ if(scene==='hospital'){
  // The previous 30px cutoff made the wall clip the head as soon as the
  // player walked a little farther from its base.
  const nearWall=(x,y,w,bottom)=>player.x>=x-12&&player.x<=x+w+12&&
-   player.y>=bottom+22&&player.y<=bottom+90;
+   player.y>=bottom+2&&player.y<=bottom+90;
  const playerInFrontOfWall=
   Array.from({length:4},(_,i)=>{
    const x=ox+i*4*t;
    return nearWall(x,roomBottom-60,38,roomBottom+2)||
           nearWall(x+90,roomBottom-60,38,roomBottom+2);
   }).some(Boolean)||
-  (player.x>=ox+2*t-12&&player.x<=ox+14*t+12&&player.y>=hallBottom+4&&player.y<=hallBottom+92)||
+  (player.x>=ox+2*t-12&&player.x<=ox+14*t+12&&player.y>=hallBottom+6&&player.y<=hallBottom+92)||
   nearWall(ox-12,entranceY-60,7*t+12,entranceY+2)||
   nearWall(ox+9*t,entranceY-60,7*t+12,entranceY+2);
  if(playerInFrontOfWall){
@@ -645,7 +645,8 @@ if(scene==='hospital'){
   const local=(x-ox)%(4*t);
   if(local<38||local>90)return true;
  }
- if(y>=hallBottom-14&&y<=hallBottom+20&&x>=ox+2*t-8&&x<=ox+14*t+8)return true;
+ // Reception wall spans the entire visible face, not just its bottom edge.
+ if(y>=hallBottom-60&&y<=hallBottom+4&&x>=ox+2*t-8&&x<=ox+14*t+8)return true;
  // The actual wall bases are solid; only the doorways remain passable.
  if(y>=roomBottom-14&&y<=roomBottom+17){
   const local=(x-ox)%(4*t);
