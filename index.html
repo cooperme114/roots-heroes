@@ -437,6 +437,8 @@ const hospitalLayout=(()=>{
  for(let i=1;i<4;i++)sideWalls.push({x:ox+i*4*t-5,y:oy,w:10,h:7*t});
  return {ox,oy,t,roomBottom,hallBottom,entranceY,frontWalls,sideWalls};
 })();
+// Consistent visible wall height across all interiors.
+const INTERIOR_WALL_HEIGHT=62;
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='hospital'){
@@ -450,7 +452,7 @@ if(scene==='hospital'){
   rect(tx+1,ty+31,30,1,'#a8b5b8');
  }
  // All wall geometry comes from hospitalLayout; depth is handled below.
- function wall(x,y,w,h=62){
+ function wall(x,y,w,h=INTERIOR_WALL_HEIGHT){
   rect(x,y,w,h,'#344d5b');
   rect(x+2,y+5,w-4,Math.max(1,h-13),'#e2e5dc');
   rect(x+2,y+5,w-4,5,'#8da6ac');
@@ -521,16 +523,16 @@ tileArea('Floors-classic-medium-wood-001',390,266,64,201,'#b8916d');
 ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(390,266,64,201);
 tileArea('tile',454,266,231,201,'#b7b5ac');
 // Full-height wallpaper, with baseboards at the floor line.
-rect(115,50,275,56,wall);rect(115,104,275,4,trim);rect(115,104,275,2,light);
+rect(115,44,275,INTERIOR_WALL_HEIGHT,wall);rect(115,104,275,4,trim);rect(115,104,275,2,light);
 // Bedroom divider: visible wall sections with a doorway at x=221..300.
-rect(115,207,106,56,wall);rect(300,207,90,56,wall);
+rect(115,201,106,INTERIOR_WALL_HEIGHT,wall);rect(300,201,90,INTERIOR_WALL_HEIGHT,wall);
 rect(115,261,106,5,trim);rect(300,261,90,5,trim);
 rect(115,261,106,2,light);rect(300,261,90,2,light);
 // Wood cap across the tops of both bedroom partition sections.
 rect(115,207,106,6,trim);rect(300,207,90,6,trim);
 rect(115,207,106,2,light);rect(300,207,90,2,light);
 // Kitchen's back wall ends above the floor, leaving an open passage from living room.
-rect(390,207,295,56,wall);rect(390,207,295,6,trim);rect(390,207,295,2,light);rect(390,261,295,5,trim);rect(390,261,295,2,light);
+rect(390,201,295,INTERIOR_WALL_HEIGHT,wall);rect(390,207,295,6,trim);rect(390,207,295,2,light);rect(390,261,295,5,trim);rect(390,261,295,2,light);
 // Outer wall trim, following the L shape.
 rect(103,38,299,12,trim);rect(103,38,12,442,trim);
 rect(390,38,12,156,trim);rect(390,195,307,12,trim);
@@ -550,6 +552,20 @@ furniture('doorRug',270,433,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 if(boxesInFront)furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedTop',bed.x,bed.y+36,bed.w,49);
+// Foreground exterior wall: same 62px face as hospital walls, with a
+// genuine opening at the entry rather than a rug standing in for a door.
+// Draw after the player so the wall obscures anyone walking behind it.
+function houseFrontWall(x,w){
+ rect(x,467-INTERIOR_WALL_HEIGHT,w,INTERIOR_WALL_HEIGHT,trim);
+ rect(x+3,410,w-6,INTERIOR_WALL_HEIGHT-18,wall);
+ rect(x+3,410,w-6,4,light);
+ rect(x,463,w,5,trim);
+}
+houseFrontWall(103,167);
+houseFrontWall(333,364);
+// Visible side jambs and a threshold define the entrance passage.
+rect(267,418,3,49,trim);rect(333,418,3,49,trim);
+rect(270,466,63,4,light);
 
 return;
 }
