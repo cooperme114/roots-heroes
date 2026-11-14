@@ -450,7 +450,7 @@ if(scene==='hospital'){
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
   if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;// Match the house bed: the front piece is a short, separately placed sprite,
    // not a second full-height bed stretched across the first one.
-   ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,49);ctx.restore();}
+   ctx.drawImage(img,Math.round(item.x),Math.round(item.y+size.h-49),size.w,49);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
@@ -463,7 +463,10 @@ if(scene==='hospital'){
   window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
  }});
  // When the player is actually in a bed, keep its footboard over them.
- if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
+ // Keep the bed's front piece at a fixed location at all times.
+ // It must not suddenly appear or shift when the player enters the bed.
+ for(const item of hospitalItems.filter(item=>item.kind==='bed'))
+  layers.push({y:item.y+hospitalItemSize(item).h+1,draw:()=>drawHospitalFoot(item)});
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
 
