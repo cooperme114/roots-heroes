@@ -94,7 +94,7 @@ document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wak
 }
 player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
-const kitchenItems=[{key:'kFridge',x:527,y:254},{key:'kCabinet',x:493,y:229},{key:'kCabinet',x:621,y:229},{key:'kCabinet',x:653,y:229},{key:'kSink',x:558,y:254},{key:'kCounter',x:493,y:254},{key:'kCounter',x:621,y:254},{key:'kCounter',x:653,y:254},{key:'kStove',x:591,y:254},{key:'kMicrowave',x:653,y:254}];
+const kitchenItems=[{key:'kCozy',x:455,y:211,w:228,h:180}];
 const player={x:390,y:244,w:20,h:22,speed:135,face:'down',moving:false};
 const buildings=[
 {id:'home',district:'town',name:'Your House',x:283,y:32,w:288,h:192,doorX:427,color:'#cf9a73'},
@@ -368,7 +368,7 @@ if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
 // District names and navigation labels are intentionally hidden; edge travel still works.
 }
 const furnitureImages={};
-for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png',kCabinet:'Kitchen-cabinet-black.png',kCounter:'Kitchen-counter-marble-001.png',kFridge:'Kitchen-fridge-cozy-stainless-steel-001.png',kMicrowave:'Kitchen-microwave-steel-001.png',kSink:'Kitchen-sink-marble-001.png',kStove:'Kitchen-stove-stainless-steel-001.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
+for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png',kCozy:'Kitchen_Cozy.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=252&&y<=467)||(x>=115&&x<=390&&y>=106&&y<=270)}
 function bedAllowed(x,y){return x>=115&&x+bed.w<=390&&y>=55&&y+bed.h<=261}
@@ -539,15 +539,13 @@ rect(103,467,167,13,trim);rect(333,467,364,13,trim);
 rect(270,467,63,13,'#090b10');
 rect(103,38,299,3,light);rect(390,195,307,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
-// Kitchen appliances use each source sprite's native pixel dimensions.
-const kitchenPiece=(key,x,y)=>{const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth)furniture(key,x,y,img.naturalWidth,img.naturalHeight)};
-for(const item of kitchenItems.filter(it=>it.key!=='kCabinet')){const img=furnitureImages[item.key];if(img&&img.complete&&img.naturalWidth)furniture(item.key,item.x,item.y,img.naturalWidth*2,img.naturalHeight*2)}
+// A kitchen remodel is a single unit. Future styles reuse this footprint.
+for(const item of kitchenItems)furniture(item.key,item.x,item.y,item.w,item.h);
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
 furniture('doorRug',270,433,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 furniture('bedTop',bed.x,bed.y+36,bed.w,49);
-// Wall cabinets occupy the upper rendering layer, in front of characters and appliances.
-for(const item of kitchenItems.filter(it=>it.key==='kCabinet')){const img=furnitureImages[item.key];if(img&&img.complete&&img.naturalWidth)furniture(item.key,item.x,item.y,img.naturalWidth*2,img.naturalHeight*2)}
+
 return;
 }
 rect(0,0,W,H,'#30484a');
@@ -583,11 +581,11 @@ if(x>=300&&x<390&&y>=195&&y<283)return true;
 // The front door is the opening beneath the blue entrance rug.
 if(y>=467&&(x<270||x>333))return true;
 // Only the bed is walkable. All other furniture blocks the player's feet.
-for(const item of kitchenItems){const img=furnitureImages[item.key];if(!img||!img.naturalWidth)continue;const w=img.naturalWidth*2,h=img.naturalHeight*2;
-// Wall cabinets only block walking when placed down in the usable floor area.
-const top=item.key==='kCabinet'?item.y+h-18:item.y+Math.min(12,h*0.25);
-const bottom=item.y+h;
-if(x>item.x-5&&x<item.x+w+5&&y>top&&y<bottom+5)return true;
+for(const item of kitchenItems){
+ // The back counter and the right-hand return form an L, leaving the floor open.
+ if(x>=item.x-5&&x<=item.x+item.w+5&&
+    ((y>=item.y+75&&y<=item.y+119)||
+     (x>=item.x+item.w-49&&y>=item.y+119&&y<=item.y+item.h+5)))return true;
 }
 return false;
 }
@@ -694,7 +692,7 @@ canvas.addEventListener('pointerdown',e=>{if(scene==='hospital'&&!gamePaused&&!s
  }
  return;
 }
-if(gamePaused||scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+img.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+img.naturalHeight*2){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
+if(gamePaused||scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
 // Furniture may be placed anywhere in the L-shaped house, regardless of its type.
 function furnitureBounds(item){
 const img=item===bed?null:furnitureImages[item.key];
@@ -709,7 +707,7 @@ const left=Math.max(115,Math.min(685-w,x));
 const upper=left+w<=390?55:195;
 return {x:left,y:Math.max(upper,Math.min(480-h,y))};
 }
-canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const pos=bedDrag.hospital?clampHospitalFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY)):clampFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY));bedDrag.item.x=pos.x;bedDrag.item.y=pos.y;return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+im.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+im.naturalHeight*2}))?'grab':'default'});
+canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const pos=bedDrag.hospital?clampHospitalFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY)):clampFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY));bedDrag.item.x=pos.x;bedDrag.item.y=pos.y;return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+it.w&&p.y>=it.y&&p.y<=it.y+it.h}))?'grab':'default'});
 function clampHospitalFurniture(item,x,y){
  const {w,h}=hospitalItemSize(item);
  // Snap to an 8px sub-grid of the 32px hospital floor tiles.
