@@ -280,24 +280,25 @@ tileArea('sidewalk',0,320,W,32,'#c5c5c5');
 if(scene==='commercial'){
  // A continuous southbound street connects the main shops to the bookshop block.
  // Grassy ground-level blocks instead of sky-blue voids.
- rect(0,352,328,360,'#638c56');
- rect(472,352,W-472,360,'#638c56');
- // Vertical sidewalks meet the horizontal sidewalks without a gap.
- tileArea('asphalt',360,320,80,424,'#45474b');
- tileArea('sidewalk',328,320,32,424,'#c5c5c5');
- tileArea('sidewalk',440,320,32,424,'#c5c5c5');
+ rect(0,352,320,360,'#638c56');
+ rect(480,352,W-480,360,'#638c56');
+ // Align every edge with the 32px sidewalk tile grid.
+ // Sidewalks are one full tile wide, with a three-tile road between them.
+ tileArea('asphalt',352,320,96,424,'#45474b');
+ tileArea('sidewalk',320,352,32,360,'#c5c5c5');
+ tileArea('sidewalk',448,352,32,360,'#c5c5c5');
  tileArea('asphalt',0,744,W,64,'#45474b');
  tileArea('sidewalk',0,712,W,32,'#c5c5c5');
  tileArea('sidewalk',0,808,W,32,'#c5c5c5');
  // Crosswalks beside both sidewalks: horizontal bars across the east-west street.
  for(let y=264;y<=304;y+=12){
-  rect(334,y,20,7,'#f5f4ed');
-  rect(446,y,20,7,'#f5f4ed');
-  rect(334,y+488,20,7,'#f5f4ed');
-  rect(446,y+488,20,7,'#f5f4ed');
+  rect(326,y,20,7,'#f5f4ed');
+  rect(454,y,20,7,'#f5f4ed');
+  rect(326,y+488,20,7,'#f5f4ed');
+  rect(454,y+488,20,7,'#f5f4ed');
  }
- // Vertical white stripes crossing the southbound street at each intersection.
- for(let x=366;x<=426;x+=12){
+ // Cross the north-south road exactly between its tile-aligned curbs.
+ for(let x=358;x<=438;x+=12){
   rect(x,326,7,25,'#f5f4ed');
   rect(x,718,7,25,'#f5f4ed');
  }
