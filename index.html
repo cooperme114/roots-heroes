@@ -252,7 +252,7 @@ function drawCommercialBuilding(b){
  const h=b.id==='books'?Math.round(img.naturalHeight*(w/img.naturalWidth)):
          b.id==='newspaper'?236:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):b.id==='market'?267:225;
  ctx.save();ctx.imageSmoothingEnabled=false;
- ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='market'?530:b.id==='books'?237:233+(b.id==='cafe'?5:b.id==='newspaper'?1:0))-h,w,h);
+ ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='market'?533:b.id==='books'?237:233+(b.id==='cafe'?5:b.id==='newspaper'?1:0))-h,w,h);
  ctx.restore();return true;
 }
 function skyColor(){
