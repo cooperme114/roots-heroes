@@ -291,14 +291,14 @@ if(scene==='commercial'){
  tileArea('sidewalk',0,712,W,32,'#c5c5c5');
  tileArea('sidewalk',0,808,W,32,'#c5c5c5');
  // Crosswalks beside both sidewalks: horizontal bars across the east-west street.
- for(let y=264;y<=304;y+=12){
+ for(let y=260;y<=308;y+=12){
   rect(326,y,20,7,'#f5f4ed');
   rect(454,y,20,7,'#f5f4ed');
   rect(326,y+488,20,7,'#f5f4ed');
   rect(454,y+488,20,7,'#f5f4ed');
  }
  // Cross the north-south road exactly between its tile-aligned curbs.
- for(let x=360;x<=444;x+=12){
+ for(let x=360;x<=432;x+=12){
   rect(x,320,7,32,'#f5f4ed');
   rect(x,712,7,32,'#f5f4ed');
  }
