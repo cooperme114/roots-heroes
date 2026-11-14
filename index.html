@@ -279,14 +279,20 @@ tileArea('sidewalk',0,224,W,32,'#c5c5c5');
 tileArea('sidewalk',0,320,W,32,'#c5c5c5');
 if(scene==='commercial'){
  // A continuous southbound street connects the main shops to the bookshop block.
+ // Grassy ground-level blocks instead of sky-blue voids.
+ rect(0,352,328,360,'#638c56');
+ rect(472,352,W-472,360,'#638c56');
+ // Vertical sidewalks meet the horizontal sidewalks without a gap.
  tileArea('asphalt',360,320,80,424,'#45474b');
- tileArea('sidewalk',328,352,32,376,'#c5c5c5');
- tileArea('sidewalk',440,352,32,376,'#c5c5c5');
+ tileArea('sidewalk',328,320,32,424,'#c5c5c5');
+ tileArea('sidewalk',440,320,32,424,'#c5c5c5');
  tileArea('asphalt',0,744,W,64,'#45474b');
  tileArea('sidewalk',0,712,W,32,'#c5c5c5');
  tileArea('sidewalk',0,808,W,32,'#c5c5c5');
- // The lower block is still part of this district, not a separate screen.
- rect(0,480,W,30,'#777b80');
+ // White zebra crossings across the upper and lower streets.
+ for(let x=366;x<440;x+=14){rect(x,264,8,48,'#eeeae1');rect(x,752,8,48,'#eeeae1');}
+ // Crosswalk joining the green spaces across the southbound street.
+ for(let y=514;y<594;y+=16)rect(366,y,68,9,'#eeeae1');
 }
 // Lower row: reuse the red house sprite, showing only its upper portion over the road.
 if(scene==='town'&&neighborHouseImage.complete&&neighborHouseImage.naturalWidth){const scale=Math.min(224/neighborHouseImage.naturalWidth,216/neighborHouseImage.naturalHeight),ww=Math.round(neighborHouseImage.naturalWidth*scale),hh=Math.round(neighborHouseImage.naturalHeight*scale);ctx.save();ctx.imageSmoothingEnabled=false;for(let x=-80;x<W+ww;x+=176)ctx.drawImage(neighborHouseImage,x,288,ww,hh);ctx.restore();}
