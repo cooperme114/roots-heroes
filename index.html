@@ -543,10 +543,12 @@ rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
 for(const item of kitchenItems)furniture(item.key,item.x,item.y,item.w,item.h);
 // Unpacked belongings in the center of the living room.
-furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
+const boxesInFront=player.y<movingBoxes.y+movingBoxes.h-5;
+if(!boxesInFront)furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
 furniture('doorRug',270,433,63,47);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+if(boxesInFront)furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedTop',bed.x,bed.y+36,bed.w,49);
 
 return;
