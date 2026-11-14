@@ -473,6 +473,22 @@ if(scene==='hospital'){
  wall(ox+2*t,hallBottom-60,12*t,62);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
+ // Wall faces hide furniture, but never hide a player standing on the
+ // near side of a wall. Repaint the player only at those wall boundaries;
+ // elsewhere normal furniture/player depth sorting remains in effect.
+ const nearWall=(x,y,w,bottom)=>player.x>=x-12&&player.x<=x+w+12&&
+   player.y>=bottom-12&&player.y<=bottom+30;
+ const playerInFrontOfWall=
+  Array.from({length:4},(_,i)=>{
+   const x=ox+i*4*t;
+   return nearWall(x,roomBottom-60,38,roomBottom+2)||
+          nearWall(x+90,roomBottom-60,38,roomBottom+2);
+  }).some(Boolean)||
+  nearWall(ox+2*t,hallBottom-60,12*t,hallBottom+2)||
+  nearWall(ox-12,entranceY-60,7*t+12,entranceY+2)||
+  nearWall(ox+9*t,entranceY-60,7*t+12,entranceY+2);
+ if(playerInFrontOfWall)
+  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
  return;
 }
 if(scene==='home'){
