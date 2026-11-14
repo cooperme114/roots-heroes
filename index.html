@@ -118,7 +118,9 @@ function exteriorDoorPosition(b){
  const x=b.id==='home'&&playerHouseImage.naturalWidth
   ? b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2)
   : b.doorX;
- const y=b.id==='market'?520:(b.district==='town'||b.district==='government'||b.district==='commercial')?244:b.y+b.h+11;
+ // Buildings on the upper street meet the sidewalk at y=224.
+ // Spawn feet one 8px step onto the sidewalk, directly beneath the door.
+ const y=b.id==='market'?520:224;
  return {x,y};
 }
 let lastDistrict='town';
@@ -520,7 +522,7 @@ rect(0,0,W,H,'#090b10');
 // Compact L-shaped starter home: bedroom above living room, kitchen right.
 const wall='#e8d9b9',trim='#79563e',light='#cda77c';
 rect(103,38,299,442,trim);rect(390,194,307,286,trim);
-rect(115,50,275,417,'#b8916d');rect(390,206,295,261,'#b7b5ac');
+rect(115,50,275,417,'#b8916d');rect(402,206,283,261,'#b7b5ac');
 // Floors, including the bedroom extended upward by one tile.
 tileArea('Floors-classic-medium-wood-001',115,106,275,361,'#b8916d');
 ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,106,275,361);
@@ -552,6 +554,11 @@ rect(270,467,63,13,'#090b10');
 // Its height matches the bedroom divider cap: no protruding ledge.
 rect(390,201,307,8,trim);
 rect(390,201,307,2,light);
+// Finish the junction with the same cream wall as the bedroom divider.
+// The old gray kitchen backing must never show through at this corner.
+rect(390,209,12,52,wall);
+rect(390,261,12,5,trim);
+rect(390,261,12,2,light);
 rect(103,38,299,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
