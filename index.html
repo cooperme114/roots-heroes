@@ -674,6 +674,9 @@ canvas.addEventListener('pointerdown',e=>{if(scene==='hospital'&&!gamePaused&&!s
  for(let i=hospitalItems.length-1;i>=0;i--){
   const item=hospitalItems[i],size=hospitalItemSize(item);
   if(p.x>=item.x&&p.x<=item.x+size.w&&p.y>=item.y&&p.y<=item.y+size.h){
+   // Beds are interactive walking spaces: only Shift+drag rearranges them.
+   // A normal click/tap must never accidentally pull a bed out of place.
+   if(item.kind==='bed'&&!e.shiftKey)return;
    bedDrag={id:e.pointerId,item,offsetX:p.x-item.x,offsetY:p.y-item.y,hospital:true};
    canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault();return;
   }
