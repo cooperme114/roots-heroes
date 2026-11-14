@@ -606,14 +606,12 @@ if(scene==='home'){
 if(!inHouse(x,y))return true;
 if(x<129||x>671)return true;
 if(y>455&&!(x>=282&&x<=321))return true;
-// The bedroom/living-room divider is solid except for its central doorway.
-if(y>=195&&y<283&&(x<233||x>288)&&x<390)return true;
-// Wallpaper is a solid wall, not walkable floor. The bedroom opening is x=221..300.
-if(x>=115&&x<=390&&y<128)return true;
-if(x>=115&&x<=390&&y>=199&&y<283&&(x<221||x>300))return true;
+// Match collision to the visible wall faces, not an invisible buffer below them.
+// The bedroom divider ends at y=266; its doorway remains open.
+if(x>=115&&x<390&&y<128)return true;
+if(x>=115&&x<390&&y>=201&&y<266&&(x<233||x>288))return true;
+// The kitchen wall ends at the same floor line as the bedroom divider.
 if(x>=390&&y<266)return true;
-// Keep the character's feet clear of the raised wall cap and its front face.
-if(x>=300&&x<390&&y>=195&&y<283)return true;
 // The front doorway is a clear opening between the two solid wall sections.
 if(y>=467&&(x<270||x>333))return true;
 // Only the bed is walkable. All other furniture blocks the player's feet.
