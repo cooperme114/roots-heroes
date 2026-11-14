@@ -368,7 +368,7 @@ if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
 // District names and navigation labels are intentionally hidden; edge travel still works.
 }
 const furnitureImages={};
-for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'bed_blue_top.png',doorRug:'Rug-basic-swirl-blue-001.png',kCozy:'Kitchen_Cozy.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
+for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom2.png',bedTop:'bed_blue_top2.png',doorRug:'Rug-basic-swirl-blue-001.png',kCozy:'Kitchen_Cozy.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=252&&y<=467)||(x>=115&&x<=390&&y>=106&&y<=270)}
 function bedAllowed(x,y){return x>=115&&x+bed.w<=390&&y>=55&&y+bed.h<=261}
