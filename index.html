@@ -200,8 +200,22 @@ for(const name of ['grass','stone','asphalt','sidewalk','wood','tile','carpet','
 function tileArea(name,x,y,w,h,fallback){
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  ctx.fillStyle=groundTiles[name]||fallback;
-  ctx.fillRect(x,y,w,h);
+  if(name==='sidewalk'){
+    // Draw complete 32x32 pavement slabs from each sidewalk's own origin,
+    // instead of clipping a globally offset repeating texture.
+    ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+    ctx.fillStyle='#62696d';ctx.fillRect(x,y,w,h);
+    for(let yy=y;yy<y+h;yy+=32){
+      for(let xx=x;xx<x+w;xx+=32){
+        ctx.fillStyle='#a1a5a8';ctx.fillRect(xx+1,yy+1,30,30);
+        ctx.fillStyle='#b1b4b6';ctx.fillRect(xx+2,yy+2,28,1);
+        ctx.fillStyle='#888e92';ctx.fillRect(xx+2,yy+30,28,1);
+      }
+    }
+  }else{
+    ctx.fillStyle=groundTiles[name]||fallback;
+    ctx.fillRect(x,y,w,h);
+  }
   ctx.restore();
 }
 const playerHouseImage=new Image();playerHouseImage.src='assets/buildings/Player_House3.png';
