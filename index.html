@@ -93,7 +93,7 @@ const buildings=[
 {id:'cafe',district:'commercial',name:'The Corner Café',x:304,y:12,w:170,h:212,doorX:389,color:'#bc8eaa'},
 {id:'newspaper',district:'commercial',name:'City News',x:-27,y:12,w:310,h:212,doorX:128,color:'#b5a6a0'},
 {id:'market',district:'commercial',name:'Cornerstone Market',x:502,y:12,w:310,h:212,doorX:657,color:'#9cb3c5'},
-{id:'books',district:'commercial',name:'Between the Lines',x:260,y:508,w:280,h:212,doorX:400,color:'#a98b70'},
+{id:'books',district:'commercial',name:'Between the Lines',x:520,y:476,w:280,h:212,doorX:660,color:'#a98b70'},
 {id:'hq',district:'government',name:'Hero Headquarters',x:8,y:12,w:246,h:212,doorX:131,color:'#5e87ad'},
 {id:'hospital',district:'government',name:'Hospital',x:273,y:12,w:246,h:212,doorX:396,color:'#e4e3df'},
 {id:'police',district:'government',name:'Police Station',x:538,y:12,w:246,h:212,doorX:661,color:'#7c9db6'}
@@ -252,7 +252,7 @@ function drawCommercialBuilding(b){
  const h=b.id==='books'?Math.round(img.naturalHeight*(w/img.naturalWidth)):
          b.id==='newspaper'?225:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):225;
  ctx.save();ctx.imageSmoothingEnabled=false;
- ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='books'?728:233+(b.id==='cafe'?1:b.id==='market'?4:0))-h,w,h);
+ ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='books'?712:233+(b.id==='cafe'?1:b.id==='market'?4:0))-h,w,h);
  ctx.restore();return true;
 }
 function skyColor(){
@@ -471,7 +471,7 @@ return districtBuildings().some(b=>{
  return x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8;
 });
 }
-function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.id==='books'?740:(b.district==='town'||b.district==='government'||b.district==='commercial')?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return Math.abs(player.x-(scene==='home'?301:400))<47&&player.y>405?{kind:'exit',label:'Leave '+interiors[scene].name}:null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const doorY=b.id==='books'?712:(b.district==='town'||b.district==='government'||b.district==='commercial')?244:b.y+b.h+11;const doorX=b.id==='home'&&playerHouseImage.naturalWidth?b.x+Math.round(playerHouseImage.naturalWidth*Math.min(288/playerHouseImage.naturalWidth,216/playerHouseImage.naturalHeight)/2):b.doorX;if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function faceToward(n,target){
  const dx=target.x-n.x,dy=target.y-n.y;
  n.face=Math.abs(dx)>Math.abs(dy)?(dx>=0?'right':'left'):(dy>=0?'down':'up');
