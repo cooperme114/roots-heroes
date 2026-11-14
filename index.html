@@ -597,7 +597,9 @@ return false;
 }
 if(scene==='hospital'){
  const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
- if(x<ox+12||x>ox+16*t-12||y<oy+16||y>entranceY-8)return true;
+ // Keep the player's full sprite out of the upper and side walls,
+ // not merely the point at their feet.
+ if(x<ox+24||x>ox+16*t-24||y<oy+44||y>entranceY-8)return true;
  // The tall entrance wall is solid across its entire visible face.
  // Only the central two-tile doorway can be walked through.
  // Previously only the wall's bottom edge was checked, allowing the
