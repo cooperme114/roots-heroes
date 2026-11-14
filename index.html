@@ -465,7 +465,7 @@ if(!districts.includes(scene)){
 }
 // In the neighborhood, the player may cross the upper sidewalk into the road,
 // but must stop before the roofs of the houses across the street (which begin at y=288).
-if(x<12||x>788||y<12||y>((scene==='town'||scene==='government')?286:scene==='commercial'?636:516))return true;
+if(x<12||x>788||y<12||y>(scene==='town'?286:scene==='government'?340:scene==='commercial'?636:516))return true;
 if(scene==='commercial')return !( (y>=230&&y<=350&&!(x>=480&&y>320)) || (x>=365&&x<=435&&y>=320&&y<=640) || (y>=520&&y<=640) );
 if((scene==='town'||scene==='commercial')&&y<230)return true;
 // Only the lower quarter of the player's sprite is solid against buildings.
