@@ -372,8 +372,8 @@ for(let i=0;i<4;i++){
  // One sideways chair in each patient room, beside its front wall.
  hospitalItems.push({key:i<2?'hospitalchairs_rightface':'hospitalchairs_leftface',x:151+i*128,y:194});
 }
-hospitalItems.push({key:'desk_hospital',x:348,y:416});
-hospitalItems.push({key:'clock_silver',x:306,y:344});
+hospitalItems.push({key:'desk_hospital',x:348,y:396});
+hospitalItems.push({key:'clock_silver',x:388,y:345});
 for(let i=0;i<4;i++){
  const row=i;
  hospitalItems.push({key:'hospitalchairs_rightface',x:151,y:436+row*35});
@@ -436,8 +436,6 @@ if(scene==='hospital'){
  }
  // Reception partition has a passage on either end.
  wall(ox+2*t,hallBottom-60,12*t,62);
- // Draw wall-mounted clock AFTER the final wall layer so it stays visible.
- for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
@@ -477,6 +475,8 @@ if(scene==='hospital'){
  wall(ox+2*t,hallBottom-60,12*t,62);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
+ // Wall-mounted clock must be drawn after the LAST foreground wall pass.
+ for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
  // Wall faces hide furniture, but never hide a player standing on the
  // near side of a wall. Repaint the player only at those wall boundaries;
  // elsewhere normal furniture/player depth sorting remains in effect.
@@ -589,7 +589,27 @@ if(scene==='hospital'){
   const local=(x-ox)%(4*t);
   if(local<38||local>90)return true;
  }
- if(y>=hallBottom-14&&y<=hallBottom+20&&x>=ox+2*t&&x<=ox+14*t)return true;
+ if(y>=hallBottom-14&&y<=hallBottom+20&&x>=ox+2*t-8&&x<=ox+14*t+8)return true;
+ // The actual wall bases are solid; only the doorways remain passable.
+ if(y>=roomBottom-14&&y<=roomBottom+17){
+  const local=(x-ox)%(4*t);
+  if(local<38+9||local>90-9)return true;
+ }
+ // Beds have an accessible center for the two-layer tucked-in-bed effect.
+ // All other hospital furniture blocks the character's feet.
+ for(const item of hospitalItems){
+  if(item.key==='clock_silver')continue; // mounted on a wall
+  const {w,h}=hospitalItemSize(item);
+  if(item.kind==='bed'){
+   const insideBed=x>=item.x+10&&x<=item.x+w-10&&y>=item.y+28&&y<=item.y+h-14;
+   if(insideBed)continue;
+   if(x>=item.x-8&&x<=item.x+w+8&&y>=item.y+h-16&&y<=item.y+h+5)return true;
+   continue;
+  }
+  const pad=7;
+  const top=item.key==='desk_hospital'?item.y+14:item.y+Math.min(12,h*.3);
+  if(x>=item.x-pad&&x<=item.x+w+pad&&y>=top&&y<=item.y+h+5)return true;
+ }
  return false;
 }
 if(!districts.includes(scene)){
