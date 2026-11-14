@@ -485,7 +485,7 @@ if(scene==='hospital'){
   draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
  }));
  layers.push({y:hospitalReceptionist.y,draw:()=>{
-  if(!drawNpcSheet('dima',hospitalReceptionist.x,hospitalReceptionist.y,'down')){
+  if(!drawNpcSheet('dima',hospitalReceptionist.x,hospitalReceptionist.y,hospitalReceptionist.face)){
    ctx.save();ctx.fillStyle='#6b556a';ctx.fillRect(hospitalReceptionist.x-9,hospitalReceptionist.y-26,18,26);ctx.fillStyle='#d3a482';ctx.fillRect(hospitalReceptionist.x-6,hospitalReceptionist.y-38,12,13);ctx.restore();
   }
  }});
