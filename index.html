@@ -540,7 +540,7 @@ rect(115,201,106,2,light);rect(300,201,90,2,light);
 // Both sides of the bedroom opening have a full-height finished jamb.
 rect(218,207,3,54,trim);rect(300,207,3,54,trim);
 // Kitchen's back wall ends above the floor, leaving an open passage from living room.
-rect(402,207,283,INTERIOR_WALL_HEIGHT-6,wall);rect(390,261,295,5,trim);rect(390,261,295,2,light);
+rect(402,209,283,INTERIOR_WALL_HEIGHT-8,wall);rect(390,261,295,5,trim);rect(390,261,295,2,light);
 // Outer wall trim, following the L shape.
 rect(103,38,299,12,trim);rect(103,38,12,442,trim);
 rect(390,38,12,163,trim);
@@ -550,8 +550,8 @@ rect(103,467,167,13,trim);rect(333,467,364,13,trim);
 rect(270,467,63,13,'#090b10');
 // A continuous 8px cap begins after the bedroom's side wall.
 // Its height matches the bedroom divider cap: no protruding ledge.
-rect(402,201,295,8,trim);
-rect(402,201,295,2,light);
+rect(390,201,307,8,trim);
+rect(390,201,307,2,light);
 rect(103,38,299,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
@@ -832,7 +832,7 @@ let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.
    const b=buildings.find(b=>b.id===oldScene);
    const door=b?exteriorDoorPosition(b):null;
    player.x=door?door.x:390;
-   player.y=door?door.y+16:345;
+   player.y=door?door.y+8:345;
    placeEl.textContent=districtNames[scene];
    near=null;
   }
