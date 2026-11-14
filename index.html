@@ -598,6 +598,14 @@ return false;
 if(scene==='hospital'){
  const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
  if(x<ox+12||x>ox+16*t-12||y<oy+16||y>entranceY-8)return true;
+ // The tall entrance wall is solid across its entire visible face.
+ // Only the central two-tile doorway can be walked through.
+ // Previously only the wall's bottom edge was checked, allowing the
+ // player to walk underneath the foreground wall and disappear.
+ if(y>=entranceY-60){
+  const doorLeft=ox+7*t,doorRight=ox+9*t;
+  if(x<doorLeft+9||x>doorRight-9)return true;
+ }
  if(y<roomBottom-6&&[1,2,3].some(i=>Math.abs(x-(ox+i*4*t))<13))return true;
  if(y>=roomBottom-13&&y<=roomBottom+17){
   const local=(x-ox)%(4*t);
