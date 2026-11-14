@@ -500,6 +500,16 @@ if(scene==='hospital'){
  wall(ox+2*t,hallBottom-60,12*t,62);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
+ // Reception staff stand on the near side of the partition wall.
+ // Redraw them after the foreground walls, then restore the desk in front
+ // of their lower body so they still appear to be working behind the counter.
+ if(hospitalReceptionist.y>=hallBottom+24){
+  if(!drawNpcSheet('dima',hospitalReceptionist.x,hospitalReceptionist.y,hospitalReceptionist.face)){
+   ctx.save();ctx.fillStyle='#6b556a';ctx.fillRect(hospitalReceptionist.x-9,hospitalReceptionist.y-26,18,26);ctx.fillStyle='#d3a482';ctx.fillRect(hospitalReceptionist.x-6,hospitalReceptionist.y-38,12,13);ctx.restore();
+  }
+  const receptionDesk=hospitalItems.find(item=>item.key==='desk_hospital');
+  if(receptionDesk)drawHospitalItem(receptionDesk);
+ }
  // Wall-mounted clock must be drawn after the LAST foreground wall pass.
  for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
  // Wall faces hide furniture, but never hide a player standing on the
