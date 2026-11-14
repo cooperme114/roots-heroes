@@ -391,10 +391,10 @@ function hospitalItemSize(item){
  const img=hospitalSprites[item.key];
  if(img&&img.naturalWidth){
   // All hospital props use compact in-game dimensions, not their source PNG sizes.
-  const target=item.kind==='bed'?{w:60,h:122}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:30,h:38}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
+  const target=item.kind==='bed'?{w:56,h:100}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:30,h:38}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
   return target;
  }
- return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?30:34,h:item.kind==='bed'?122:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?38:38};
+ return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?30:34,h:item.kind==='bed'?100:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?38:38};
 }
 function drawHospitalItem(item){
  const img=hospitalSprites[item.key],size=hospitalItemSize(item);
@@ -450,7 +450,7 @@ if(scene==='hospital'){
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
   if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;// Match the house bed: the front piece is a short, separately placed sprite,
    // not a second full-height bed stretched across the first one.
-   ctx.drawImage(img,Math.round(item.x),Math.round(item.y+size.h-49),size.w,49);ctx.restore();}
+   ctx.drawImage(img,Math.round(item.x),Math.round(item.y+size.h-70),size.w,70);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
