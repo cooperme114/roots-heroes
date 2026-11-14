@@ -266,7 +266,7 @@ function drawCommercialBuilding(b){
  const h=b.id==='books'?Math.round(img.naturalHeight*(w/img.naturalWidth)):
          b.id==='newspaper'?236:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):b.id==='market'?267:225;
  ctx.save();ctx.imageSmoothingEnabled=false;
- ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='market'?534:b.id==='books'?237:233+(b.id==='cafe'?5:b.id==='newspaper'?1:0))-h,w,h);
+ ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='market'?535:b.id==='books'?237:233+(b.id==='cafe'?5:b.id==='newspaper'?1:0))-h,w,h);
  ctx.restore();return true;
 }
 function skyColor(){
@@ -461,7 +461,7 @@ if(!districts.includes(scene)){
 }
 // In the neighborhood, the player may cross the upper sidewalk into the road,
 // but must stop before the roofs of the houses across the street (which begin at y=288).
-if(x<12||x>788||y<12||y>((scene==='town'||scene==='government')?286:scene==='commercial'?825:516))return true;
+if(x<12||x>788||y<12||y>((scene==='town'||scene==='government')?286:scene==='commercial'?636:516))return true;
 if(scene==='commercial')return !( (y>=230&&y<=350&&!(x>=480&&y>320)) || (x>=365&&x<=435&&y>=320&&y<=640) || (y>=520&&y<=640) );
 if((scene==='town'||scene==='commercial')&&y<230)return true;
 // Only the lower quarter of the player's sprite is solid against buildings.
@@ -618,6 +618,6 @@ document.querySelectorAll('[data-menu]').forEach(btn=>btn.addEventListener('clic
  talk(category,category+' is a placeholder for a future update.');
 }));
 let gamePaused=false;const pauseOverlay=document.getElementById('pauseOverlay'),pauseButton=document.getElementById('pauseButton');function setPaused(value){gamePaused=value;keys.clear();pauseOverlay.style.display=value?'flex':'none';pauseButton.textContent=value?'▶ Resume':'⏸ Pause';pauseButton.setAttribute('aria-pressed',String(value));if(value)document.getElementById('resumeButton').focus();else canvas.focus();}pauseButton.addEventListener('click',()=>setPaused(!gamePaused));document.getElementById('resumeButton').addEventListener('click',()=>setPaused(false));
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(430,player.y-280)));drawTown();ctx.restore();}else drawTown();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(120,player.y-280)));drawTown();ctx.restore();}else drawTown();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script></body></html>
