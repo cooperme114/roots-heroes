@@ -470,7 +470,9 @@ if(scene==='commercial'){
  // All open pavement, roads and grassy ground are walkable.
  // Only the upper storefront facades and the market's ground-level footprint block feet.
  if(y<230)return true;
- if(x>=480&&y>=465&&y<520)return true;
+ // The market's northern sidewalk (y=320..352) is walkable,
+ // but the grassy area behind its roof is not.
+ if(x>=480&&y>=352&&y<520)return true;
  return false;
 }
 if((scene==='town'||scene==='commercial')&&y<230)return true;
