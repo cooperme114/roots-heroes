@@ -391,10 +391,10 @@ function hospitalItemSize(item){
  const img=hospitalSprites[item.key];
  if(img&&img.naturalWidth){
   // All hospital props use compact in-game dimensions, not their source PNG sizes.
-  const target=item.kind==='bed'?{w:56,h:100}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:30,h:38}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
+  const target=item.kind==='bed'?{w:60,h:122}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:30,h:38}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
   return target;
  }
- return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?30:34,h:item.kind==='bed'?88:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?38:38};
+ return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?30:34,h:item.kind==='bed'?122:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?38:38};
 }
 function drawHospitalItem(item){
  const img=hospitalSprites[item.key],size=hospitalItemSize(item);
