@@ -374,7 +374,7 @@ for(let i=0;i<4;i++){
 }
 hospitalItems.push({key:'desk_hospital',x:348,y:396});
 hospitalItems.push({key:'clock_silver',x:388,y:345});
-for(let i=0;i<4;i++){
+for(let i=0;i<3;i++){
  const row=i;
  hospitalItems.push({key:'hospitalchairs_rightface',x:151,y:436+row*35});
  hospitalItems.push({key:'hospitalchairs_leftface',x:622,y:436+row*35});
@@ -426,8 +426,8 @@ if(scene==='hospital'){
   rect(x,y+h-5,w,5,'#486877');
  }
  wall(ox-12,oy-62,16*t+24,62);
- wall(ox-12,oy-16,12,entranceY-oy+32);
- wall(ox+16*t,oy-16,12,entranceY-oy+32);
+ wall(ox-12,oy-16,12,entranceY-oy+18);
+ wall(ox+16*t,oy-16,12,entranceY-oy+18);
  for(let i=1;i<4;i++)wall(ox+i*4*t-5,oy,10,7*t);
  for(let i=0;i<4;i++){
   const x=ox+i*4*t;
