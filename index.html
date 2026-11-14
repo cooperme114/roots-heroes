@@ -165,8 +165,8 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  ctx.restore();return true;
 }
 const npcActors=[
- {id:'danielle',scene:'government',x:205,y:235,face:'right',walking:true},
- {id:'ximena',scene:'government',x:375,y:235,face:'left',walking:true}
+ {id:'danielle',scene:'government',x:205,y:235,face:'right',walking:true,blockedFor:0,shoveFor:0,catchupFor:0},
+ {id:'ximena',scene:'government',x:375,y:235,face:'left',walking:true,blockedFor:0,shoveFor:0,catchupFor:0}
 ];
 let coupleCycle=0;
 // Wildfire strolls between a few spots in HQ, pausing at each one.
@@ -335,8 +335,8 @@ if(scene==='town'){
 for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='government'&&drawGovernmentBuilding(b))continue;if(b.district==='commercial'&&(b.id==='market'||drawCommercialBuilding(b)))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 // Render characters by foot position: characters farther down cover those behind them.
-const characters=npcActors.filter(n=>n.scene===scene).map(n=>({y:n.y,draw:()=>drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}));
-characters.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
+const characters=npcActors.filter(n=>n.scene===scene).map(n=>({y:n.y,draw:()=>drawNpcSheet(n.id,n.x+(n.shoveFor>0?Math.sin(elapsed*38)*2:0),n.y,n.face,n.walking,elapsed)}));
+characters.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x+(player.shoveShake>0?Math.sin(elapsed*38)*2:0),player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
 if(scene==='commercial'){
  const market=buildings.find(b=>b.id==='market');
  if(market)characters.push({y:450,draw:()=>drawCommercialBuilding(market)});
@@ -577,7 +577,7 @@ if(scene==='government'&&y<216){
 }
 // NPCs are solid: the player cannot walk through them.
 if(npcActors.some(n=>{
- if(n.scene!==scene)return false;
+ if(n.scene!==scene||n.shoveFor>0||n.catchupFor>0)return false;
  const before=Math.hypot(player.x-n.x,player.y-n.y);
  const after=Math.hypot(x-n.x,y-n.y);
  // Never allow approaching an NPC too closely; if already overlapping,
@@ -667,15 +667,38 @@ for(let i=0;i<npcActors.length;i++){
  let segment=0;while(segment<route.length-2&&t>=stops[segment+1])segment++;
  const a=route[segment],b=route[segment+1];
  const fraction=Math.min(1,Math.max(0,(t-stops[segment])/(stops[segment+1]-stops[segment])));
- n.x=a.x+(b.x-a.x)*fraction;n.y=a.y+(b.y-a.y)*fraction;
- n.walking=Math.abs(b.x-a.x)+Math.abs(b.y-a.y)>0;
- if(n.walking)n.face=Math.abs(b.x-a.x)>=Math.abs(b.y-a.y)?(b.x>a.x?'right':'left'):(b.y>a.y?'down':'up');
+ const targetX=a.x+(b.x-a.x)*fraction,targetY=a.y+(b.y-a.y)*fraction;
+ const distanceToPlayer=Math.hypot(player.x-n.x,player.y-n.y);
+ const distanceToGoal=Math.hypot(targetX-n.x,targetY-n.y);
+ // An NPC waits briefly when the player blocks their path. If still blocked,
+ // both characters shake, then the NPC pushes through and catches up.
+ const blocked=distanceToPlayer<37&&distanceToGoal>3;
+ if(blocked&&n.shoveFor<=0){
+  n.blockedFor+=dt;
+  if(n.blockedFor>=1.6){n.shoveFor=0.7;n.catchupFor=3.5;}
+ }else if(!blocked&&n.shoveFor<=0)n.blockedFor=0;
+ if(n.shoveFor>0){
+  n.shoveFor=Math.max(0,n.shoveFor-dt);
+  player.shoveShake=Math.max(player.shoveShake||0,n.shoveFor);
+ }
+ n.catchupFor=Math.max(0,n.catchupFor-dt);
+ const pushing=n.shoveFor>0||n.catchupFor>0;
+ if(blocked&&!pushing){n.walking=false;continue;}
+ const diffX=targetX-n.x,diffY=targetY-n.y,dist=Math.hypot(diffX,diffY);
+ const speed=pushing?210:95;
+ const step=Math.min(dist,speed*dt);
+ if(dist>0.1){n.x+=diffX/dist*step;n.y+=diffY/dist*step;}
+ n.walking=step>0.1;
+ if(n.walking)n.face=Math.abs(diffX)>=Math.abs(diffY)?(diffX>0?'right':'left'):(diffY>0?'down':'up');
  else if((i===0&&segment===6)||(i===1&&segment===6))n.face=i===0?'right':'left';
- if(Math.hypot(player.x-n.x,player.y-n.y)<38){
-   n.x=oldPositions[i].x;n.y=oldPositions[i].y;n.walking=false;
+ // After the warning shake, let the NPC pass through the player rather
+ // than becoming permanently stuck on the schedule.
+ if(n.shoveFor<=0&&n.catchupFor<=0&&Math.hypot(player.x-n.x,player.y-n.y)<25){
+  n.x=oldPositions[i].x;n.y=oldPositions[i].y;n.walking=false;
  }
 }
 
+player.shoveShake=Math.max(0,(player.shoveShake||0)-dt);
 let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)player.face=dy>0?'down':'up';
 if(districts.includes(scene)){let next=null;if(player.y<350&&player.x<=13)next=scene==='town'?'government':scene==='commercial'?'town':'commercial';else if(player.y<350&&player.x>=787)next=scene==='town'?'commercial':scene==='commercial'?'government':'town';if(next){const fromLeft=player.x<=13;scene=next;player.x=fromLeft?775:25;placeEl.textContent=districtNames[scene];keys.clear()}}
 if(scene==='town')for(const n of npcs){n.phase+=dt*.5;const nx=n.baseX+Math.sin(n.phase)*33,ny=244;if(!collide(nx,ny)){n.x=nx;n.y=ny}}
