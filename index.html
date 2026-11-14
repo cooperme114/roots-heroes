@@ -250,9 +250,9 @@ function drawCommercialBuilding(b){
  // Give City News a taller facade while keeping the cafe full-sized.
  const w=b.id==='books'?280:b.id==='newspaper'?305:b.id==='cafe'?200:315;
  const h=b.id==='books'?Math.round(img.naturalHeight*(w/img.naturalWidth)):
-         b.id==='newspaper'?225:b.id==='cafe'?195:225;
+         b.id==='newspaper'?225:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):225;
  ctx.save();ctx.imageSmoothingEnabled=false;
- ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='books'?728:232)-h,w,h);
+ ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='books'?728:232+(b.id==='cafe'||b.id==='market'?2:0))-h,w,h);
  ctx.restore();return true;
 }
 function skyColor(){
