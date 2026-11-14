@@ -378,15 +378,15 @@ for(let i=0;i<8;i++){
  hospitalItems.push({key:'hospitalchairs_leftface',x:610-col*27,y:438+row*30});
  hospitalItems.push({key:'hospitalchairs_back',x:234+(i%4)*31,y:538+Math.floor(i/4)*30});
 }
-for(let i=0;i<4;i++)hospitalItems.push({key:'hospitalchairs_front',x:465+i*31,y:548});
+// Removed the four extra chairs at the end of the patient hallway.
 function hospitalItemSize(item){
  const img=hospitalSprites[item.key];
  if(img&&img.naturalWidth){
   // All hospital props use compact in-game dimensions, not their source PNG sizes.
-  const target=item.kind==='bed'?{w:56,h:100}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:23,h:29}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
+  const target=item.kind==='bed'?{w:56,h:100}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:30,h:38}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
   return target;
  }
- return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?28:34,h:item.kind==='bed'?88:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?30:38};
+ return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?30:34,h:item.kind==='bed'?88:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?38:38};
 }
 function drawHospitalItem(item){
  const img=hospitalSprites[item.key],size=hospitalItemSize(item);
@@ -411,25 +411,25 @@ if(scene==='hospital'){
   rect(tx+1,ty+31,30,1,'#a8b5b8');
  }
  // Distinct vertical wall faces for hanging decorations later.
- function wall(x,y,w,h=46){
+ function wall(x,y,w,h=62){
   rect(x,y,w,h,'#344d5b');
   rect(x+2,y+5,w-4,Math.max(1,h-13),'#e2e5dc');
   rect(x+2,y+5,w-4,5,'#8da6ac');
   rect(x,y+h-5,w,5,'#486877');
  }
- wall(ox-12,oy-46,16*t+24,46);
+ wall(ox-12,oy-62,16*t+24,62);
  wall(ox-12,oy-16,12,entranceY-oy+32);
  wall(ox+16*t,oy-16,12,entranceY-oy+32);
  for(let i=1;i<4;i++)wall(ox+i*4*t-5,oy,10,7*t);
  for(let i=0;i<4;i++){
   const x=ox+i*4*t;
-  wall(x,roomBottom-44,38,46);
-  wall(x+90,roomBottom-44,38,46);
+  wall(x,roomBottom-60,38,62);
+  wall(x+90,roomBottom-60,38,62);
  }
  // Reception partition has a passage on either end.
- wall(ox+2*t,hallBottom-44,12*t,46);
- wall(ox-12,entranceY-44,7*t+12,46);
- wall(ox+9*t,entranceY-44,7*t+12,46);
+ wall(ox+2*t,hallBottom-60,12*t,62);
+ wall(ox-12,entranceY-60,7*t+12,62);
+ wall(ox+9*t,entranceY-60,7*t+12,62);
  rect(ox+7*t,entranceY-5,2*t,9,'#83c5db');
  // Sort hospital furniture and the player by their feet, so objects in
  // front obscure characters behind them, and vice versa.
@@ -456,6 +456,10 @@ if(scene==='hospital'){
  if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
+ // Foreground wall faces conceal furniture tucked behind them.
+ // Keep the open passages clear for the player.
+ wall(ox-12,entranceY-60,7*t+12,62);
+ wall(ox+9*t,entranceY-60,7*t+12,62);
  return;
 }
 if(scene==='home'){
