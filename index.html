@@ -608,8 +608,15 @@ if(scene==='hospital'){
    // Their front sprite is only a visual overlay, not a collision barrier.
    continue;
   }
-  const pad=7;
-  const top=item.key==='desk_hospital'?item.y-9:item.y+Math.min(12,h*.3);
+  if(item.key==='desk_hospital'){
+   // The desk is a front-facing counter: its upper surface is visual
+   // foreground, not a solid invisible barrier behind it. Only the
+   // lower cabinet/base blocks the player's feet.
+   if(x>=item.x+5&&x<=item.x+w-5&&
+      y>=item.y+h-18&&y<=item.y+h+3)return true;
+   continue;
+  }
+  const pad=5,top=item.y+Math.min(12,h*.3);
   if(x>=item.x-pad&&x<=item.x+w+pad&&y>=top&&y<=item.y+h+5)return true;
  }
  return false;
