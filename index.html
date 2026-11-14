@@ -291,16 +291,16 @@ if(scene==='commercial'){
  tileArea('sidewalk',0,712,W,32,'#c5c5c5');
  tileArea('sidewalk',0,808,W,32,'#c5c5c5');
  // Crosswalks beside both sidewalks: horizontal bars across the east-west street.
- for(let y=264;y<=304;y+=12){
+ for(let y=264;y<=312;y+=12){
   rect(326,y,20,7,'#f5f4ed');
   rect(454,y,20,7,'#f5f4ed');
   rect(326,y+488,20,7,'#f5f4ed');
   rect(454,y+488,20,7,'#f5f4ed');
  }
  // Cross the north-south road exactly between its tile-aligned curbs.
- for(let x=358;x<=438;x+=12){
-  rect(x,326,7,25,'#f5f4ed');
-  rect(x,718,7,25,'#f5f4ed');
+ for(let x=358;x<=442;x+=12){
+  rect(x,320,7,32,'#f5f4ed');
+  rect(x,712,7,32,'#f5f4ed');
  }
 }
 // Lower row: reuse the red house sprite, showing only its upper portion over the road.
