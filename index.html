@@ -289,10 +289,18 @@ if(scene==='commercial'){
  tileArea('asphalt',0,744,W,64,'#45474b');
  tileArea('sidewalk',0,712,W,32,'#c5c5c5');
  tileArea('sidewalk',0,808,W,32,'#c5c5c5');
- // White zebra crossings across the upper and lower streets.
- for(let x=366;x<440;x+=14){rect(x,264,8,48,'#eeeae1');rect(x,752,8,48,'#eeeae1');}
- // Crosswalk joining the green spaces across the southbound street.
- for(let y=514;y<594;y+=16)rect(366,y,68,9,'#eeeae1');
+ // Crosswalks beside both sidewalks: horizontal bars across the east-west street.
+ for(let y=264;y<=304;y+=12){
+  rect(334,y,20,7,'#f5f4ed');
+  rect(446,y,20,7,'#f5f4ed');
+  rect(334,y+488,20,7,'#f5f4ed');
+  rect(446,y+488,20,7,'#f5f4ed');
+ }
+ // Vertical white stripes crossing the southbound street at each intersection.
+ for(let x=366;x<=426;x+=12){
+  rect(x,326,7,25,'#f5f4ed');
+  rect(x,718,7,25,'#f5f4ed');
+ }
 }
 // Lower row: reuse the red house sprite, showing only its upper portion over the road.
 if(scene==='town'&&neighborHouseImage.complete&&neighborHouseImage.naturalWidth){const scale=Math.min(224/neighborHouseImage.naturalWidth,216/neighborHouseImage.naturalHeight),ww=Math.round(neighborHouseImage.naturalWidth*scale),hh=Math.round(neighborHouseImage.naturalHeight*scale);ctx.save();ctx.imageSmoothingEnabled=false;for(let x=-80;x<W+ww;x+=176)ctx.drawImage(neighborHouseImage,x,288,ww,hh);ctx.restore();}
