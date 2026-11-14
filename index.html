@@ -380,13 +380,17 @@ for(let i=0;i<8;i++){
 for(let i=0;i<4;i++)hospitalItems.push({key:'hospitalchairs_front',x:480+i*38,y:425});
 function hospitalItemSize(item){
  const img=hospitalSprites[item.key];
- if(img&&img.naturalWidth)return {w:img.naturalWidth,h:img.naturalHeight};
+ if(img&&img.naturalWidth){
+  // All hospital props use compact in-game dimensions, not their source PNG sizes.
+  const target=item.kind==='bed'?{w:56,h:100}:item.key==='desk_hospital'?{w:112,h:49}:item.key.startsWith('hospitalchairs')?{w:23,h:29}:item.key==='iv'?{w:23,h:45}:item.key==='monitor'?{w:30,h:32}:item.key==='clock_silver'?{w:24,h:24}:{w:32,h:36};
+  return target;
+ }
  return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?28:34,h:item.kind==='bed'?88:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?30:38};
 }
 function drawHospitalItem(item){
  const img=hospitalSprites[item.key],size=hospitalItemSize(item);
  if(img&&img.complete&&img.naturalWidth){
-  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y));ctx.restore();
+  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();
  }else{
   // Visible placeholder until its PNG is added.
   rect(item.x,item.y,size.w,size.h,item.kind==='bed'?'#a4c4d5':item.key==='desk_hospital'?'#9b7e64':'#6c95ad');
@@ -441,7 +445,7 @@ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),pla
 // The upper bed overlay is drawn above the character, like the bed at home.
 for(const item of hospitalItems)if(item.kind==='bed'){
  const img=hospitalSprites.bed_hospital_top;
- if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y));ctx.restore();}
+ if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),hospitalItemSize(item).w,hospitalItemSize(item).h);ctx.restore();}
 }
 return;
 }
