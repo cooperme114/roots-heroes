@@ -80,7 +80,17 @@ document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{aw
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 let wakeLocation='home';
 function sleepUntilTomorrow(reason='sleep'){const finishedDay=day;wakeLocation=reason==='outside'?'hospital':'home';document.getElementById('summaryDay').textContent=reason==='sleep'?'Day '+finishedDay+' Complete':reason==='outside'?'You Passed Out — Hospital':'You Passed Out — Home';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';document.getElementById('summaryMessage').textContent=reason==='outside'?'You were away from home at midnight. You wake up safely at the hospital.':reason==='home'?'You passed out at midnight, but you were safe at home.':'You got some rest and are ready for a new day.';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
-document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wakeLocation;lastDistrict=scene==='hospital'?'government':'town';player.x=scene==='hospital'?400:301;player.y=scene==='hospital'?560:345;player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
+document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wakeLocation;lastDistrict=scene==='hospital'?'government':'town';if(scene==='hospital'){
+ const recoveryBed=hospitalItems.find(item=>item.kind==='bed');
+ const bedSize=recoveryBed?hospitalItemSize(recoveryBed):{w:56,h:100};
+ // Wake tucked into the first hospital bed, just below the pillow.
+ // Follow the bed if it has been repositioned in the furniture editor.
+ player.x=recoveryBed?recoveryBed.x+bedSize.w/2:176;
+ player.y=recoveryBed?recoveryBed.y+54:142;
+}else{
+ player.x=301;player.y=345;
+}
+player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
 const kitchenItems=[{key:'kFridge',x:527,y:254},{key:'kCabinet',x:493,y:229},{key:'kCabinet',x:621,y:229},{key:'kCabinet',x:653,y:229},{key:'kSink',x:558,y:254},{key:'kCounter',x:493,y:254},{key:'kCounter',x:621,y:254},{key:'kCounter',x:653,y:254},{key:'kStove',x:591,y:254},{key:'kMicrowave',x:653,y:254}];
 const player={x:390,y:244,w:20,h:22,speed:135,face:'down',moving:false};
