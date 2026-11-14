@@ -509,7 +509,7 @@ if(scene==='hospital'){
  // The previous 30px cutoff made the wall clip the head as soon as the
  // player walked a little farther from its base.
  const nearWall=(x,y,w,bottom)=>player.x>=x-12&&player.x<=x+w+12&&
-   player.y>=bottom+2&&player.y<=bottom+90;
+   player.y>=bottom+22&&player.y<=bottom+90;
  const playerInFrontOfWall=
   Array.from({length:4},(_,i)=>{
    const x=ox+i*4*t;
