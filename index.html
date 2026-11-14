@@ -436,7 +436,7 @@ if(scene==='hospital'){
  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
  for(const item of hospitalItems)if(item.kind==='bed'){
   const img=hospitalSprites.bed_hospital_top;
-  if(img&&img.complete&&img.naturalWidth){const size=hospitalItemSize(item);ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
+  if(img&&img.complete&&img.naturalWidth){const size=hospitalItemSize(item);ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,size.h-36);ctx.restore();}
  }
  return;
 }
