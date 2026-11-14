@@ -339,7 +339,7 @@ const characters=npcActors.filter(n=>n.scene===scene).map(n=>({y:n.y,draw:()=>dr
 characters.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
 if(scene==='commercial'){
  const market=buildings.find(b=>b.id==='market');
- if(market)characters.push({y:535,draw:()=>drawCommercialBuilding(market)});
+ if(market)characters.push({y:450,draw:()=>drawCommercialBuilding(market)});
 }
 characters.sort((a,b)=>a.y-b.y);
 for(const character of characters)character.draw();
