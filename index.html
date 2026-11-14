@@ -366,23 +366,23 @@ for(const name of ['bed_hospital_bottom','bed_hospital_top','desk_hospital','hos
 const hospitalItems=[];
 for(let i=0;i<4;i++){
  const x=144+i*128+36;
- hospitalItems.push({key:'bed_hospital_bottom',x,y:96,kind:'bed',id:'bed'+i});
- hospitalItems.push({key:'iv',x:x+57,y:87});
- hospitalItems.push({key:'monitor',x:x-28,y:85});
+ hospitalItems.push({key:'bed_hospital_bottom',x:148+i*128,y:88,kind:'bed',id:'bed'+i});
+ hospitalItems.push({key:'iv',x:204+i*128,y:80});
+ hospitalItems.push({key:'monitor',x:238+i*128,y:98});
 }
-hospitalItems.push({key:'desk_hospital',x:344,y:420});
-hospitalItems.push({key:'clock_silver',x:388,y:390});
+hospitalItems.push({key:'desk_hospital',x:348,y:416});
+hospitalItems.push({key:'clock_silver',x:306,y:386});
 for(let i=0;i<8;i++){
  const row=i%4,col=Math.floor(i/4);
- hospitalItems.push({key:'hospitalchairs_rightface',x:167+col*27,y:438+row*30});
- hospitalItems.push({key:'hospitalchairs_leftface',x:610-col*27,y:438+row*30});
+ hospitalItems.push({key:'hospitalchairs_rightface',x:151+col*4,y:436+row*35});
+ hospitalItems.push({key:'hospitalchairs_leftface',x:622-col*4,y:436+row*35});
 
 }
 // Five backward-facing chairs on each side of the lobby entrance.
 // Their upper halves remain visible above the foreground wall.
 for(let i=0;i<10;i++){
  const side=i<5?0:1,col=i%5;
- hospitalItems.push({key:'hospitalchairs_back',x:(side===0?165:464)+col*33,y:485});
+ hospitalItems.push({key:'hospitalchairs_back',x:(side===0?202:458)+col*33,y:554});
 }
 // No front-facing chairs at the patient hallway ends.
 function hospitalItemSize(item){
@@ -446,13 +446,13 @@ if(scene==='hospital'){
  };
  const drawHospitalFoot=(item)=>{
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
-  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,size.h-36);ctx.restore();}
+  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
-  player.y>=item.y+30&&player.y<=item.y+hospitalItemSize(item).h+8);
+  player.y>=item.y+24&&player.y<=item.y+hospitalItemSize(item).h-4);
  const layers=hospitalItems.map(item=>({
-  y:item.y+hospitalItemSize(item).h,
+  y:item.kind==='bed'?item.y+32:item.y+hospitalItemSize(item).h,
   draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
  }));
  layers.push({y:player.y,draw:()=>{
