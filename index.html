@@ -358,6 +358,40 @@ for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom.png',bedTop:'
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 function inHouse(x,y){return (x>=115&&x<=390&&y>=270&&y<=467)||(x>=390&&x<=685&&y>=252&&y<=467)||(x>=115&&x<=390&&y>=106&&y<=270)}
 function bedAllowed(x,y){return x>=115&&x+bed.w<=390&&y>=55&&y+bed.h<=261}
+// Movable hospital furnishings; sprites load from assets/furniture when uploaded.
+const hospitalSprites={};
+for(const name of ['bed_hospital_bottom','bed_hospital_top','desk_hospital','hospitalchairs_back','hospitalchairs_front','hospitalchairs_leftface','hospitalchairs_rightface','iv','monitor']){
+ const img=new Image();img.src='assets/furniture/'+name+'.png';hospitalSprites[name]=img;
+}
+const hospitalItems=[];
+for(let i=0;i<4;i++){
+ const x=130+i*147;
+ hospitalItems.push({key:'bed_hospital_bottom',x,y:92,kind:'bed',id:'bed'+i});
+ hospitalItems.push({key:'iv',x:x+76,y:105});
+ hospitalItems.push({key:'monitor',x:x+91,y:82});
+}
+hospitalItems.push({key:'desk_hospital',x:345,y:332});
+for(let i=0;i<8;i++){
+ hospitalItems.push({key:'hospitalchairs_rightface',x:115,y:295+i*20});
+ hospitalItems.push({key:'hospitalchairs_leftface',x:660,y:295+i*20});
+ hospitalItems.push({key:'hospitalchairs_back',x:155+(i%4)*38,y:414+Math.floor(i/4)*25});
+}
+for(let i=0;i<4;i++)hospitalItems.push({key:'hospitalchairs_front',x:480+i*38,y:425});
+function hospitalItemSize(item){
+ const img=hospitalSprites[item.key];
+ if(img&&img.naturalWidth)return {w:img.naturalWidth,h:img.naturalHeight};
+ return {w:item.kind==='bed'?54:item.key==='desk_hospital'?110:item.key.startsWith('hospitalchairs')?28:34,h:item.kind==='bed'?88:item.key==='desk_hospital'?45:item.key.startsWith('hospitalchairs')?30:38};
+}
+function drawHospitalItem(item){
+ const img=hospitalSprites[item.key],size=hospitalItemSize(item);
+ if(img&&img.complete&&img.naturalWidth){
+  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y));ctx.restore();
+ }else{
+  // Visible placeholder until its PNG is added.
+  rect(item.x,item.y,size.w,size.h,item.kind==='bed'?'#a4c4d5':item.key==='desk_hospital'?'#9b7e64':'#6c95ad');
+  ctx.save();ctx.strokeStyle='#415d6c';ctx.strokeRect(item.x,item.y,size.w,size.h);ctx.restore();
+ }
+}
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='hospital'){
@@ -371,24 +405,24 @@ tileArea('tile',107,58,586,412,'#dce8e6');
 const roomXs=[107,254,401,548];
 for(let i=0;i<4;i++){
  const x=roomXs[i];
- rect(x,58,145,160,i%2?'#d7e7e8':'#e2eeec');
+ rect(x,58,145,190,i%2?'#d7e7e8':'#e2eeec');
  rect(x,58,145,8,'#71959e');
- if(i>0){rect(x-5,58,8,160,'#607e86');rect(x-3,65,3,153,'#9bb5b9');}
+ if(i>0){rect(x-5,58,8,190,'#607e86');rect(x-3,65,3,183,'#9bb5b9');}
  // Door opening at the southern end of each patient room.
- rect(x,214,46,8,'#607e86');
- rect(x+91,214,54,8,'#607e86');
- rect(x+46,214,45,8,'#dce8e6');
- rect(x+46,214,45,2,'#a4c1c4');
+ rect(x,244,46,8,'#607e86');
+ rect(x+91,244,54,8,'#607e86');
+ rect(x+46,244,45,8,'#dce8e6');
+ rect(x+46,244,45,2,'#a4c1c4');
 }
 // The divider separates patient wing from lobby, with passages at both ends.
-rect(171,246,458,12,'#55737d');
-rect(171,246,458,3,'#9cb5bb');
+rect(171,288,458,12,'#55737d');
+rect(171,288,458,3,'#9cb5bb');
 // Subtle floor zoning for the waiting area; furniture comes later.
 rect(112,300,136,120,'#cbdcdb');
 rect(552,300,136,120,'#cbdcdb');
 // Reception location, marked with a floor inset until its desk sprite is made.
-rect(345,289,110,43,'#b7d0d0');
-rect(349,293,102,35,'#d9e7e3');
+rect(345,332,110,43,'#b7d0d0');
+rect(349,336,102,35,'#d9e7e3');
 // Exterior walls and centered entrance.
 rect(95,46,610,12,'#506d78');
 rect(95,46,12,436,'#506d78');
@@ -396,7 +430,19 @@ rect(693,46,12,436,'#506d78');
 rect(95,470,271,12,'#506d78');
 rect(434,470,271,12,'#506d78');
 rect(366,470,68,12,'#79b8d0');
-window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);return;
+for(const item of hospitalItems)if(item.kind!=='bed')drawHospitalItem(item);
+for(const item of hospitalItems)if(item.kind==='bed'){
+ const top=hospitalSprites.bed_hospital_top,bottom=hospitalSprites.bed_hospital_bottom;
+ if(bottom&&bottom.complete&&bottom.naturalWidth)drawHospitalItem(item);
+ else drawHospitalItem(item);
+}
+window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+// The upper bed overlay is drawn above the character, like the bed at home.
+for(const item of hospitalItems)if(item.kind==='bed'){
+ const img=hospitalSprites.bed_hospital_top;
+ if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y));ctx.restore();}
+}
+return;
 }
 if(scene==='home'){
 rect(0,0,W,H,'#090b10');
@@ -487,10 +533,10 @@ return false;
 if(scene==='hospital'){
  // Match the hospital floor plan: full lobby, four rooms, and two side passages.
  if(x<119||x>681||y<76||y>467)return true;
- if(y>=241&&y<=267&&x>=171&&x<=629)return true;
+ if(y>=283&&y<=309&&x>=171&&x<=629)return true;
  // Patient-room partition walls, except for their southern door openings.
- if(y<214&&[254,401,548].some(w=>Math.abs(x-w)<9))return true;
- if(y>=214&&y<=226&&roomDoorBlocked(x))return true;
+ if(y<244&&[254,401,548].some(w=>Math.abs(x-w)<9))return true;
+ if(y>=244&&y<=256&&roomDoorBlocked(x))return true;
  return false;
 }
 if(!districts.includes(scene)){
@@ -549,7 +595,18 @@ function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'
 function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
 function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=445;placeEl.textContent=interiors[scene].name}else if(a.kind==='exit'){scene=lastDistrict;const b=buildings.find(b=>b.id===Object.keys(interiors).find(k=>interiors[k].name===placeEl.textContent));player.x=b?b.doorX:390;player.y=b?b.y+b.h+37:345;placeEl.textContent=districtNames[scene]}}
 window.addEventListener('keydown',e=>{if(gamePaused){if(['arrowup','arrowdown','arrowleft','arrowright',' ','e'].includes(e.key.toLowerCase()))e.preventDefault();return;}const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-canvas.addEventListener('pointerdown',e=>{if(gamePaused||scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+img.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+img.naturalHeight*2){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
+canvas.addEventListener('pointerdown',e=>{if(scene==='hospital'&&!gamePaused&&!summaryOpen&&!dialogOpen){
+ const p=bedPointer(e);
+ for(let i=hospitalItems.length-1;i>=0;i--){
+  const item=hospitalItems[i],size=hospitalItemSize(item);
+  if(p.x>=item.x&&p.x<=item.x+size.w&&p.y>=item.y&&p.y<=item.y+size.h){
+   bedDrag={id:e.pointerId,item,offsetX:p.x-item.x,offsetY:p.y-item.y,hospital:true};
+   canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault();return;
+  }
+ }
+ return;
+}
+if(gamePaused||scene!=='home'||summaryOpen||dialogOpen||savePanel.style.display==='flex'||document.getElementById('characterCreator').style.display!=='none')return;const p=bedPointer(e);let target=null;for(let i=kitchenItems.length-1;i>=0;i--){const it=kitchenItems[i],img=furnitureImages[it.key];if(img&&img.naturalWidth&&p.x>=it.x&&p.x<=it.x+img.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+img.naturalHeight*2){target=it;break}}if(!target){if(p.x<bed.x||p.x>bed.x+bed.w||p.y<bed.y||p.y>bed.y+bed.h)return;target=bed;}bedDrag={id:e.pointerId,item:target,offsetX:p.x-target.x,offsetY:p.y-target.y};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';keys.clear();e.preventDefault()});
 // Furniture may be placed anywhere in the L-shaped house, regardless of its type.
 function furnitureBounds(item){
 const img=item===bed?null:furnitureImages[item.key];
@@ -564,8 +621,12 @@ const left=Math.max(115,Math.min(685-w,x));
 const upper=left+w<=390?55:195;
 return {x:left,y:Math.max(upper,Math.min(480-h,y))};
 }
-canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const pos=clampFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY));bedDrag.item.x=pos.x;bedDrag.item.y=pos.y;return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+im.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+im.naturalHeight*2}))?'grab':'default'});
-function endBedDrag(e){if(bedDrag&&e.pointerId===bedDrag.id){const item=bedDrag.item,step=16;const snapped=clampFurniture(item,115+Math.round((item.x-115)/step)*step,55+Math.round((item.y-55)/step)*step);item.x=snapped.x;item.y=snapped.y;bedDrag=null;canvas.style.cursor='default'}}
+canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const pos=bedDrag.hospital?clampHospitalFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY)):clampFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY));bedDrag.item.x=pos.x;bedDrag.item.y=pos.y;return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+im.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+im.naturalHeight*2}))?'grab':'default'});
+function clampHospitalFurniture(item,x,y){
+ const {w,h}=hospitalItemSize(item);
+ return {x:Math.max(110,Math.min(690-w,x)),y:Math.max(62,Math.min(466-h,y))};
+}
+function endBedDrag(e){if(bedDrag&&e.pointerId===bedDrag.id){const item=bedDrag.item,step=16;const snapped=bedDrag.hospital?clampHospitalFurniture(item,item.x,item.y):clampFurniture(item,115+Math.round((item.x-115)/step)*step,55+Math.round((item.y-55)/step)*step);item.x=snapped.x;item.y=snapped.y;bedDrag=null;canvas.style.cursor='default'}}
 canvas.addEventListener('pointerup',endBedDrag);canvas.addEventListener('pointercancel',endBedDrag);
 canvas.addEventListener('click',()=>canvas.focus());document.getElementById('editCharacter').addEventListener('click',()=>window.RootsCharacter.open());
 function updateClock(){const minutes=8*60+Math.floor(elapsed),m=minutes%60,h=Math.floor(minutes/60)%24;clockEl.textContent=(h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');const lateNight=(h>=22||h<8);clockEl.classList.toggle('lateWarning',lateNight);day=1+Math.floor(minutes/1440);document.getElementById('day').textContent='Day '+day+' · '+['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][(day-1)%7]}
