@@ -246,7 +246,8 @@ for(const [id,filename] of Object.entries({cafe:'cafe.png',newspaper:'newspaper.
 function drawCommercialBuilding(b){
  const img=commercialBuildingImages[b.id];
  if(!img||!img.complete||!img.naturalWidth)return false;
- const scale=Math.min((b.w-4)/img.naturalWidth,220/img.naturalHeight);
+ const targetWidth=(b.id==='newspaper'||b.id==='market')?236:214;
+ const scale=Math.min(targetWidth/img.naturalWidth,310/img.naturalHeight);
  const w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),232-h,w,h);
@@ -263,7 +264,7 @@ function skyColor(){
 function drawTown(){
 rect(0,0,W,H,'#747779');
 // The sky is visible above and between the upper buildings, changing from 5 PM to 7 PM.
-if(scene==='town'||scene==='government'){rect(0,0,W,224,skyColor());
+if(scene==='town'||scene==='government'||scene==='commercial'){rect(0,0,W,224,skyColor());
 // Gray masonry boundary behind the houses: sky remains visible above it.
 rect(0,181,W,43,'#777b80');rect(0,181,W,4,'#a0a4a7');
 for(let x=0;x<W;x+=32){rect(x,203,1,20,'#62676d');rect(x+16,185,1,18,'#62676d');}rect(0,202,W,1,'#646a70');}
