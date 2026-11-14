@@ -464,6 +464,17 @@ if(scene==='hospital'){
  if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
+ // The reception desk is foreground furniture. When the player's sprite
+ // overlaps it from above, keep the desk in front of the character.
+ const receptionDesk=hospitalItems.find(item=>item.key==='desk_hospital');
+ if(receptionDesk){
+  const size=hospitalItemSize(receptionDesk);
+  const playerOverDesk=player.x>=receptionDesk.x-12&&
+   player.x<=receptionDesk.x+size.w+12&&
+   player.y>=receptionDesk.y-30&&
+   player.y<receptionDesk.y+size.h-4;
+  if(playerOverDesk)drawHospitalItem(receptionDesk);
+ }
  // Foreground wall faces are a separate final layer, drawn after furniture.
  // Repaint every room-front wall as well as the reception and entrance walls
  // so chairs and other props cannot appear pasted over the wall surface.
