@@ -483,8 +483,11 @@ if(scene==='hospital'){
  // Wall faces hide furniture, but never hide a player standing on the
  // near side of a wall. Repaint the player only at those wall boundaries;
  // elsewhere normal furniture/player depth sorting remains in effect.
+ // Use the character's FEET to decide which side of the wall they're on.
+ // The previous 30px cutoff made the wall clip the head as soon as the
+ // player walked a little farther from its base.
  const nearWall=(x,y,w,bottom)=>player.x>=x-12&&player.x<=x+w+12&&
-   player.y>=bottom-12&&player.y<=bottom+30;
+   player.y>=bottom+2&&player.y<=bottom+90;
  const playerInFrontOfWall=
   Array.from({length:4},(_,i)=>{
    const x=ox+i*4*t;
@@ -494,8 +497,13 @@ if(scene==='hospital'){
   nearWall(ox+2*t,hallBottom-60,12*t,hallBottom+2)||
   nearWall(ox-12,entranceY-60,7*t+12,entranceY+2)||
   nearWall(ox+9*t,entranceY-60,7*t+12,entranceY+2);
- if(playerInFrontOfWall)
+ if(playerInFrontOfWall){
   window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+  // Keep the reception counter in front if the player is behind its top.
+  const desk=hospitalItems.find(item=>item.key==='desk_hospital');
+  if(desk&&player.x>=desk.x-8&&player.x<=desk.x+hospitalItemSize(desk).w+8&&
+     player.y<desk.y+hospitalItemSize(desk).h-7)drawHospitalItem(desk);
+ }
  return;
 }
 if(scene==='home'){
