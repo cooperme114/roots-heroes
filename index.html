@@ -374,17 +374,17 @@ for(let i=0;i<4;i++){
 }
 hospitalItems.push({key:'desk_hospital',x:348,y:416});
 hospitalItems.push({key:'clock_silver',x:306,y:344});
-for(let i=0;i<8;i++){
- const row=i%4,col=Math.floor(i/4);
- hospitalItems.push({key:'hospitalchairs_rightface',x:151+col*4,y:436+row*35});
- hospitalItems.push({key:'hospitalchairs_leftface',x:622-col*4,y:436+row*35});
+for(let i=0;i<4;i++){
+ const row=i;
+ hospitalItems.push({key:'hospitalchairs_rightface',x:151,y:436+row*35});
+ hospitalItems.push({key:'hospitalchairs_leftface',x:622,y:436+row*35});
 
 }
 // Five backward-facing chairs on each side of the lobby entrance.
 // Their upper halves remain visible above the foreground wall.
 for(let i=0;i<10;i++){
  const side=i<5?0:1,col=i%5;
- hospitalItems.push({key:'hospitalchairs_back',x:(side===0?202:458)+col*33,y:554});
+ hospitalItems.push({key:'hospitalchairs_back',x:(side===0?202:458)+col*33,y:500});
 }
 // No front-facing chairs at the patient hallway ends.
 function hospitalItemSize(item){
@@ -436,7 +436,7 @@ if(scene==='hospital'){
  }
  // Reception partition has a passage on either end.
  wall(ox+2*t,hallBottom-60,12*t,62);
- // Wall-mounted clock is drawn on top of the reception wall, not on the floor.
+ // Draw wall-mounted clock AFTER the final wall layer so it stays visible.
  for(const item of hospitalItems)if(item.key==='clock_silver')drawHospitalItem(item);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
