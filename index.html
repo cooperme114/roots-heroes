@@ -248,9 +248,9 @@ function drawCommercialBuilding(b){
  if(!img||!img.complete||!img.naturalWidth)return false;
  // Keep storefront foundations on the same sidewalk baseline.
  // Give City News a taller facade while keeping the cafe full-sized.
- const w=b.id==='books'?322:b.id==='newspaper'?305:b.id==='cafe'?270:b.id==='market'?374:315;
+ const w=b.id==='books'?322:b.id==='newspaper'?320:b.id==='cafe'?270:b.id==='market'?374:315;
  const h=b.id==='books'?Math.round(img.naturalHeight*(w/img.naturalWidth)):
-         b.id==='newspaper'?225:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):b.id==='market'?267:225;
+         b.id==='newspaper'?236:b.id==='cafe'?Math.round(img.naturalHeight*(w/img.naturalWidth)):b.id==='market'?267:225;
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(img,Math.round(b.x+(b.w-w)/2),(b.id==='market'?530:b.id==='books'?233:233+(b.id==='cafe'?5:0))-h,w,h);
  ctx.restore();return true;
