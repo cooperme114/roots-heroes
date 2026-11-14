@@ -88,7 +88,9 @@ document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wak
  player.x=recoveryBed?recoveryBed.x+bedSize.w/2:176;
  player.y=recoveryBed?recoveryBed.y+54:142;
 }else{
- player.x=301;player.y=345;
+ // Wake tucked into the player's own bed, including if it was moved.
+ player.x=bed.x+bed.w/2;
+ player.y=bed.y+54;
 }
 player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
