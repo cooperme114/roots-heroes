@@ -582,6 +582,13 @@ document.getElementById('openDossiers').onclick=()=>{dossierSection.hidden=false
 document.getElementById('openMissions').onclick=()=>{dossierSection.hidden=true;missionsSection.hidden=false;document.getElementById('openDossiers').classList.remove('active');document.getElementById('openMissions').classList.add('active')};
 
 const dossierPages={NPCs:0,Heroes:0,Villains:0};
+// Report where an NPC is actually spawned, rather than their workplace.
+function npcCurrentLocation(id){
+ if(id==='finn')return 'Hero Headquarters';
+ const actor=npcActors.find(n=>n.id===id);
+ if(!actor)return 'Unknown';
+ return districtNames[actor.scene]||interiors[actor.scene]?.name||'Unknown';
+}
 function dossierSprite(id){
  const frame=npcFrames[id]?.[0];if(!frame||frame.right<=frame.left)return '';
  const c=document.createElement('canvas');c.width=frame.right-frame.left+1;c.height=frame.bottom-frame.top+1;
@@ -590,9 +597,9 @@ function dossierSprite(id){
 }
 function renderDossier(category){
  const profiles=[
- {category:'Heroes',known:true,title:'WILDFIRE',sprite:'wildfire',heroName:'Wildfire',realName:'Finn Buckley',abilities:'Fire powers',location:'Hero Headquarters',status:'Not recruited',hearts:1},
- {category:'Heroes',known:true,title:'STARSHINE',sprite:'starshine',heroName:'Starshine',realName:knowsDanielle?'Danielle Miller':'Unknown',abilities:'Not yet documented',location:'Government District',status:'Not recruited',hearts:0},
- {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',sprite:revealedXimenaIdentity?'sombra':'ximena',heroName:revealedXimenaIdentity?'Sombra':'Unknown',realName:'Ximena Hernández',abilities:revealedXimenaIdentity?'Shadow energy':'Unknown',location:'Newspaper office',status:revealedXimenaIdentity?'Villain':'Civilian journalist',hearts:0}
+ {category:'Heroes',known:true,title:'WILDFIRE',sprite:'wildfire',heroName:'Wildfire',realName:'Finn Buckley',abilities:'Fire powers',location:npcCurrentLocation('finn'),status:'Not recruited',hearts:1},
+ {category:'Heroes',known:true,title:'STARSHINE',sprite:'starshine',heroName:'Starshine',realName:knowsDanielle?'Danielle Miller':'Unknown',abilities:'Not yet documented',location:npcCurrentLocation('danielle'),status:'Not recruited',hearts:0},
+ {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',sprite:revealedXimenaIdentity?'sombra':'ximena',heroName:revealedXimenaIdentity?'Sombra':'Unknown',realName:'Ximena Hernández',abilities:revealedXimenaIdentity?'Shadow energy':'Unknown',location:npcCurrentLocation('ximena'),status:revealedXimenaIdentity?'Villain':'Civilian journalist',hearts:0}
  ];
  const entries=profiles.filter(p=>p.known&&p.category===category);
  document.getElementById('dossierTitle').textContent=category+' Dossiers';
