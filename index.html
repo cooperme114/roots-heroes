@@ -422,23 +422,23 @@ function drawHospitalItem(item){
  }
 }
 // One source of truth for the hospital's visible wall faces and collision.
+// All interiors use a two-tile (64px) wall face; finer trim uses 8px steps.
+const INTERIOR_WALL_HEIGHT=2*T;
 const hospitalLayout=(()=>{
  const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
  const frontWalls=[];
  for(let i=0;i<4;i++){
   const x=ox+i*4*t;
-  frontWalls.push({x,y:roomBottom-60,w:38,h:62});
-  frontWalls.push({x:x+90,y:roomBottom-60,w:38,h:62});
+  frontWalls.push({x,y:roomBottom-INTERIOR_WALL_HEIGHT+2,w:38,h:INTERIOR_WALL_HEIGHT});
+  frontWalls.push({x:x+90,y:roomBottom-INTERIOR_WALL_HEIGHT+2,w:38,h:INTERIOR_WALL_HEIGHT});
  }
- frontWalls.push({x:ox+2*t,y:hallBottom-60,w:12*t,h:62});
- frontWalls.push({x:ox-12,y:entranceY-60,w:7*t+12,h:62});
- frontWalls.push({x:ox+9*t,y:entranceY-60,w:7*t+12,h:62});
+ frontWalls.push({x:ox+2*t,y:hallBottom-INTERIOR_WALL_HEIGHT+2,w:12*t,h:INTERIOR_WALL_HEIGHT});
+ frontWalls.push({x:ox-12,y:entranceY-INTERIOR_WALL_HEIGHT+2,w:7*t+12,h:INTERIOR_WALL_HEIGHT});
+ frontWalls.push({x:ox+9*t,y:entranceY-INTERIOR_WALL_HEIGHT+2,w:7*t+12,h:INTERIOR_WALL_HEIGHT});
  const sideWalls=[{x:ox-12,y:oy-16,w:12,h:entranceY-oy+18},{x:ox+16*t,y:oy-16,w:12,h:entranceY-oy+18}];
  for(let i=1;i<4;i++)sideWalls.push({x:ox+i*4*t-5,y:oy,w:10,h:7*t});
  return {ox,oy,t,roomBottom,hallBottom,entranceY,frontWalls,sideWalls};
 })();
-// Consistent visible wall height across all interiors.
-const INTERIOR_WALL_HEIGHT=64;
 function drawInterior(){
 const info=interiors[scene];
 if(scene==='hospital'){
@@ -537,11 +537,13 @@ rect(218,207,3,54,trim);rect(300,207,3,54,trim);
 rect(390,201,295,INTERIOR_WALL_HEIGHT,wall);rect(390,207,295,6,trim);rect(390,207,295,2,light);rect(390,261,295,5,trim);rect(390,261,295,2,light);
 // Outer wall trim, following the L shape.
 rect(103,38,299,12,trim);rect(103,38,12,442,trim);
-rect(390,38,12,156,trim);rect(390,195,307,12,trim);
+rect(390,38,12,157,trim);
 rect(685,195,12,285,trim);
 rect(103,467,167,13,trim);rect(333,467,364,13,trim);
 // The doorway is cut through the underlying outer-wall layer, not just the trim.
 rect(270,467,63,13,'#090b10');
+// Draw the kitchen's top cap last so it joins the bedroom corner cleanly.
+rect(390,195,307,12,trim);
 rect(103,38,299,3,light);rect(390,195,307,3,light);
 rect(112,50,3,417,light);rect(682,194,3,273,light);
 // A kitchen remodel is a single unit. Future styles reuse this footprint.
@@ -550,7 +552,6 @@ for(const item of kitchenItems)furniture(item.key,item.x,item.y,item.w,item.h);
 const boxesInFront=player.y<movingBoxes.y+movingBoxes.h-5;
 if(!boxesInFront)furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedBottom',bed.x,bed.y,bed.w,bed.h);
-// The exit is an architectural doorway, not a floor mat.
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 if(boxesInFront)furniture('movingBoxes',movingBoxes.x,movingBoxes.y,movingBoxes.w,movingBoxes.h);
 furniture('bedTop',bed.x,bed.y+36,bed.w,49);
@@ -582,10 +583,6 @@ rect(305,75,190,62,'#5b6264');text(info.name,400,113,19);
 furniture('doorRug',369,439,63,47);
 if(scene==='hq')drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
-}
-function roomDoorBlocked(x){
- // Patient-room south walls have a 45px opening in each room.
- return [107,254,401,548].some(left=>x>=left&&x<left+145&&!(x>=left+46&&x<=left+91));
 }
 function collide(x,y){
 if(scene==='home'){
