@@ -376,9 +376,15 @@ for(let i=0;i<8;i++){
  const row=i%4,col=Math.floor(i/4);
  hospitalItems.push({key:'hospitalchairs_rightface',x:167+col*27,y:438+row*30});
  hospitalItems.push({key:'hospitalchairs_leftface',x:610-col*27,y:438+row*30});
- hospitalItems.push({key:'hospitalchairs_back',x:234+(i%4)*31,y:538+Math.floor(i/4)*30});
+
 }
-// Removed the four extra chairs at the end of the patient hallway.
+// Five backward-facing chairs on each side of the lobby entrance.
+// Their upper halves remain visible above the foreground wall.
+for(let i=0;i<10;i++){
+ const side=i<5?0:1,col=i%5;
+ hospitalItems.push({key:'hospitalchairs_back',x:(side===0?165:464)+col*33,y:485});
+}
+// No front-facing chairs at the patient hallway ends.
 function hospitalItemSize(item){
  const img=hospitalSprites[item.key];
  if(img&&img.naturalWidth){
@@ -456,8 +462,15 @@ if(scene==='hospital'){
  if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
- // Foreground wall faces conceal furniture tucked behind them.
- // Keep the open passages clear for the player.
+ // Foreground wall faces are a separate final layer, drawn after furniture.
+ // Repaint every room-front wall as well as the reception and entrance walls
+ // so chairs and other props cannot appear pasted over the wall surface.
+ for(let i=0;i<4;i++){
+  const x=ox+i*4*t;
+  wall(x,roomBottom-60,38,62);
+  wall(x+90,roomBottom-60,38,62);
+ }
+ wall(ox+2*t,hallBottom-60,12*t,62);
  wall(ox-12,entranceY-60,7*t+12,62);
  wall(ox+9*t,entranceY-60,7*t+12,62);
  return;
