@@ -627,7 +627,12 @@ return {x:left,y:Math.max(upper,Math.min(480-h,y))};
 canvas.addEventListener('pointermove',e=>{const p=bedPointer(e);if(bedDrag&&e.pointerId===bedDrag.id){const pos=bedDrag.hospital?clampHospitalFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY)):clampFurniture(bedDrag.item,Math.round(p.x-bedDrag.offsetX),Math.round(p.y-bedDrag.offsetY));bedDrag.item.x=pos.x;bedDrag.item.y=pos.y;return}canvas.style.cursor=scene==='home'&&((p.x>=bed.x&&p.x<=bed.x+bed.w&&p.y>=bed.y&&p.y<=bed.y+bed.h)||kitchenItems.some(it=>{const im=furnitureImages[it.key];return im&&im.naturalWidth&&p.x>=it.x&&p.x<=it.x+im.naturalWidth*2&&p.y>=it.y&&p.y<=it.y+im.naturalHeight*2}))?'grab':'default'});
 function clampHospitalFurniture(item,x,y){
  const {w,h}=hospitalItemSize(item);
- return {x:Math.max(145,Math.min(655-w,x)),y:Math.max(66,Math.min(565-h,y))};
+ // Snap to an 8px sub-grid of the 32px hospital floor tiles.
+ // Clamp after snapping so pieces can still sit flush against walls.
+ const grid=8,originX=144,originY=66;
+ const snap=(v,origin)=>origin+Math.round((v-origin)/grid)*grid;
+ return {x:Math.max(144,Math.min(656-w,snap(x,originX))),
+         y:Math.max(66,Math.min(578-h,snap(y,originY)))};
 }
 function endBedDrag(e){if(bedDrag&&e.pointerId===bedDrag.id){const item=bedDrag.item,step=16;const snapped=bedDrag.hospital?clampHospitalFurniture(item,item.x,item.y):clampFurniture(item,115+Math.round((item.x-115)/step)*step,55+Math.round((item.y-55)/step)*step);item.x=snapped.x;item.y=snapped.y;bedDrag=null;canvas.style.cursor='default'}}
 canvas.addEventListener('pointerup',endBedDrag);canvas.addEventListener('pointercancel',endBedDrag);
