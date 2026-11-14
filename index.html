@@ -332,11 +332,15 @@ if(scene==='town'){
  rect(0,207,W,3,'#151d25');
  ctx.restore();
 }
-for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='government'&&drawGovernmentBuilding(b))continue;if(b.district==='commercial'&&drawCommercialBuilding(b))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
+for(const b of districtBuildings()){if(b.id==='home'&&drawPlayerHouse(b))continue;if(b.district==='government'&&drawGovernmentBuilding(b))continue;if(b.district==='commercial'&&(b.id==='market'||drawCommercialBuilding(b)))continue;if(b.district==='town'&&b.id.startsWith('neighbor')&&drawNeighborHouse(b))continue;rect(b.x-6,b.y+12,b.w+12,b.h,'#4d755b');rect(b.x,b.y+15,b.w,b.h-15,b.color);rect(b.x-10,b.y,b.w+20,30,b.district==='government'?'#354f76':b.district==='town'?'#9e5b51':'#775779');rect(b.x+20,b.y+53,35,31,'#e5d9a5');rect(b.x+b.w-55,b.y+53,35,31,'#e5d9a5');rect(b.doorX-16,b.y+b.h-40,32,40,'#5a493f');rect(b.doorX-4,b.y+b.h-23,4,4,'#f8d28a');text(b.name,b.x+b.w/2,b.y+48,13,'#fff4d8')}
 if(scene==='town')for(const n of npcs){person(n.x,n.y,n.color,n.shirt,true);text(n.name,n.x,n.y-28,11)}
 // Render characters by foot position: characters farther down cover those behind them.
 const characters=npcActors.filter(n=>n.scene===scene).map(n=>({y:n.y,draw:()=>drawNpcSheet(n.id,n.x,n.y,n.face,n.walking,elapsed)}));
 characters.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
+if(scene==='commercial'){
+ const market=buildings.find(b=>b.id==='market');
+ if(market)characters.push({y:535,draw:()=>drawCommercialBuilding(market)});
+}
 characters.sort((a,b)=>a.y-b.y);
 for(const character of characters)character.draw();
 if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
