@@ -448,13 +448,13 @@ if(scene==='hospital'){
  };
  const drawHospitalFoot=(item)=>{
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
-  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.beginPath();ctx.rect(Math.round(item.x),Math.round(item.y+size.h-32),size.w,32);ctx.clip();ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
+  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
-  player.y>=item.y+24&&player.y<=item.y+hospitalItemSize(item).h-4);
+  player.y>=item.y+18&&player.y<=item.y+hospitalItemSize(item).h+3);
  const layers=hospitalItems.filter(item=>item.key!=='clock_silver').map(item=>({
-  y:item.kind==='bed'?item.y+32:item.y+hospitalItemSize(item).h,
+  y:item.kind==='bed'?item.y+32:item.key==='desk_hospital'?item.y+hospitalItemSize(item).h-7:item.y+hospitalItemSize(item).h,
   draw:()=>item.kind==='bed'?drawHospitalBed(item):drawHospitalItem(item)
  }));
  layers.push({y:player.y,draw:()=>{
@@ -464,17 +464,7 @@ if(scene==='hospital'){
  if(overlappingBed)layers.push({y:player.y+0.1,draw:()=>drawHospitalFoot(overlappingBed)});
  layers.sort((a,b)=>a.y-b.y);
  for(const layer of layers)layer.draw();
- // The reception desk is foreground furniture. When the player's sprite
- // overlaps it from above, keep the desk in front of the character.
- const receptionDesk=hospitalItems.find(item=>item.key==='desk_hospital');
- if(receptionDesk){
-  const size=hospitalItemSize(receptionDesk);
-  const playerOverDesk=player.x>=receptionDesk.x-12&&
-   player.x<=receptionDesk.x+size.w+12&&
-   player.y>=receptionDesk.y-30&&
-   player.y<receptionDesk.y+size.h-4;
-  if(playerOverDesk)drawHospitalItem(receptionDesk);
- }
+
  // Foreground wall faces are a separate final layer, drawn after furniture.
  // Repaint every room-front wall as well as the reception and entrance walls
  // so chairs and other props cannot appear pasted over the wall surface.
@@ -617,7 +607,7 @@ if(scene==='hospital'){
    continue;
   }
   const pad=7;
-  const top=item.key==='desk_hospital'?item.y+14:item.y+Math.min(12,h*.3);
+  const top=item.key==='desk_hospital'?item.y-9:item.y+Math.min(12,h*.3);
   if(x>=item.x-pad&&x<=item.x+w+pad&&y>=top&&y<=item.y+h+5)return true;
  }
  return false;
