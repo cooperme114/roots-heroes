@@ -448,7 +448,9 @@ if(scene==='hospital'){
  };
  const drawHospitalFoot=(item)=>{
   const img=hospitalSprites.bed_hospital_bottom,size=hospitalItemSize(item);
-  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,Math.round(item.x),Math.round(item.y),size.w,size.h);ctx.restore();}
+  if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;// Match the house bed: the front piece is a short, separately placed sprite,
+   // not a second full-height bed stretched across the first one.
+   ctx.drawImage(img,Math.round(item.x),Math.round(item.y+36),size.w,49);ctx.restore();}
  };
  const overlappingBed=hospitalItems.find(item=>item.kind==='bed'&&
   player.x>=item.x-5&&player.x<=item.x+hospitalItemSize(item).w+5&&
