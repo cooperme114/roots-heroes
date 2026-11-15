@@ -585,7 +585,15 @@ if(scene==='hq'){
  // One continuous floor throughout the headquarters; room names are not drawn.
  tileArea('futuristic',64,72,1024,896,'#879ca6');
  const drawWall=seg=>{
-  if(seg.axis==='v'){rect(seg.x,seg.y,8,seg.h,'#344d5b');rect(seg.x+2,seg.y,4,seg.h,'#aabdc6');return;}
+  if(seg.axis==='v'){
+   // Vertical partitions need a visible wall body, not a thin outline.
+   // Center the 24px-wide face on the same collision line.
+   rect(seg.x-8,seg.y,24,seg.h,'#344d5b');
+   rect(seg.x-5,seg.y+2,18,Math.max(1,seg.h-4),'#dce4e3');
+   rect(seg.x-8,seg.y,4,seg.h,'#65818e');
+   rect(seg.x+12,seg.y,4,seg.h,'#486877');
+   return;
+  }
   // HQ partitions are low-profile walls, like the original drawn floor plan.
   // Tall 64px faces previously obscured the player and looked like solid blocks.
   rect(seg.x,seg.y-12,seg.w,20,'#344d5b');
