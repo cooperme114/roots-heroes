@@ -557,26 +557,28 @@ const hospitalLayout=(()=>{
 // Horizontal walls use the hospital's 64px front faces; vertical walls are
 // hospital-style narrow side returns. These are collision footprints, not art.
 const hqLayout=(()=>{
+ // Shared wall axes: every separated section of a hallway uses the same x.
+ const AX={leftWing:256,missionLeft:384,missionRight:768,rightWing:896};
  const walls=[],h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'}),v=(x,y1,y2)=>walls.push({x,y:y1,w:32,h:y2-y1,axis:'v'});
  // Perimeter: bottom-center exterior entrance is the only outside gap.
  h(64,1088,64);v(64,64,968);v(1078,64,968);
  h(64,544,968);h(608,1088,968);
  // Left wing: Med Bay and Research Lab each have one east-facing doorway.
- v(264,64,132);v(264,216,440);v(264,516,620);
- h(64,264,320);h(64,264,620);
+ v(AX.leftWing,64,132);v(AX.leftWing,216,440);v(AX.leftWing,516,620);
+ h(64,AX.leftWing,320);h(64,AX.leftWing,620);
  // Right wing: Data & Evidence and Administrative open west.
- v(888,64,132);v(888,216,440);v(888,516,620);
- h(888,1088,320);h(888,1088,620);
+ v(AX.rightWing,64,132);v(AX.rightWing,216,440);v(AX.rightWing,516,620);
+ h(AX.rightWing,1088,320);h(AX.rightWing,1088,620);
  // Mission Control has a single south-facing doorway.
- v(386,64,620);v(768,64,620);
- h(386,540,620);h(612,776,620);
+ v(AX.missionLeft,64,620);v(AX.missionRight,64,620);
+ h(AX.missionLeft,540,620);h(612,AX.missionRight,620);
  // Director's Office and Meeting Room have north-facing doors.
- h(64,116,724);h(184,264,724);
- h(888,968,724);h(1036,1088,724);
+ h(64,116,724);h(184,AX.leftWing,724);
+ h(AX.rightWing,968,724);h(1036,1088,724);
  // Reception has a SOLID north wall and two side entrances.
- h(386,774,724);
- v(264,724,968);v(386,724,826);v(386,900,968);
- v(768,724,826);v(768,900,968);v(888,724,968);
+ h(AX.missionLeft,774,724);
+ v(AX.leftWing,724,968);v(AX.missionLeft,724,826);v(AX.missionLeft,900,968);
+ v(AX.missionRight,724,826);v(AX.missionRight,900,968);v(AX.rightWing,724,968);
  return {walls};
 })();
 function drawInterior(){
