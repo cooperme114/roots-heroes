@@ -584,19 +584,48 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  // One continuous floor throughout the headquarters; room names are not drawn.
  tileArea('futuristic',64,72,1024,896,'#879ca6');
- // Draw the entire HQ as ONE connected wall silhouette. Every segment
- // occupies a full 32px tile. Filling the union AFTER outlining it removes
- // seams and protruding end caps at all T-junctions and corners.
- const wallPath=new Path2D();
- for(const seg of hqLayout.walls){
-  if(seg.axis==='v')wallPath.rect(seg.x-3,seg.y,16,seg.h);
-  else wallPath.rect(seg.x,seg.y-56,seg.w,64);
+ // Cache a single connected wall mask. Only its OUTER perimeter gets trim:
+ // stroking each rectangle separately caused the misaligned internal seams.
+ if(!hqLayout.wallArt){
+  const mask=document.createElement('canvas');mask.width=1152;mask.height=1088;
+  const mc=mask.getContext('2d');
+  mc.fillStyle='#fff';
+  for(const seg of hqLayout.walls){
+   if(seg.axis==='h')mc.fillRect(seg.x,seg.y-56,seg.w,64);
+   else {
+    // Vertical walls meet the top edge of horizontal wall faces.
+    // Do not let their ends dangle through the middle of a wall.
+    const joinsStart=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&seg.x>=h.x-16&&seg.x<=h.x+h.w+16);
+    const joinsEnd=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y+seg.h&&seg.x>=h.x-16&&seg.x<=h.x+h.w+16);
+    const y=seg.y-(joinsStart?56:0),bottom=seg.y+seg.h-(joinsEnd?56:0);
+    mc.fillRect(seg.x-3,y,16,bottom-y);
+   }
+  }
+  const art=document.createElement('canvas');art.width=1152;art.height=1088;
+  const ac=art.getContext('2d');
+  // The dark silhouette expands 3px beyond the union; the pale face
+  // then covers all internal seams, including at L and T junctions.
+  ac.fillStyle='#344d5b';
+  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-2,-2],[2,-2],[-2,2],[2,2]]){
+   ac.drawImage(mask,dx,dy);
+  }
+  ac.globalCompositeOperation='source-in';
+  ac.fillStyle='#344d5b';ac.fillRect(0,0,1152,1088);
+  ac.globalCompositeOperation='source-over';
+  ac.drawImage(mask,0,0);
+  ac.globalCompositeOperation='source-in';
+  ac.fillStyle='#dce4e3';ac.fillRect(0,0,1152,1088);
+  ac.globalCompositeOperation='destination-over';
+  // A separate outline is needed beneath the pale face.
+  const outline=document.createElement('canvas');outline.width=1152;outline.height=1088;
+  const oc=outline.getContext('2d');
+  oc.fillStyle='#344d5b';
+  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-2,-2],[2,-2],[-2,2],[2,2]])oc.drawImage(mask,dx,dy);
+  oc.globalCompositeOperation='source-in';oc.fillStyle='#344d5b';oc.fillRect(0,0,1152,1088);
+  oc.globalCompositeOperation='source-over';oc.drawImage(art,0,0);
+  hqLayout.wallArt=outline;
  }
- ctx.save();
- ctx.strokeStyle='#344d5b';ctx.lineWidth=8;ctx.lineJoin='miter';
- ctx.stroke(wallPath);
- ctx.fillStyle='#dce4e3';ctx.fill(wallPath);
- ctx.restore();
+ ctx.drawImage(hqLayout.wallArt,0,0);
  const layers=[];
  layers.push({y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)});
  for(const staff of scheduledStaffHere())layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
