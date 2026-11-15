@@ -187,7 +187,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  const row={down:0,left:1,right:2,up:3}[face]??0;
  const col=walking?Math.floor(time*5)%4:0;
  const f=frames[row*4+col];if(!f||f.right<=f.left)return false;
- const scale=(id==='dima'?49:id==='ximena'?62:66)/256;
+ const scale=(id==='dima'?49:id==='kenji'?52:id==='ximena'?62:66)/256;
  const w=(f.right-f.left+1)*scale,h=(f.bottom-f.top+1)*scale;
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(f.canvas,f.left,f.top,f.right-f.left+1,f.bottom-f.top+1,
@@ -272,9 +272,13 @@ function npcSchedule(id){
  return {scene:a[1],x,y,face,walking};
 }
 function scheduledStaffHere(){return Object.values(hospitalStaff).filter(n=>npcSchedule(n.id).scene===scene)}
+let talkingStaffId=null;
 function drawScheduledStaff(n){
  const pos=npcSchedule(n.id);
- if(!drawNpcSheet(n.id,pos.x,pos.y,pos.face,pos.walking,elapsed)){
+ const speaking=talkingStaffId===n.id&&dialogOpen;
+ const dx=player.x-pos.x,dy=player.y-pos.y;
+ const face=speaking?(Math.abs(dx)>Math.abs(dy)?(dx>=0?'right':'left'):(dy>=0?'down':'up')):pos.face;
+ if(!drawNpcSheet(n.id,pos.x,pos.y,face,speaking?false:pos.walking,elapsed)){
   // Placeholder if Kenji's sprite has not yet been uploaded.
   ctx.save();ctx.fillStyle=n.id==='kenji'?'#9db8d2':'#6b556a';
   ctx.fillRect(pos.x-9,pos.y-26,18,26);ctx.fillStyle='#d3a482';
@@ -831,8 +835,8 @@ function faceToward(n,target){
  n.walking=false;
 }
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
-function closeTalk(){dialogOpen=false;dialogue.style.display='none'}
-function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='bathroom'){bathroomOccupied=true;bathroomTimer=5;player.moving=false;keys.clear();prompt.style.display='none';}else if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='hospitalStaff'){if(a.staff.id==='dima'){knowsDima=true;refreshOpenDossier();talk('Dima Faheem','Hello! I’m Dima Faheem. I work here at the hospital reception desk. Is there something I can help you with?');}else {knowsKenji=true;refreshOpenDossier();talk('Kenji Nakamura','Welcome. I can help you at reception. We see quite a few superheroes around here.');}}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=scene==='hospital'?560:445;placeEl.textContent=interiors[scene].name}}
+function closeTalk(){dialogOpen=false;talkingStaffId=null;dialogue.style.display='none'}
+function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='bathroom'){bathroomOccupied=true;bathroomTimer=5;player.moving=false;keys.clear();prompt.style.display='none';}else if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='hospitalStaff'){talkingStaffId=a.staff.id;if(a.staff.id==='dima'){knowsDima=true;refreshOpenDossier();talk('Dima Faheem','Hello! I’m Dima Faheem. I work here at the hospital reception desk. Is there something I can help you with?');}else {knowsKenji=true;refreshOpenDossier();talk('Kenji Nakamura','Welcome. I can help you at reception. We see quite a few superheroes around here.');}}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=scene==='hospital'?560:445;placeEl.textContent=interiors[scene].name}}
 window.addEventListener('keydown',e=>{if(gamePaused){if(['arrowup','arrowdown','arrowleft','arrowright',' ','e'].includes(e.key.toLowerCase()))e.preventDefault();return;}const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function hospitalCameraY(){return Math.max(0,Math.min(170,player.y-360));}
 function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height+(scene==='hospital'?hospitalCameraY():0)}}
 canvas.addEventListener('pointerdown',e=>{if(scene==='hospital'&&!gamePaused&&!summaryOpen&&!dialogOpen){
