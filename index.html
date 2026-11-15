@@ -601,28 +601,46 @@ if(scene==='hq'){
     mc.fillRect(seg.x-3,y,16,bottom-y);
    }
   }
+  // Make the outer border from the UNION of all walls, not from each
+  // rectangle separately. This keeps corners joined without internal seams.
   const art=document.createElement('canvas');art.width=1152;art.height=1088;
   const ac=art.getContext('2d');
-  // The dark silhouette expands 3px beyond the union; the pale face
-  // then covers all internal seams, including at L and T junctions.
-  ac.fillStyle='#344d5b';
-  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-2,-2],[2,-2],[-2,2],[2,2]]){
+  ac.fillStyle='#294956';
+  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]]){
    ac.drawImage(mask,dx,dy);
   }
   ac.globalCompositeOperation='source-in';
-  ac.fillStyle='#344d5b';ac.fillRect(0,0,1152,1088);
+  ac.fillStyle='#294956';ac.fillRect(0,0,1152,1088);
   ac.globalCompositeOperation='source-over';
   ac.drawImage(mask,0,0);
   ac.globalCompositeOperation='source-in';
-  ac.fillStyle='#dce4e3';ac.fillRect(0,0,1152,1088);
+  ac.fillStyle='#e4e9e8';ac.fillRect(0,0,1152,1088);
   ac.globalCompositeOperation='destination-over';
-  // A separate outline is needed beneath the pale face.
+  // Keep the dark perimeter visible behind the pale wall face.
   const outline=document.createElement('canvas');outline.width=1152;outline.height=1088;
   const oc=outline.getContext('2d');
-  oc.fillStyle='#344d5b';
-  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-2,-2],[2,-2],[-2,2],[2,2]])oc.drawImage(mask,dx,dy);
-  oc.globalCompositeOperation='source-in';oc.fillStyle='#344d5b';oc.fillRect(0,0,1152,1088);
+  oc.fillStyle='#294956';
+  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]])oc.drawImage(mask,dx,dy);
+  oc.globalCompositeOperation='source-in';
+  oc.fillStyle='#294956';oc.fillRect(0,0,1152,1088);
   oc.globalCompositeOperation='source-over';oc.drawImage(art,0,0);
+  // Thin house-style upper molding on each 64px horizontal face.
+  // Trim is clipped to the finished wall mask so it cannot cross doorways.
+  oc.save();oc.beginPath();
+  for(const seg of hqLayout.walls)if(seg.axis==='h'){
+   const y=seg.y-49;
+   oc.rect(seg.x+3,y,Math.max(0,seg.w-6),2);
+  }
+  oc.clip();oc.drawImage(mask,0,0);
+  oc.restore();
+  oc.save();
+  oc.globalCompositeOperation='source-atop';
+  for(const seg of hqLayout.walls)if(seg.axis==='h'){
+   const x=seg.x+4,w=Math.max(0,seg.w-8),y=seg.y-49;
+   oc.fillStyle='#8caab6';oc.fillRect(x,y,w,2);
+   oc.fillStyle='#ffffff';oc.fillRect(x,y+2,w,2);
+  }
+  oc.restore();
   hqLayout.wallArt=outline;
  }
  ctx.drawImage(hqLayout.wallArt,0,0);
