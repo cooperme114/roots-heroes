@@ -219,7 +219,7 @@ const staffRoutes={
   [1339,'town',360,340],[1920,'town',360,340]
  ],
  kenji:[
-  [480,'town',610,340],[720,'town',610,340],
+  [480,'town',610,275],[720,'town',610,275],
   [724,'town',780,275],[725,'commercial',20,275],
   [733,'commercial',387,232],[734,'cafe',400,455],
   [738,'cafe',345,320],[900,'cafe',345,320],
@@ -971,7 +971,7 @@ function renderDossier(category){
  {category:'Heroes',known:true,title:'STARSHINE',sprite:'starshine',heroName:'Starshine',realName:knowsDanielle?'Danielle Miller':'Unknown',abilities:'Not yet documented',location:npcCurrentLocation('danielle'),status:'Not recruited',hearts:0},
  {category:'NPCs',known:knowsDima,title:'DIMA FAHEEM',sprite:'dima',heroName:'None',realName:'Dima Faheem',abilities:'None',location:interiors[npcSchedule('dima').scene]?.name||districtNames[npcSchedule('dima').scene]||'Traveling',status:'Hospital receptionist',hearts:0},
  {category:'NPCs',known:knowsKenji,title:'KENJI NAKAMURA',sprite:'kenji',heroName:'None',realName:'Kenji Nakamura',abilities:'None',location:interiors[npcSchedule('kenji').scene]?.name||districtNames[npcSchedule('kenji').scene]||'Traveling',status:'Hospital receptionist',hearts:0},
- {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA':'XIMENA',sprite:revealedXimenaIdentity?'sombra':'ximena',heroName:revealedXimenaIdentity?'Sombra':'None',realName:'Ximena Hernández',abilities:revealedXimenaIdentity?'Shadow energy':'None',location:npcCurrentLocation('ximena'),status:revealedXimenaIdentity?'Villain':'Civilian journalist',hearts:0}
+ {category:revealedXimenaIdentity?'Villains':'NPCs',known:knowsXimena,title:revealedXimenaIdentity?'SOMBRA / XIMENA HERNÁNDEZ':'XIMENA HERNÁNDEZ',sprite:revealedXimenaIdentity?'sombra':'ximena',heroName:revealedXimenaIdentity?'Sombra':'None',realName:'Ximena Hernández',abilities:revealedXimenaIdentity?'Shadow energy':'None',location:npcCurrentLocation('ximena'),status:revealedXimenaIdentity?'Villain':'Civilian journalist',hearts:0}
  ];
  const entries=profiles.filter(p=>p.known&&p.category===category);
  document.getElementById('dossierTitle').textContent=category+' Dossiers';
