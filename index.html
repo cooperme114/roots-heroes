@@ -587,55 +587,49 @@ if(scene==='hq'){
  // Cache a single connected wall mask. Only its OUTER perimeter gets trim:
  // stroking each rectangle separately caused the misaligned internal seams.
  if(!hqLayout.wallArt){
-  const mask=document.createElement('canvas');mask.width=1152;mask.height=1088;
+  // All wall sections use one shared geometry mask. In particular, vertical
+  // sections extend INTO a horizontal wall at a junction; they never stop
+  // at its top edge, which previously left visible disconnected stubs.
+  const width=1152,height=1088;
+  const mask=document.createElement('canvas');mask.width=width;mask.height=height;
   const mc=mask.getContext('2d');
   mc.fillStyle='#fff';
-  for(const seg of hqLayout.walls){
-   if(seg.axis==='h')mc.fillRect(seg.x,seg.y-56,seg.w,64);
-   else {
-    // Vertical walls meet the top edge of horizontal wall faces.
-    // Do not let their ends dangle through the middle of a wall.
-    const joinsStart=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&seg.x>=h.x-16&&seg.x<=h.x+h.w+16);
-    const joinsEnd=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y+seg.h&&seg.x>=h.x-16&&seg.x<=h.x+h.w+16);
-    const y=seg.y-(joinsStart?56:0),bottom=seg.y+seg.h-(joinsEnd?56:0);
-    mc.fillRect(seg.x-3,y,16,bottom-y);
+  for(const seg of hqLayout.walls)if(seg.axis==='h')
+   mc.fillRect(seg.x,seg.y-56,seg.w,64);
+  for(const seg of hqLayout.walls)if(seg.axis==='v'){
+   const joinsStart=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&seg.x>=h.x-8&&seg.x<=h.x+h.w+8);
+   // The horizontal wall ends at y+8, so continue through that whole face.
+   const y=seg.y-(joinsStart?56:0);
+   mc.fillRect(seg.x-3,y,16,seg.y+seg.h-y);
+  }
+  // Outline only the boundary of the UNION, not the boundaries of the
+  // component rectangles. This gives clean T-junctions and L-corners.
+  const pixels=mc.getImageData(0,0,width,height).data;
+  const solid=(x,y)=>x>=0&&y>=0&&x<width&&y<height&&pixels[(y*width+x)*4+3]>0;
+  const art=document.createElement('canvas');art.width=width;art.height=height;
+  const ac=art.getContext('2d');
+  ac.fillStyle='#e4e9e8';ac.drawImage(mask,0,0);
+  // Brown house-style trim follows the actual exposed top edges of walls,
+  // including where vertical and horizontal sections meet.
+  for(let y=0;y<height;y++){
+   let start=-1;
+   for(let x=0;x<=width;x++){
+    const top=x<width&&solid(x,y)&&!solid(x,y-1);
+    if(top&&start<0)start=x;
+    if(!top&&start>=0){
+     ac.fillStyle='#79563e';ac.fillRect(start,y,x-start,5);
+     ac.fillStyle='#cda77c';ac.fillRect(start,y+2,x-start,2);
+     start=-1;
+    }
    }
   }
-  // Make the outer border from the UNION of all walls, not from each
-  // rectangle separately. This keeps corners joined without internal seams.
-  // A single opaque wall union: brown trim surrounds its true outer edge,
-  // with no outlines through connected T-junctions.
-  const outline=document.createElement('canvas');outline.width=1152;outline.height=1088;
-  const oc=outline.getContext('2d');
-  const offsets=[[-4,0],[4,0],[0,-4],[0,4],[-3,-3],[3,-3],[-3,3],[3,3]];
-  for(const [dx,dy] of offsets)oc.drawImage(mask,dx,dy);
-  oc.globalCompositeOperation='source-in';
-  oc.fillStyle='#79563e';oc.fillRect(0,0,1152,1088);
-  oc.globalCompositeOperation='source-over';
-  // The fill is painted over the expanded brown silhouette, leaving
-  // an uninterrupted 4px border around the complete joined geometry.
-  oc.drawImage(mask,0,0);
-  oc.globalCompositeOperation='source-in';
-  oc.fillStyle='#e4e9e8';oc.fillRect(0,0,1152,1088);
-  oc.globalCompositeOperation='destination-over';
-  // Keep the brown outline as a separate backing layer.
-  const border=document.createElement('canvas');border.width=1152;border.height=1088;
+  // Single dark perimeter: draw mask shifted behind the wall face.
+  const border=document.createElement('canvas');border.width=width;border.height=height;
   const bc=border.getContext('2d');
-  for(const [dx,dy] of offsets)bc.drawImage(mask,dx,dy);
+  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]])bc.drawImage(mask,dx,dy);
   bc.globalCompositeOperation='source-in';
-  bc.fillStyle='#79563e';bc.fillRect(0,0,1152,1088);
-  bc.globalCompositeOperation='source-over';
-  bc.drawImage(outline,0,0);
-  // Brown cap and highlight at the top of every horizontal wall face.
-  // No extra rectangles at wall ends: the mask already joins the corners.
-  bc.save();
-  bc.globalCompositeOperation='source-atop';
-  for(const seg of hqLayout.walls)if(seg.axis==='h'){
-   const y=seg.y-56;
-   bc.fillStyle='#79563e';bc.fillRect(seg.x,y,seg.w,7);
-   bc.fillStyle='#cda77c';bc.fillRect(seg.x,y+2,seg.w,2);
-  }
-  bc.restore();
+  bc.fillStyle='#79563e';bc.fillRect(0,0,width,height);
+  bc.globalCompositeOperation='source-over';bc.drawImage(art,0,0);
   hqLayout.wallArt=border;
  }
  ctx.drawImage(hqLayout.wallArt,0,0);
