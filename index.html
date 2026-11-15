@@ -89,9 +89,14 @@ document.getElementById('nextDayButton').onclick=()=>{elapsed=day*1440;scene=wak
  player.x=recoveryBed?recoveryBed.x+bedSize.w/2:176;
  player.y=recoveryBed?recoveryBed.y+54:142;
 }else{
- // Wake tucked into the player's own bed, including if it was moved.
- player.x=bed.x+bed.w/2;
- player.y=bed.y+54;
+ // Spawn beside the foot of the bed on walkable floor, not inside the
+ // bedroom's upper wall collision strip (which begins above y=128).
+ // Check alternate spots for beds moved by the furniture editor.
+ const cx=bed.x+bed.w/2,foot=bed.y+bed.h+18;
+ const wakeSpots=[[cx,foot],[bed.x+bed.w+28,bed.y+bed.h/2],[bed.x-28,bed.y+bed.h/2],[260,175],[260,285]];
+ const safe=wakeSpots.find(([x,y])=>!collide(x,y));
+ player.x=safe?safe[0]:260;
+ player.y=safe?safe[1]:175;
 }
 player.face='down';sleepNeedsExit=false;placeEl.textContent=interiors[scene].name;updateClock();summaryOpen=false;gameSummary.style.display='none';keys.clear();canvas.focus()};
 const bed={x:115,y:71,w:42,h:85};let bedDrag=null;
