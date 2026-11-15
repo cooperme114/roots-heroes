@@ -587,6 +587,12 @@ if(scene==='hq'){
  tileArea('wood',104,373,112,99,'#a68b70');
  tileArea('wood',576,373,120,99,'#a68b70');
  tileArea('tile',296,373,208,99,'#aabdc6');
+ // Room names are temporary wayfinding markers until furniture is placed.
+ const label=(name,x,y)=>{ctx.save();ctx.font='bold 11px system-ui';ctx.fillStyle='#253b47';ctx.textAlign='center';ctx.fillText(name,x,y);ctx.restore();};
+ label('Med Bay',160,105);label('Research Lab',160,265);
+ label('Mission Control',400,170);label('Data & Evidence',636,105);
+ label('Administrative',636,265);label("Director's Office",160,425);
+ label('Reception',400,425);label('Meeting Room',636,425);
  // Match the raised wall faces and baseboards used in the hospital.
  const wall=(x,y,w,h)=>{rect(x,y-INTERIOR_WALL_HEIGHT+8,w,INTERIOR_WALL_HEIGHT,'#344d5b');rect(x+2,y-INTERIOR_WALL_HEIGHT+13,Math.max(1,w-4),INTERIOR_WALL_HEIGHT-16,'#e2e5dc');rect(x,y+3,w,5,'#486877');};
  // Side walls are narrow vertical partitions, while horizontal walls have height.
