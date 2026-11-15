@@ -557,7 +557,7 @@ const hospitalLayout=(()=>{
 // Horizontal walls use the hospital's 64px front faces; vertical walls are
 // hospital-style narrow side returns. These are collision footprints, not art.
 const hqLayout=(()=>{
- const walls=[],h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'}),v=(x,y1,y2)=>walls.push({x,y:y1,w:10,h:y2-y1,axis:'v'});
+ const walls=[],h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'}),v=(x,y1,y2)=>walls.push({x,y:y1,w:32,h:y2-y1,axis:'v'});
  // Perimeter: bottom-center exterior entrance is the only outside gap.
  h(64,1088,64);v(64,64,968);v(1078,64,968);
  h(64,544,968);h(608,1088,968);
@@ -592,7 +592,7 @@ if(scene==='hq'){
   rect(x,y+h-5,w,5,'#486877');
  };
  const drawWall=seg=>{
-  if(seg.axis==='v')hospitalWall(seg.x,seg.y,seg.w,seg.h);
+  if(seg.axis==='v')hospitalWall(seg.x-11,seg.y,seg.w,seg.h);
   else hospitalWall(seg.x,seg.y-INTERIOR_WALL_HEIGHT+8,seg.w,INTERIOR_WALL_HEIGHT);
  };
  // As in the hospital, long side walls are drawn first; horizontal wall
@@ -782,7 +782,7 @@ if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
  if(x<76||x>1076||y<112||y>968)return true;
  for(const wall of hqLayout.walls){
-  if(x>=wall.x-8&&x<=wall.x+wall.w+8&&y>=wall.y-8&&y<=wall.y+wall.h+8)return true;
+  if(x>=wall.x-(wall.axis==='v'?11:0)-8&&x<=wall.x+(wall.axis==='v'?21:wall.w)+8&&y>=wall.y-8&&y<=wall.y+wall.h+8)return true;
  }
  const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
  const after=Math.hypot(x-wildfire.x,y-wildfire.y);
