@@ -950,7 +950,14 @@ for(let i=0;i<npcActors.length;i++){
 }
 
 player.shoveShake=Math.max(0,(player.shoveShake||0)-dt);
-let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);
+let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;
+// Fast simulation can leap past the narrow district exit before the
+// transition check runs. Clamp outward steps to the valid exit threshold.
+if(dx&&districts.includes(scene)&&player.y<350){
+ if(dx<0&&player.x+dx<13)dx=13-player.x;
+ if(dx>0&&player.x+dx>787)dx=787-player.x;
+}
+if(dx&&!collide(player.x+dx,player.y))player.x+=dx;if(dy&&!collide(player.x,player.y+dy)&&!(scene==='home'&&dy<0&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h))player.y+=dy;player.moving=!!(dx||dy);
 // Walking into the bathroom door (just left of the fridge) starts an offscreen visit.
 // The door is on the kitchen's back wall, so its trigger is immediately below it.
 
