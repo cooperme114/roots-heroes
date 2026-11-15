@@ -571,19 +571,8 @@ const hqLayout=(()=>{
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
+ // One continuous floor throughout the headquarters; room names are not drawn.
  tileArea('futuristic',64,72,1024,952,'#879ca6');
- tileArea('tile',72,72,208,240,'#c2d0d5');
- tileArea('tile',72,328,208,272,'#c2d0d5');
- tileArea('tile',872,72,208,240,'#c2d0d5');
- tileArea('tile',872,328,208,272,'#c2d0d5');
- tileArea('carpet',392,72,368,528,'#6c8393');
- tileArea('wood',72,744,208,272,'#a68b70');
- tileArea('wood',872,744,208,272,'#a68b70');
- tileArea('tile',392,744,368,272,'#aabdc6');
- const label=(name,x,y)=>{ctx.save();ctx.font='bold 15px system-ui';ctx.fillStyle='#253b47';ctx.textAlign='center';ctx.fillText(name,x,y);ctx.restore();};
- label('Med Bay',176,200);label('Research Lab',176,450);label('Mission Control',576,210);
- label('Data & Evidence',976,200);label('Administrative',976,450);
- label("Director's Office",176,860);label('Reception',576,860);label('Meeting Room',976,860);
  const drawWall=seg=>{
   if(seg.axis==='v'){rect(seg.x,seg.y,8,seg.h,'#344d5b');rect(seg.x+2,seg.y,4,seg.h,'#aabdc6');return;}
   const top=seg.y-INTERIOR_WALL_HEIGHT+8;
