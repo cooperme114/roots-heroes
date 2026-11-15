@@ -532,10 +532,13 @@ ctx.fillStyle='rgba(245,205,93,0.20)';ctx.fillRect(115,106,275,361);
 // Repeat the kitchen tile from its own origin, so the grid begins on a
 // full tile at the wood/kitchen boundary instead of cutting through a tile.
 ctx.save();
-ctx.beginPath();ctx.rect(390,266,295,201);ctx.clip();
+ctx.beginPath();ctx.rect(390,266,288,192);ctx.clip();
 ctx.translate(390,266);
-tileArea('tile',0,0,295,201,'#b7b5ac');
+tileArea('tile',0,0,288,192,'#b7b5ac');
 ctx.restore();
+// The remaining space to the room's outer frame is a solid border, not partial tiles.
+rect(678,266,7,201,trim);
+rect(390,458,295,9,trim);
 // Full-height wallpaper, with baseboards at the floor line.
 rect(115,44,275,INTERIOR_WALL_HEIGHT,wall);rect(115,104,275,4,trim);rect(115,104,275,2,light);
 // Bedroom divider: visible wall sections with a doorway at x=221..300.
