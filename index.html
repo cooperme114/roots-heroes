@@ -603,45 +603,40 @@ if(scene==='hq'){
   }
   // Make the outer border from the UNION of all walls, not from each
   // rectangle separately. This keeps corners joined without internal seams.
-  const art=document.createElement('canvas');art.width=1152;art.height=1088;
-  const ac=art.getContext('2d');
-  ac.fillStyle='#294956';
-  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]]){
-   ac.drawImage(mask,dx,dy);
-  }
-  ac.globalCompositeOperation='source-in';
-  ac.fillStyle='#294956';ac.fillRect(0,0,1152,1088);
-  ac.globalCompositeOperation='source-over';
-  ac.drawImage(mask,0,0);
-  ac.globalCompositeOperation='source-in';
-  ac.fillStyle='#e4e9e8';ac.fillRect(0,0,1152,1088);
-  ac.globalCompositeOperation='destination-over';
-  // Keep the dark perimeter visible behind the pale wall face.
+  // A single opaque wall union: brown trim surrounds its true outer edge,
+  // with no outlines through connected T-junctions.
   const outline=document.createElement('canvas');outline.width=1152;outline.height=1088;
   const oc=outline.getContext('2d');
-  oc.fillStyle='#294956';
-  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]])oc.drawImage(mask,dx,dy);
+  const offsets=[[-4,0],[4,0],[0,-4],[0,4],[-3,-3],[3,-3],[-3,3],[3,3]];
+  for(const [dx,dy] of offsets)oc.drawImage(mask,dx,dy);
   oc.globalCompositeOperation='source-in';
-  oc.fillStyle='#294956';oc.fillRect(0,0,1152,1088);
-  oc.globalCompositeOperation='source-over';oc.drawImage(art,0,0);
-  // Thin house-style upper molding on each 64px horizontal face.
-  // Trim is clipped to the finished wall mask so it cannot cross doorways.
-  oc.save();oc.beginPath();
+  oc.fillStyle='#79563e';oc.fillRect(0,0,1152,1088);
+  oc.globalCompositeOperation='source-over';
+  // The fill is painted over the expanded brown silhouette, leaving
+  // an uninterrupted 4px border around the complete joined geometry.
+  oc.drawImage(mask,0,0);
+  oc.globalCompositeOperation='source-in';
+  oc.fillStyle='#e4e9e8';oc.fillRect(0,0,1152,1088);
+  oc.globalCompositeOperation='destination-over';
+  // Keep the brown outline as a separate backing layer.
+  const border=document.createElement('canvas');border.width=1152;border.height=1088;
+  const bc=border.getContext('2d');
+  for(const [dx,dy] of offsets)bc.drawImage(mask,dx,dy);
+  bc.globalCompositeOperation='source-in';
+  bc.fillStyle='#79563e';bc.fillRect(0,0,1152,1088);
+  bc.globalCompositeOperation='source-over';
+  bc.drawImage(outline,0,0);
+  // Brown cap and highlight at the top of every horizontal wall face.
+  // No extra rectangles at wall ends: the mask already joins the corners.
+  bc.save();
+  bc.globalCompositeOperation='source-atop';
   for(const seg of hqLayout.walls)if(seg.axis==='h'){
-   const y=seg.y-49;
-   oc.rect(seg.x+3,y,Math.max(0,seg.w-6),2);
+   const y=seg.y-56;
+   bc.fillStyle='#79563e';bc.fillRect(seg.x,y,seg.w,7);
+   bc.fillStyle='#cda77c';bc.fillRect(seg.x,y+2,seg.w,2);
   }
-  oc.clip();oc.drawImage(mask,0,0);
-  oc.restore();
-  oc.save();
-  oc.globalCompositeOperation='source-atop';
-  for(const seg of hqLayout.walls)if(seg.axis==='h'){
-   const x=seg.x+4,w=Math.max(0,seg.w-8),y=seg.y-49;
-   oc.fillStyle='#8caab6';oc.fillRect(x,y,w,2);
-   oc.fillStyle='#ffffff';oc.fillRect(x,y+2,w,2);
-  }
-  oc.restore();
-  hqLayout.wallArt=outline;
+  bc.restore();
+  hqLayout.wallArt=border;
  }
  ctx.drawImage(hqLayout.wallArt,0,0);
  const layers=[];
