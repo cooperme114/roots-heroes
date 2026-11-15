@@ -243,7 +243,32 @@ function npcSchedule(id){
  const x=a[2]+(b[2]-a[2])*fraction,y=a[3]+(b[3]-a[3])*fraction;
  const dx=b[2]-a[2],dy=b[3]-a[3];
  const walking=a!==b&&a[1]===b[1]&&Math.hypot(dx,dy)>2;
- const face=walking?(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up')):'down';
+ // At a scene boundary the next waypoint belongs to another map, so
+ // dx/dy is not a real movement vector. Keep the direction of travel
+ // from the last actual segment rather than snapping to face down.
+ let directionX=walking?dx:0,directionY=walking?dy:0;
+ if(!walking){
+  const currentIndex=route.indexOf(a);
+  // Prefer the last real movement in this scene; if this is the first
+  // point of a scene, look ahead to the next movement instead.
+  for(let i=currentIndex;i>0;i--){
+   const from=route[i-1],to=route[i];
+   if(from[1]!==a[1]||to[1]!==a[1])break;
+   if(Math.hypot(to[2]-from[2],to[3]-from[3])>2){
+    directionX=to[2]-from[2];directionY=to[3]-from[3];break;
+   }
+  }
+  if(!directionX&&!directionY){
+   for(let i=currentIndex;i<route.length-1;i++){
+    const from=route[i],to=route[i+1];
+    if(from[1]!==a[1]||to[1]!==a[1])break;
+    if(Math.hypot(to[2]-from[2],to[3]-from[3])>2){
+     directionX=to[2]-from[2];directionY=to[3]-from[3];break;
+    }
+   }
+  }
+ }
+ const face=Math.abs(directionX)>Math.abs(directionY)?(directionX>0?'right':'left'):(directionY>0?'down':'up');
  return {scene:a[1],x,y,face,walking};
 }
 function scheduledStaffHere(){return Object.values(hospitalStaff).filter(n=>npcSchedule(n.id).scene===scene)}
