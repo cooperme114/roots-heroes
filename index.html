@@ -589,7 +589,7 @@ if(scene==='hq'){
  // seams and protruding end caps at all T-junctions and corners.
  const wallPath=new Path2D();
  for(const seg of hqLayout.walls){
-  if(seg.axis==='v')wallPath.rect(seg.x-11,seg.y,32,seg.h);
+  if(seg.axis==='v')wallPath.rect(seg.x-3,seg.y,16,seg.h);
   else wallPath.rect(seg.x,seg.y-56,seg.w,64);
  }
  ctx.save();
@@ -781,7 +781,7 @@ if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
  if(x<76||x>1076||y<112||y>968)return true;
  for(const wall of hqLayout.walls){
-  if(x>=wall.x-(wall.axis==='v'?11:0)-8&&x<=wall.x+(wall.axis==='v'?21:wall.w)+8&&y>=wall.y-8&&y<=wall.y+(wall.axis==='h'?8:wall.h)+8)return true;
+  if(x>=wall.x-(wall.axis==='v'?3:0)-8&&x<=wall.x+(wall.axis==='v'?13:wall.w)+8&&y>=wall.y-8&&y<=wall.y+(wall.axis==='h'?8:wall.h)+8)return true;
  }
  const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
  const after=Math.hypot(x-wildfire.x,y-wildfire.y);
