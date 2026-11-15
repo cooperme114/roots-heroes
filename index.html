@@ -589,50 +589,37 @@ if(scene==='hq'){
  // Cache a single connected wall mask. Only its OUTER perimeter gets trim:
  // stroking each rectangle separately caused the misaligned internal seams.
  if(!hqLayout.wallArt){
-  // All wall sections use one shared geometry mask. In particular, vertical
-  // sections extend INTO a horizontal wall at a junction; they never stop
-  // at its top edge, which previously left visible disconnected stubs.
+  // House-style walls: 16px brown vertical returns, separate 64px
+  // horizontal cream wall faces. Shared coordinates remain unchanged.
   const width=1152,height=1088;
-  const mask=document.createElement('canvas');mask.width=width;mask.height=height;
-  const mc=mask.getContext('2d');
-  mc.fillStyle='#fff';
-  for(const seg of hqLayout.walls)if(seg.axis==='h')
-   mc.fillRect(seg.x,seg.y-56,seg.w,64);
-  for(const seg of hqLayout.walls)if(seg.axis==='v'){
-   const joinsStart=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&seg.x>=h.x-8&&seg.x<=h.x+h.w+8);
-   // The horizontal wall ends at y+8, so continue through that whole face.
-   const y=seg.y-(joinsStart?56:0);
-   mc.fillRect(seg.x-3,y,16,seg.y+seg.h-y);
-  }
-  // Outline only the boundary of the UNION, not the boundaries of the
-  // component rectangles. This gives clean T-junctions and L-corners.
-  const pixels=mc.getImageData(0,0,width,height).data;
-  const solid=(x,y)=>x>=0&&y>=0&&x<width&&y<height&&pixels[(y*width+x)*4+3]>0;
   const art=document.createElement('canvas');art.width=width;art.height=height;
   const ac=art.getContext('2d');
-  ac.fillStyle='#e4e9e8';ac.drawImage(mask,0,0);
-  // Brown house-style trim follows the actual exposed top edges of walls,
-  // including where vertical and horizontal sections meet.
-  for(let y=0;y<height;y++){
-   let start=-1;
-   for(let x=0;x<=width;x++){
-    const top=x<width&&solid(x,y)&&!solid(x,y-1);
-    if(top&&start<0)start=x;
-    if(!top&&start>=0){
-     ac.fillStyle='#79563e';ac.fillRect(start,y,x-start,5);
-     ac.fillStyle='#cda77c';ac.fillRect(start,y+2,x-start,2);
-     start=-1;
-    }
-   }
+  const trim='#79563e',highlight='#cda77c',face='#e8d9b9',shadow='#563e30';
+  // First draw all side walls, including the junction behind front faces.
+  for(const seg of hqLayout.walls)if(seg.axis==='v'){
+   const x=seg.x-3,w=16;
+   const touchesTop=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&x<h.x+h.w&&x+w>h.x);
+   const y=touchesTop?seg.y-56:seg.y;
+   const bottom=seg.y+seg.h;
+   ac.fillStyle=shadow;ac.fillRect(x-2,y,w+4,bottom-y);
+   ac.fillStyle=trim;ac.fillRect(x,y,w,bottom-y);
+   ac.fillStyle=highlight;ac.fillRect(x+2,y,3,bottom-y);
   }
-  // Single dark perimeter: draw mask shifted behind the wall face.
-  const border=document.createElement('canvas');border.width=width;border.height=height;
-  const bc=border.getContext('2d');
-  for(const [dx,dy] of [[-3,0],[3,0],[0,-3],[0,3],[-3,-3],[3,-3],[-3,3],[3,3]])bc.drawImage(mask,dx,dy);
-  bc.globalCompositeOperation='source-in';
-  bc.fillStyle='#79563e';bc.fillRect(0,0,width,height);
-  bc.globalCompositeOperation='source-over';bc.drawImage(art,0,0);
-  hqLayout.wallArt=border;
+  // Front-facing walls are opaque panels with their own finished top,
+  // baseboard and end jambs, like the house's bedroom divider.
+  // Draw them AFTER the returns so no brown side strip cuts through a face.
+  for(const seg of hqLayout.walls)if(seg.axis==='h'){
+   const x=seg.x,y=seg.y-56,w=seg.w;
+   ac.fillStyle=shadow;ac.fillRect(x-2,y-2,w+4,68);
+   ac.fillStyle=face;ac.fillRect(x,y,w,64);
+   ac.fillStyle=trim;ac.fillRect(x,y,w,7);
+   ac.fillStyle=highlight;ac.fillRect(x,y+2,w,2);
+   ac.fillStyle=trim;ac.fillRect(x,y+59,w,5);
+   ac.fillStyle=highlight;ac.fillRect(x,y+59,w,2);
+   ac.fillStyle=trim;ac.fillRect(x,y+7,3,52);
+   ac.fillRect(x+w-3,y+7,3,52);
+  }
+  hqLayout.wallArt=art;
  }
  ctx.drawImage(hqLayout.wallArt,0,0);
  const layers=[];
