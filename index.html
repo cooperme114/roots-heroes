@@ -586,12 +586,14 @@ if(scene==='hq'){
  tileArea('futuristic',64,72,1024,896,'#879ca6');
  const drawWall=seg=>{
   if(seg.axis==='v'){
-   // Vertical partitions need a visible wall body, not a thin outline.
-   // Center the 24px-wide face on the same collision line.
-   rect(seg.x-8,seg.y,24,seg.h,'#344d5b');
-   rect(seg.x-5,seg.y+2,18,Math.max(1,seg.h-4),'#dce4e3');
-   rect(seg.x-8,seg.y,4,seg.h,'#65818e');
-   rect(seg.x+12,seg.y,4,seg.h,'#486877');
+   // Use the hospital's actual side-wall treatment: a narrow wall with
+   // a recessed pale face, upper highlight and dark base, not a 24px slab.
+   // Hospital side walls use 10-12px widths; preserve the HQ collision line.
+   const x=seg.x-2,w=12;
+   rect(x,seg.y,w,seg.h,'#344d5b');
+   rect(x+2,seg.y+5,w-4,Math.max(1,seg.h-13),'#e2e5dc');
+   rect(x+2,seg.y+5,w-4,5,'#8da6ac');
+   rect(x,seg.y+seg.h-5,w,5,'#486877');
    return;
   }
   // HQ partitions are low-profile walls, like the original drawn floor plan.
