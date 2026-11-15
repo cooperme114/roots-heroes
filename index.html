@@ -187,7 +187,7 @@ function drawNpcSheet(id,x,y,face='down',walking=false,time=0){
  const row={down:0,left:1,right:2,up:3}[face]??0;
  const col=walking?Math.floor(time*5)%4:0;
  const f=frames[row*4+col];if(!f||f.right<=f.left)return false;
- const scale=(id==='ximena'?62:66)/256;
+ const scale=(id==='dima'?49:id==='ximena'?62:66)/256;
  const w=(f.right-f.left+1)*scale,h=(f.bottom-f.top+1)*scale;
  ctx.save();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(f.canvas,f.left,f.top,f.right-f.left+1,f.bottom-f.top+1,
@@ -208,15 +208,15 @@ const staffRoutes={
   [480,'hospital',404,385],[960,'hospital',404,385],
   [962,'hospital',480,385],[964,'hospital',480,490],
   [965,'hospital',400,490],[966,'government',396,235],
-  [973,'government',780,275],[974,'commercial',30,275],
+  [973,'government',20,275],[974,'commercial',780,275],
   [982,'commercial',387,232],[983,'cafe',400,455],
   [987,'cafe',450,315],[1140,'cafe',450,315],
   [1144,'cafe',400,455],[1145,'commercial',387,235],
-  [1153,'commercial',20,275],[1154,'government',780,275],
+  [1153,'commercial',780,275],[1154,'government',20,275],
   [1166,'government',131,235],[1167,'hq',400,455],
   [1171,'hq',330,340],[1320,'hq',330,340],
   [1324,'hq',400,455],[1325,'government',131,235],
-  [1329,'government',20,275],[1330,'town',780,275],
+  [1329,'government',780,275],[1330,'town',20,275],
   [1339,'town',360,340],[1920,'town',360,340]
  ],
  kenji:[
@@ -225,7 +225,7 @@ const staffRoutes={
   [733,'commercial',387,232],[734,'cafe',400,455],
   [738,'cafe',345,320],[900,'cafe',345,320],
   [904,'cafe',400,455],[905,'commercial',387,235],
-  [921,'commercial',20,275],[922,'government',780,275],
+  [921,'commercial',780,275],[922,'government',20,275],
   [959,'government',396,235],[960,'government',396,235],
   [961,'hospital',400,490],[962,'hospital',480,490],
   [964,'hospital',480,385],[965,'hospital',404,385],
