@@ -1119,6 +1119,6 @@ let gamePaused=false;const pauseOverlay=document.getElementById('pauseOverlay'),
 let gameSpeed=1;
 const speedToggle=document.getElementById("speedToggle");
 speedToggle.addEventListener("click",()=>{gameSpeed=gameSpeed===1?2:1;speedToggle.textContent="Speed: "+gameSpeed+"×";speedToggle.setAttribute("aria-pressed",String(gameSpeed===2));});
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt*gameSpeed);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(264,player.y-280)));drawTown();ctx.restore();}else drawTown();}else if(scene==='hospital'){ctx.save();ctx.translate(0,-hospitalCameraY());drawInterior();ctx.restore();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt*gameSpeed);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(264,player.y-280)));drawTown();ctx.restore();}else drawTown();}else if(scene==='hospital'){ctx.save();ctx.translate(0,-hospitalCameraY());drawInterior();ctx.restore();}else if(scene==='hq'){ctx.save();const zoom=1.5;const cameraX=Math.max(0,Math.min(800*zoom-W,player.x*zoom-W/2));const cameraY=Math.max(0,Math.min(528*zoom-H,player.y*zoom-H/2));ctx.translate(-cameraX,-cameraY);ctx.scale(zoom,zoom);drawInterior();ctx.restore();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script></body></html>
