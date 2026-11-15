@@ -77,7 +77,7 @@ function showSave(isLoad){loadingCode=isLoad;savePanel.style.display='flex';save
 document.getElementById('saveGame').onclick=()=>showSave(false);
 document.getElementById('loadGame').onclick=()=>showSave(true);
 document.getElementById('saveClose').onclick=()=>savePanel.style.display='none';
-document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);knowsDanielle=!!data.knowsDanielle;knowsXimena=!!data.knowsXimena;knowsDima=!!data.knowsDima;knowsKenji=!!data.knowsKenji;revealedXimenaIdentity=!!data.revealedXimenaIdentity;refreshOpenDossier();window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene==='hospital'?'government':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(scene==='town'?250:516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(115,Math.min(643,data.bed.x));bed.y=Math.max(55,Math.min(395,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
+document.getElementById('saveConfirm').onclick=async()=>{if(!loadingCode){try{await navigator.clipboard.writeText(saveText.value);saveError.style.color='#b4ebd0';saveError.textContent='Copied! Keep the code to load this save later.'}catch(e){saveText.select();saveError.textContent='Select and copy the code manually (Ctrl+C).'}return}try{const data=decodeSave(saveText.value);knowsDanielle=!!data.knowsDanielle;knowsXimena=!!data.knowsXimena;knowsDima=!!data.knowsDima;knowsKenji=!!data.knowsKenji;revealedXimenaIdentity=!!data.revealedXimenaIdentity;refreshOpenDossier();window.RootsCharacter.setCharacter(data.character);scene=data.scene;lastDistrict=scene==='home'?'town':scene==='hq'?'government':scene==='cafe'?'commercial':scene==='hospital'?'government':scene;player.x=Math.max(12,Math.min(788,data.x));player.y=Math.max(12,Math.min(scene==='town'?250:scene==='hq'?1010:516,data.y));player.face=['up','down','left','right'].includes(data.face)?data.face:'down';elapsed=Math.max(0,data.elapsed);if(data.bed&&Number.isFinite(data.bed.x)&&Number.isFinite(data.bed.y)){bed.x=Math.max(115,Math.min(643,data.bed.x));bed.y=Math.max(55,Math.min(395,data.bed.y))}updateClock();placeEl.textContent=districtNames[scene]||interiors[scene].name;dialogOpen=false;dialogue.style.display='none';savePanel.style.display='none'}catch(e){saveError.style.color='#ffb8a8';saveError.textContent=e.message||'Could not load this code.'}};
 const daySummary=document.getElementById('daySummary');let summaryOpen=false,sleepNeedsExit=false;const gameSummary=document.getElementById('daySummary');
 let wakeLocation='home';
 function sleepUntilTomorrow(reason='sleep'){const finishedDay=day;wakeLocation=reason==='outside'?'hospital':'home';document.getElementById('summaryDay').textContent=reason==='sleep'?'Day '+finishedDay+' Complete':reason==='outside'?'You Passed Out — Hospital':'You Passed Out — Home';document.getElementById('summaryEarnings').textContent='0';document.getElementById('summaryRecruited').textContent='0';document.getElementById('summaryHeroes').textContent='0';document.getElementById('summaryMessage').textContent=reason==='outside'?'You were away from home at midnight. You wake up safely at the hospital.':reason==='home'?'You passed out at midnight, but you were safe at home.':'You got some rest and are ready for a new day.';summaryOpen=true;sleepNeedsExit=true;keys.clear();gameSummary.style.display='flex';prompt.style.display='none'}
@@ -293,8 +293,8 @@ const npcActors=[
 ];
 let coupleCycle=0;
 // Wildfire strolls between a few spots in HQ, pausing at each one.
-const wildfire={x:400,y:220,face:'down',walking:false,clock:0};
-const wildfireStops=[{x:400,y:220,wait:3},{x:460,y:240,wait:2},{x:440,y:110,wait:3},{x:340,y:180,wait:2},{x:400,y:220,wait:3}];
+const wildfire={x:576,y:250,face:'down',walking:false,clock:0};
+const wildfireStops=[{x:576,y:250,wait:3},{x:680,y:360,wait:2},{x:600,y:170,wait:3},{x:470,y:300,wait:2},{x:576,y:250,wait:3}];
 let wildfireStop=0,wildfireWait=3;
 // After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
 const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['ximena','❤️'],['danielle','❤️']];
@@ -552,62 +552,51 @@ const hospitalLayout=(()=>{
 // Headquarters follows the supplied eight-room plan. Wall collision and drawing
 // share these segments so every doorway stays passable.
 const hqLayout=(()=>{
- const walls=[];
- const h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8});
- const v=(x,y1,y2)=>walls.push({x,y:y1,w:8,h:y2-y1});
- // Exterior enclosure; the entrance opens into reception at the bottom.
- h(96,704,32);v(96,32,480);v(696,32,480);
- h(96,376,472);h(424,704,472);
- // Upper side rooms and their doors to the side passages.
- v(224,32,80);v(224,120,206);v(224,246,315);
- v(568,32,80);v(568,120,206);v(568,246,315);
- h(96,224,174);h(576,704,174);
- // Mission control, with a centered south doorway.
- v(288,32,315);v(504,32,315);
- h(288,376,315);h(424,512,315);
- // The two lower side rooms open into the main corridor.
- h(96,144,365);h(184,224,365);
- h(576,616,365);h(656,704,365);
- v(224,365,480);v(568,365,480);
- // Reception has an entrance from the corridor.
- h(288,376,365);h(424,512,365);
- v(288,365,480);v(504,365,480);
+ const walls=[],h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'}),v=(x,y1,y2)=>walls.push({x,y:y1,w:8,h:y2-y1,axis:'v'});
+ // Full-size rooms and 96px (three-tile) hallways, aligned to 32px.
+ h(64,1088,64);v(64,64,1024);v(1080,64,1024);
+ h(64,544,1024);h(608,1088,1024);
+ v(288,64,192);v(288,256,416);v(288,480,608);
+ v(864,64,192);v(864,256,416);v(864,480,608);
+ h(64,288,320);h(864,1088,320);
+ v(384,64,608);v(768,64,608);
+ h(384,544,608);h(608,776,608);
+ h(64,144,736);h(208,288,736);
+ h(384,544,736);h(608,768,736);
+ h(864,944,736);h(1008,1088,736);
+ v(288,736,1024);v(384,736,1024);
+ v(768,736,1024);v(864,736,1024);
  return {walls};
 })();
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- tileArea('futuristic',96,40,608,432,'#879ca6');
- // Slightly different floor treatments identify rooms without adding furniture.
- tileArea('tile',104,40,112,128,'#c2d0d5');
- tileArea('tile',104,182,112,175,'#c2d0d5');
- tileArea('tile',576,40,120,128,'#c2d0d5');
- tileArea('tile',576,182,120,175,'#c2d0d5');
- tileArea('carpet',296,40,208,267,'#6c8393');
- tileArea('wood',104,373,112,99,'#a68b70');
- tileArea('wood',576,373,120,99,'#a68b70');
- tileArea('tile',296,373,208,99,'#aabdc6');
- // Room names are temporary wayfinding markers until furniture is placed.
- const label=(name,x,y)=>{ctx.save();ctx.font='bold 11px system-ui';ctx.fillStyle='#253b47';ctx.textAlign='center';ctx.fillText(name,x,y);ctx.restore();};
- label('Med Bay',160,105);label('Research Lab',160,265);
- label('Mission Control',400,170);label('Data & Evidence',636,105);
- label('Administrative',636,265);label("Director's Office",160,425);
- label('Reception',400,425);label('Meeting Room',636,425);
- // Match the raised wall faces and baseboards used in the hospital.
- const wall=(x,y,w,h)=>{rect(x,y-INTERIOR_WALL_HEIGHT+8,w,INTERIOR_WALL_HEIGHT,'#344d5b');rect(x+2,y-INTERIOR_WALL_HEIGHT+13,Math.max(1,w-4),INTERIOR_WALL_HEIGHT-16,'#e2e5dc');rect(x,y+3,w,5,'#486877');};
- // Side walls are narrow vertical partitions, while horizontal walls have height.
- const layers=hqLayout.walls.map(segment=>({y:segment.y+segment.h,draw:()=>{
-  if(segment.w>segment.h)wall(segment.x,segment.y,segment.w,segment.h);
-  else {rect(segment.x,segment.y,segment.w,segment.h,'#344d5b');rect(segment.x+2,segment.y,Math.max(1,segment.w-4),segment.h,'#dbe3df');}
- }}));
+ tileArea('futuristic',64,72,1024,952,'#879ca6');
+ tileArea('tile',72,72,208,240,'#c2d0d5');
+ tileArea('tile',72,328,208,272,'#c2d0d5');
+ tileArea('tile',872,72,208,240,'#c2d0d5');
+ tileArea('tile',872,328,208,272,'#c2d0d5');
+ tileArea('carpet',392,72,368,528,'#6c8393');
+ tileArea('wood',72,744,208,272,'#a68b70');
+ tileArea('wood',872,744,208,272,'#a68b70');
+ tileArea('tile',392,744,368,272,'#aabdc6');
+ const label=(name,x,y)=>{ctx.save();ctx.font='bold 15px system-ui';ctx.fillStyle='#253b47';ctx.textAlign='center';ctx.fillText(name,x,y);ctx.restore();};
+ label('Med Bay',176,200);label('Research Lab',176,450);label('Mission Control',576,210);
+ label('Data & Evidence',976,200);label('Administrative',976,450);
+ label("Director's Office",176,860);label('Reception',576,860);label('Meeting Room',976,860);
+ const drawWall=seg=>{
+  if(seg.axis==='v'){rect(seg.x,seg.y,8,seg.h,'#344d5b');rect(seg.x+2,seg.y,4,seg.h,'#aabdc6');return;}
+  const top=seg.y-INTERIOR_WALL_HEIGHT+8;
+  rect(seg.x,top,seg.w,INTERIOR_WALL_HEIGHT,'#344d5b');
+  rect(seg.x+3,top+7,Math.max(1,seg.w-6),INTERIOR_WALL_HEIGHT-18,'#dce4e3');
+  rect(seg.x,top,seg.w,5,'#65818e');rect(seg.x,seg.y+3,seg.w,5,'#486877');
+ };
+ const layers=hqLayout.walls.map(seg=>({y:seg.axis==='h'?seg.y+8:seg.y+seg.h,draw:()=>drawWall(seg)}));
  layers.push({y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)});
  for(const staff of scheduledStaffHere())layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
  layers.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
- layers.sort((a,b)=>a.y-b.y);for(const layer of layers)layer.draw();
- return;
+ layers.sort((a,b)=>a.y-b.y);for(const layer of layers)layer.draw();return;
 }
-
-const info=interiors[scene];
 if(scene==='hospital'){
  // Four 4x7-tile patient rooms, 3-tile corridor and 6-tile lobby.
  const ox=144,oy=66,t=32,roomBottom=oy+7*t,hallBottom=roomBottom+3*t,entranceY=hallBottom+6*t;
@@ -784,7 +773,7 @@ function scheduledStaffCollision(x,y){
 function collide(x,y){
 if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
- if(x<106||x>694||y<50||y>472)return true;
+ if(x<76||x>1076||y<112||y>1024)return true;
  for(const wall of hqLayout.walls){
   if(x>=wall.x-8&&x<=wall.x+wall.w+8&&y>=wall.y-8&&y<=wall.y+wall.h+8)return true;
  }
@@ -904,7 +893,7 @@ function faceToward(n,target){
 }
 function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'</strong><div style="margin-top:8px">'+message+'</div><small>Press E, Space, or Esc to continue</small>';dialogue.style.display='block';prompt.style.display='none'}
 function closeTalk(){dialogOpen=false;talkingStaffId=null;dialogue.style.display='none'}
-function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='bathroom'){bathroomOccupied=true;bathroomTimer=5;player.moving=false;keys.clear();prompt.style.display='none';}else if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='hospitalStaff'){talkingStaffId=a.staff.id;if(a.staff.id==='dima'){knowsDima=true;refreshOpenDossier();talk('Dima Faheem','Hello! I’m Dima Faheem. I work here at the hospital reception desk. Is there something I can help you with?');}else {knowsKenji=true;refreshOpenDossier();talk('Kenji Nakamura','Welcome. I can help you at reception. We see quite a few superheroes around here.');}}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=scene==='hospital'?560:445;placeEl.textContent=interiors[scene].name}}
+function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='bathroom'){bathroomOccupied=true;bathroomTimer=5;player.moving=false;keys.clear();prompt.style.display='none';}else if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='hospitalStaff'){talkingStaffId=a.staff.id;if(a.staff.id==='dima'){knowsDima=true;refreshOpenDossier();talk('Dima Faheem','Hello! I’m Dima Faheem. I work here at the hospital reception desk. Is there something I can help you with?');}else {knowsKenji=true;refreshOpenDossier();talk('Kenji Nakamura','Welcome. I can help you at reception. We see quite a few superheroes around here.');}}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:400;player.y=scene==='hospital'?560:scene==='hq'?965:445;placeEl.textContent=interiors[scene].name}}
 window.addEventListener('keydown',e=>{if(gamePaused){if(['arrowup','arrowdown','arrowleft','arrowright',' ','e'].includes(e.key.toLowerCase()))e.preventDefault();return;}const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function hospitalCameraY(){return Math.max(0,Math.min(170,player.y-360));}
 function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height+(scene==='hospital'?hospitalCameraY():0)}}
 canvas.addEventListener('pointerdown',e=>{if(scene==='hospital'&&!gamePaused&&!summaryOpen&&!dialogOpen){
@@ -1035,7 +1024,7 @@ if(Math.abs(dx)>Math.abs(dy)&&dx)player.face=dx>0?'right':'left';else if(dy)play
    ? player.x>=282&&player.x<=321&&player.y>=455
    : scene==='hospital'
     ? Math.abs(player.x-400)<=32&&player.y>=hospitalLayout.entranceY-24
-    : Math.abs(player.x-400)<=32&&player.y>=455;
+    : Math.abs(player.x-(scene==='hq'?576:400))<=32&&player.y>=(scene==='hq'?1004:455);
   if(atExit){
    const oldScene=scene;
    scene=lastDistrict;
@@ -1119,6 +1108,6 @@ let gamePaused=false;const pauseOverlay=document.getElementById('pauseOverlay'),
 let gameSpeed=1;
 const speedToggle=document.getElementById("speedToggle");
 speedToggle.addEventListener("click",()=>{gameSpeed=gameSpeed===1?2:1;speedToggle.textContent="Speed: "+gameSpeed+"×";speedToggle.setAttribute("aria-pressed",String(gameSpeed===2));});
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt*gameSpeed);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(264,player.y-280)));drawTown();ctx.restore();}else drawTown();}else if(scene==='hospital'){ctx.save();ctx.translate(0,-hospitalCameraY());drawInterior();ctx.restore();}else if(scene==='hq'){ctx.save();const zoom=1.5;const cameraX=Math.max(0,Math.min(800*zoom-W,player.x*zoom-W/2));const cameraY=Math.max(0,Math.min(528*zoom-H,player.y*zoom-H/2));ctx.translate(-cameraX,-cameraY);ctx.scale(zoom,zoom);drawInterior();ctx.restore();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;update(dt*gameSpeed);ctx.clearRect(0,0,W,H);if(districts.includes(scene)){if(scene==='commercial'){ctx.save();ctx.translate(0,-Math.max(0,Math.min(264,player.y-280)));drawTown();ctx.restore();}else drawTown();}else if(scene==='hospital'){ctx.save();ctx.translate(0,-hospitalCameraY());drawInterior();ctx.restore();}else if(scene==='hq'){ctx.save();const cameraX=Math.max(0,Math.min(1152-W,player.x-W/2));const cameraY=Math.max(0,Math.min(1088-H,player.y-H/2));ctx.translate(-cameraX,-cameraY);drawInterior();ctx.restore();}else drawInterior();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script></body></html>
