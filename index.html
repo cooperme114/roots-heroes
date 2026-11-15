@@ -677,7 +677,17 @@ if(scene==='hq')drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wild
 for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
 window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
 }
+// Keep scheduled civilians solid without trapping the player if a route overlaps them.
+function scheduledStaffCollision(x,y){
+ return scheduledStaffHere().some(staff=>{
+  const pos=npcSchedule(staff.id);
+  const before=Math.hypot(player.x-pos.x,player.y-pos.y);
+  const after=Math.hypot(x-pos.x,y-pos.y);
+  return after<25&&!(before<25&&after>before);
+ });
+}
 function collide(x,y){
+if(scheduledStaffCollision(x,y))return true;
 if(scene==='home'){
 // Use a character-width inset so the sprite cannot stand inside exterior walls.
 // Keep the doorway at the bottom accessible for leaving the house.
@@ -782,7 +792,7 @@ return districtBuildings().some(b=>{
  return x>b.x-8&&x<b.x+b.w+8&&y>b.y-8&&y<b.y+b.h+8;
 });
 }
-function interactable(){if(scene==='home'&&!bathroomOccupied&&!bathroomExitLatch&&player.x>=405&&player.x<=447&&player.y>=266&&player.y<=315)return {kind:'bathroom',label:'Bathroom'};if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){for(const staff of scheduledStaffHere()){const pos=npcSchedule(staff.id);if(Math.hypot(player.x-pos.x,player.y-pos.y)<75)return {kind:'hospitalStaff',staff,label:'Talk to '+staff.name}}if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const {x:doorX,y:doorY}=exteriorDoorPosition(b);if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
+function interactable(){if(scene==='home'&&!bathroomOccupied&&!bathroomExitLatch&&player.x>=405&&player.x<=447&&player.y>=266&&player.y<=315)return {kind:'bathroom',label:'Bathroom'};for(const staff of scheduledStaffHere()){const pos=npcSchedule(staff.id);if(Math.hypot(player.x-pos.x,player.y-pos.y)<65)return {kind:'hospitalStaff',staff,label:'Talk to '+staff.name}}if(scene==='hq'&&Math.hypot(player.x-wildfire.x,player.y-wildfire.y)<65)return {kind:'wildfire',label:'Talk to Wildfire'};if(!districts.includes(scene)){if(scene==='home'&&player.x>=bed.x&&player.x<=bed.x+bed.w&&player.y>=bed.y+36&&player.y<=bed.y+bed.h){return sleepNeedsExit?null:{kind:'sleep',label:'Sleep until tomorrow'}}else sleepNeedsExit=false;return null;}for(const n of npcActors)if(n.scene===scene&&Math.hypot(player.x-n.x,player.y-n.y)<59)return {kind:'heroNpc',npc:n,label:'Talk'};if(scene==='town')for(const n of npcs)if(Math.hypot(player.x-n.x,player.y-n.y)<51)return {kind:'npc',npc:n,label:'Talk to '+n.name};for(const b of districtBuildings()){const {x:doorX,y:doorY}=exteriorDoorPosition(b);if(Math.abs(player.x-doorX)<(b.id==='home'?20:38)&&Math.abs(player.y-doorY)<(b.id==='home'?20:48))return {kind:b.id==='home'||b.id==='hq'||b.id==='cafe'||b.id==='hospital'?'door':'placeholder',building:b,label:'Visit '+b.name}}return null}
 function faceToward(n,target){
  const dx=target.x-n.x,dy=target.y-n.y;
  n.face=Math.abs(dx)>Math.abs(dy)?(dx>=0?'right':'left'):(dy>=0?'down':'up');
