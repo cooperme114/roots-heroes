@@ -584,21 +584,29 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  // One continuous floor throughout the headquarters; room names are not drawn.
  tileArea('futuristic',64,72,1024,896,'#879ca6');
- // Reuse the hospital wall renderer's dimensions, colors and layering.
- const hospitalWall=(x,y,w,h)=>{
-  rect(x,y,w,h,'#344d5b');
-  rect(x+2,y+5,w-4,Math.max(1,h-13),'#e2e5dc');
-  rect(x+2,y+5,w-4,5,'#8da6ac');
-  rect(x,y+h-5,w,5,'#486877');
+ // House-style construction: flat, full-tile side walls and continuous
+ // two-tile horizontal wall faces, with the same clean cap/baseboard system.
+ const trim='#79563e',wall='#e8d9b9',light='#cda77c';
+ const drawSide=seg=>{
+  const x=seg.x-11,w=32;
+  rect(x,seg.y,w,seg.h,trim);
+  rect(x+5,seg.y,w-10,seg.h,wall);
+  rect(x,seg.y,5,seg.h,light);
+  rect(x+w-5,seg.y,5,seg.h,trim);
  };
- const drawWall=seg=>{
-  if(seg.axis==='v')hospitalWall(seg.x-11,seg.y,seg.w,seg.h);
-  else hospitalWall(seg.x,seg.y-INTERIOR_WALL_HEIGHT+8,seg.w,INTERIOR_WALL_HEIGHT);
+ const drawFront=seg=>{
+  const x=seg.x,y=seg.y-INTERIOR_WALL_HEIGHT+8,w=seg.w,h=INTERIOR_WALL_HEIGHT;
+  rect(x,y,w,h,trim);
+  rect(x+3,y+8,Math.max(1,w-6),h-15,wall);
+  rect(x,y,w,8,trim);
+  rect(x,y,w,2,light);
+  rect(x,y+h-5,w,5,trim);
+  rect(x,y+h-5,w,2,light);
  };
- // As in the hospital, long side walls are drawn first; horizontal wall
- // faces are sorted against characters by their bottom edge.
- for(const seg of hqLayout.walls)if(seg.axis==='v')drawWall(seg);
- const layers=hqLayout.walls.filter(seg=>seg.axis==='h').map(seg=>({y:seg.y+8,draw:()=>drawWall(seg)}));
+ // Side walls are one uninterrupted tile-wide surface. Horizontal faces
+ // sit over their junctions, as in the house, without extra protruding caps.
+ for(const seg of hqLayout.walls)if(seg.axis==='v')drawSide(seg);
+ const layers=hqLayout.walls.filter(seg=>seg.axis==='h').map(seg=>({y:seg.y+8,draw:()=>drawFront(seg)}));
  layers.push({y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)});
  for(const staff of scheduledStaffHere())layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
  layers.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
