@@ -864,6 +864,9 @@ if(scene==='hq'){
   const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
   const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
   if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
+  // The two southernmost rows are the building's exterior foreground.
+  // They can obscure characters, but characters cannot enter or cross them.
+  if(row>=19)return true;
   return hqLayout.rows[row][col]==='V';
  };
  if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
