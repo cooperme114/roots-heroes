@@ -565,80 +565,12 @@ const hospitalLayout=(()=>{
 // All geometry uses shared axes; openings are deliberate gaps.
 // HQ rebuilt from the approved reference as one aligned architectural plan.
 // Every junction uses shared X/Y axes; openings are deliberate empty spans.
-const hqLayout=(()=>{
- const walls=[],panels=[];
- const H=(left,right,y)=>{
-  walls.push({axis:'h',x:left,y,w:right-left,h:32});
-  panels.push({x:left,y:y-66,w:right-left,h:66});
- };
- const V=(x,top,bottom)=>walls.push({axis:'v',x,y:top,w:16,h:bottom-top});
- const X={L:64,a:272,b:368,c:496,d:656,e:784,f:880,R:1088,
-          entryL:528,entryR:624};
- const Y={top:144,upper:286,upperFace:376,cross:496,
-          middle:624,lower:752,bottom:936};
- // North wall and the two symmetrical room wings.
- H(X.L,X.a,Y.top);H(X.b,X.e,Y.top);H(X.f,X.R,Y.top);
- V(X.a,Y.top,Y.upper-30);V(X.a,Y.upper+30,Y.upperFace);
- V(X.b,Y.top,Y.upperFace);
- V(X.e,Y.top,Y.upperFace);
- V(X.f,Y.top,Y.upper-30);V(X.f,Y.upper+30,Y.upperFace);
- // North-facing small rooms and their wall returns.
- H(X.L,X.a,Y.upperFace);H(X.b,X.c,Y.upperFace);
- H(X.d,X.e,Y.upperFace);H(X.f,X.R,Y.upperFace);
- // Wide east-west corridor; the central opening is uninterrupted.
- H(X.L,X.a,Y.cross);H(X.b,X.e,Y.cross);H(X.f,X.R,Y.cross);
- // Middle row: left and right wings, with a central island.
- V(X.a,Y.cross,Y.middle-36);V(X.a,Y.middle+36,Y.lower);
- V(X.f,Y.cross,Y.middle-36);V(X.f,Y.middle+36,Y.lower);
- H(X.L,X.a,Y.middle);H(X.b,X.e,Y.middle);H(X.f,X.R,Y.middle);
- // Lower rooms have door gaps at their north ends.
- V(X.a,Y.middle,Y.lower-36);V(X.a,Y.lower+36,Y.bottom);
- V(X.f,Y.middle,Y.lower-36);V(X.f,Y.lower+36,Y.bottom);
- H(X.L,X.entryL,Y.lower);H(X.entryR,X.R,Y.lower);
- // Bottom center entrance; no wall or panel bridges this gap.
- H(X.L,X.entryL,Y.bottom);H(X.entryR,X.R,Y.bottom);
- // Reduce the entire HQ plan to 75% around its center, retaining
- // the same wall alignments, openings, and panel-to-wall relationships.
- const scale=.75,cx=576,cy=540;
- const tx=x=>Math.round(cx+(x-cx)*scale);
- const ty=y=>Math.round(cy+(y-cy)*scale);
- for(const w of walls){
-  w.x=tx(w.x);w.y=ty(w.y);
-  w.w=Math.round(w.w*scale);w.h=Math.round(w.h*scale);
- }
- for(const p of panels){
-  p.x=tx(p.x);p.y=ty(p.y);
-  p.w=Math.round(p.w*scale);p.h=Math.round(p.h*scale);
- }
- return {walls,panels,bounds:{left:192,right:960,top:190,bottom:860,entryX:576}};
-})();
+// Empty HQ interior: no walls, partitions, or wall panels.
+const hqLayout={walls:[],panels:[],bounds:{left:192,right:960,top:190,bottom:860,entryX:576}};
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- // Approved reference: uniform gray tiles, blue upper panels, cream
- // horizontal faces and dark brown vertical returns.
  tileArea('futuristic',192,190,768,672,'#b9bec6');
- const brown='#65402e',dark='#30211d',light='#bc8c63';
- for(const p of hqLayout.panels){
-  rect(p.x-4,p.y-4,p.w+8,p.h+8,dark);
-  rect(p.x,p.y,p.w,p.h,'#91d9ec');
-  rect(p.x+3,p.y+3,p.w-6,p.h-6,'#a1e1f0');
- }
- // Draw the brown side returns first, then the complete cream wall faces.
- // All endpoints use the same axes; no free-floating connector pieces.
- for(const w of hqLayout.walls)if(w.axis==='v'){
-  rect(w.x-8,w.y,16,w.h,dark);
-  rect(w.x-6,w.y,12,w.h,brown);
-  rect(w.x-4,w.y,3,w.h,light);
- }
- for(const w of hqLayout.walls)if(w.axis==='h'){
-  const y=w.y-1;
-  rect(w.x-3,y-3,w.w+6,36,dark);
-  rect(w.x,y,w.w,30,'#eee0c6');
-  rect(w.x,y,w.w,5,brown);
-  rect(w.x,y+5,w.w,3,light);
-  rect(w.x,y+26,w.w,4,brown);
- }
  drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
  for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
