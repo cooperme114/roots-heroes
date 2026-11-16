@@ -732,7 +732,7 @@ if(scene==='hq'){
   const x=map.x+col*t,y=map.y+row*t,w=(end-col)*t,h=(bottom-row)*t;
   const capCols=[];
   for(let c=col;c<end;c++)if(row===0||map.rows[row-1][c]!=='H')capCols.push(c);
-  layers.push({y:y+h,draw:()=>{
+  layers.push({y:y+h,order:1,draw:()=>{
    rect(x,y,w,h,'#eee0c6');
    for(const c of capCols){
     const cx=map.x+c*t;
@@ -748,8 +748,26 @@ if(scene==='hq'){
   while(bottom<map.rows.length&&map.rows[bottom][col]==='V'){
    usedReturns[bottom][col]=true;bottom++;
   }
-  const x=map.x+col*t,y=map.y+row*t,h=(bottom-row)*t;
-  layers.push({y:y+h,draw:()=>{rect(x,y,t,h,'#65402e');rect(x+3,y,4,h,'#bc8c63')}});
+  const x=map.x+col*t,y=map.y+row*t;
+  // At a cream-wall junction, continue the brown return down behind
+  // the entire two-row cream face, even if its V tiles end sooner.
+  // A small horizontal overlap is hidden by the cream wall artwork.
+  let visualBottom=bottom;
+  for(let r=Math.max(row,bottom-2);r<Math.min(map.rows.length,bottom+2);r++){
+   for(const side of [-1,1]){
+    const c=col+side;
+    if(c<0||c>=24||map.rows[r][c]!=='H')continue;
+    const pairedBelow=r+1<map.rows.length&&map.rows[r+1][c]==='H';
+    const pairedAbove=r>0&&map.rows[r-1][c]==='H';
+    if(pairedBelow)visualBottom=Math.max(visualBottom,r+2);
+    else if(pairedAbove)visualBottom=Math.max(visualBottom,r+1);
+   }
+  }
+  const h=(visualBottom-row)*t;
+  layers.push({y:y+h,order:0,draw:()=>{
+   rect(x-5,y,t+10,h,'#65402e');
+   rect(x+3,y,4,h,'#bc8c63');
+  }});
  }
  for(const item of hqFurniture)
   layers.push({y:item.y+item.h-8,draw:()=>furniture(item.key,item.x,item.y,item.w,item.h)});
@@ -757,7 +775,7 @@ if(scene==='hq'){
  for(const staff of scheduledStaffHere())
   layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
  layers.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
- layers.sort((a,b)=>a.y-b.y);
+ layers.sort((a,b)=>a.y-b.y||(a.order??2)-(b.order??2));
  for(const layer of layers)layer.draw();
  return;
 }
