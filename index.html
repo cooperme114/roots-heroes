@@ -557,46 +557,39 @@ const hospitalLayout=(()=>{
 // Horizontal walls use the hospital's 64px front faces; vertical walls are
 // hospital-style narrow side returns. These are collision footprints, not art.
 const hqLayout=(()=>{
- // Plan(1).png: blue rooms, grey circulation, black wall lines.
- // Shared axes ensure disconnected segments of a corridor stay aligned.
- const X={west:64,outerEast:1088,left:288,centerLeft:384,centerRight:768,right:864,
-          southLeft:528,southRight:640};
- const Y={north:64,upper:176,upperDoorEnd:232,upperDoorStart:336,
-          crossTop:392,crossBottom:488,midTop:584,midBottom:680,
-          south:824,bottom:968};
+ // The replacement HQ blueprint is the sole source of interior walls.
+ // Blue areas are rooms, grey areas are circulation. Door gaps are explicit.
  const walls=[];
  const h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'});
  const v=(x,y1,y2)=>walls.push({x,y:y1,w:16,h:y2-y1,axis:'v'});
- // Building perimeter, with the main entrance at the bottom middle.
- h(64,1088,Y.north);v(64,Y.north,Y.bottom);v(1078,Y.north,Y.bottom);
- h(64,528,Y.bottom);h(640,1088,Y.bottom);
- // Top row: two central full-height divisions; two outer door gaps.
- h(64,288,Y.upper);h(288,384,Y.upper);h(384,768,Y.upper);
- h(768,864,Y.upper);h(864,1088,Y.upper);
- v(X.left,Y.north,Y.upperDoorEnd);v(X.left,Y.upperDoorStart,Y.crossTop);
- v(X.centerLeft,Y.north,Y.crossTop);
- v(X.centerRight,Y.north,Y.crossTop);
- v(X.right,Y.north,Y.upperDoorEnd);v(X.right,Y.upperDoorStart,Y.crossTop);
- // Upper cross-corridor and the four facing room partitions.
- h(64,288,Y.crossTop);h(384,528,Y.crossTop);
- h(640,768,Y.crossTop);h(864,1088,Y.crossTop);
- h(64,288,Y.crossBottom);h(384,528,Y.crossBottom);
- h(640,768,Y.crossBottom);h(864,1088,Y.crossBottom);
- v(X.left,Y.crossTop,Y.crossBottom);
- v(X.centerLeft,Y.crossTop,Y.crossBottom);
- v(X.centerRight,Y.crossTop,Y.crossBottom);
- v(X.right,Y.crossTop,Y.crossBottom);
- // Middle horizontal corridor, open across the middle of the building.
- h(64,288,Y.midTop);h(384,528,Y.midTop);
- h(640,768,Y.midTop);h(864,1088,Y.midTop);
- h(64,288,Y.midBottom);h(384,768,Y.midBottom);h(864,1088,Y.midBottom);
- // Lower rooms: openings on corridor-facing walls only.
- v(X.left,Y.midTop,656);v(X.left,752,Y.south);
- v(X.centerLeft,Y.midBottom,Y.south);
- v(X.centerRight,Y.midTop,Y.midBottom);
- v(X.right,Y.midTop,744);v(X.right,808,Y.south);
- h(64,X.southLeft,Y.south);h(X.southRight,1088,Y.south);
- v(X.southLeft,Y.south,Y.bottom);v(X.southRight,Y.south,Y.bottom);
+ // Scale the 545x455 blueprint into the existing 1024x904 HQ footprint.
+ const sx=x=>Math.round(64+x*1024/545);
+ const sy=y=>Math.round(64+y*904/455);
+ const H=(a,b,y)=>h(sx(a),sx(b),sy(y));
+ const V=(x,a,b)=>v(sx(x),sy(a),sy(b));
+ // Exterior, with the entrance opening in the bottom center.
+ H(0,545,0);V(0,0,455);V(545,0,455);
+ H(0,252,455);H(310,545,455);
+ // Top rooms: openings are breaks in the vertical corridor walls.
+ H(0,114,55);H(182,362,55);H(440,545,55);
+ V(114,0,83);V(114,135,165);
+ V(167,0,165);V(362,0,165);
+ V(425,0,83);V(425,138,165);
+ // Four upper rooms on the north side of the broad cross hall.
+ H(0,129,165);H(172,240,165);H(309,374,165);H(435,545,165);
+ V(129,165,215);V(172,165,215);
+ V(240,165,215);V(309,165,215);
+ V(374,165,215);V(435,165,215);
+ H(0,129,215);H(172,240,215);H(309,374,215);H(435,545,215);
+ // Rooms below the cross hall; retain only the actual drawing's openings.
+ H(0,129,265);H(172,374,265);H(435,545,265);
+ V(129,265,335);V(129,374,385);
+ V(172,265,310);
+ V(374,265,310);V(435,265,335);V(435,374,385);
+ H(0,117,310);H(172,374,310);H(435,545,310);
+ // Southern rooms, with an open central approach to the entrance.
+ V(252,385,455);V(310,385,455);
+ H(0,252,385);H(310,545,385);
  return {walls};
 })();
 function drawInterior(){
