@@ -863,10 +863,11 @@ if(scene==='hq'){
   const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
   const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
   if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
-  // Keep the exterior solid except for the two-tile main entrance.
-  if(row>=19)return !(col===11||col===12);
-  // Internal wall faces are drawn over characters according to foot depth.
-  return hqLayout.rows[row][col]==='V';
+  // The bottom two rows are foreground wall art: characters can walk
+  // behind them, but cannot leave the HQ map except via the exit trigger.
+  // All interior H and V tiles remain solid, matching the actual floor plan.
+  if(row>=19)return false;
+  return hqLayout.rows[row][col]!=='.';
  };
  if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
     hqFootSolid(x-r,y+r)||hqFootSolid(x+r,y+r))return true;
