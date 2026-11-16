@@ -617,10 +617,17 @@ if(scene==='hq'){
    const start=col;
    while(col<24&&line[col]==='H')col++;
    const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
-   rect(x,y,w,t,'#91d9ec');
-   rect(x,y+t-12,w,12,'#eee0c6');
-   rect(x,y+t-12,w,3,'#65402e');
-   rect(x,y+t-3,w,3,'#65402e');
+   // A single cream wall face with a brown cap along its north edge.
+   // Adjacent horizontal rows merge visually without repeated stripes.
+   rect(x,y,w,t,'#eee0c6');
+   const above=row>0?map.rows[row-1]:'';
+   for(let k=start;k<col;){
+    if(above[k]==='H'){k++;continue;}
+    const capStart=k;
+    while(k<col&&above[k]!=='H')k++;
+    rect(map.x+capStart*t,y,(k-capStart)*t,5,'#65402e');
+    rect(map.x+capStart*t,y+5,(k-capStart)*t,2,'#bc8c63');
+   }
   }
  }
  // Brown wall returns occupy their exact grid cells, without the
