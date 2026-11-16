@@ -631,7 +631,7 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  const map=hqLayout,t=map.tile;
  tileArea('futuristic',map.x,map.y,24*t,21*t,'#b9b9b9');
- function drawHqWalls(){
+ function drawHqWalls(behindFeet=-Infinity){
  // Fill all horizontal wall tiles as a single continuous cream surface.
  // Merge matching runs vertically so two stacked rows cannot show a seam.
  const used=Array.from({length:map.rows.length},()=>Array(24).fill(false));
@@ -643,7 +643,8 @@ if(scene==='hq'){
   while(bottom<map.rows.length&&
    [...Array(end-col)].every((_,i)=>map.rows[bottom][col+i]==='H'&&!used[bottom][col+i]))bottom++;
   for(let r=row;r<bottom;r++)for(let c=col;c<end;c++)used[r][c]=true;
-  rect(map.x+col*t,map.y+row*t,(end-col)*t,(bottom-row)*t,'#eee0c6');
+  if(map.y+bottom*t>behindFeet)
+   rect(map.x+col*t,map.y+row*t,(end-col)*t,(bottom-row)*t,'#eee0c6');
  }
  // Cap only the exposed northern edge, never the seam between stacked tiles.
  for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;){
@@ -651,16 +652,14 @@ if(scene==='hq'){
   const start=col;
   while(col<24&&map.rows[row][col]==='H'&&(row===0||map.rows[row-1][col]!=='H'))col++;
   const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
-  rect(x,y,w,5,'#65402e');
-  rect(x,y+5,w,2,'#bc8c63');
+  if(y+2*t>behindFeet){rect(x,y,w,5,'#65402e');rect(x,y+5,w,2,'#bc8c63');}
  }
  // Brown wall returns occupy their exact grid cells, without the
  // alignment offsets or extra border rectangles of the old renderer.
  for(let row=0;row<map.rows.length;row++)
   for(let col=0;col<24;col++)if(map.rows[row][col]==='V'){
    const x=map.x+col*t,y=map.y+row*t;
-   rect(x,y,t,t,'#65402e');
-   rect(x+3,y,4,t,'#bc8c63');
+   if(y+t>behindFeet){rect(x,y,t,t,'#65402e');rect(x+3,y,4,t,'#bc8c63');}
   }
  }
  drawHqWalls();
@@ -673,9 +672,9 @@ if(scene==='hq'){
  ];
  actors.sort((a,b)=>a.y-b.y);
  for(const actor of actors)actor.draw();
- // Walls south of the player's feet must cover their sprite.
- ctx.save();ctx.beginPath();ctx.rect(map.x,player.y,24*t,map.y+21*t-player.y);ctx.clip();
- drawHqWalls();ctx.restore();
+ // Overlay walls by their floor-depth, like the hospital's wall layers.
+ // Never clip at the player's feet: that was painting the player onto wall faces.
+ drawHqWalls(player.y);
  // Characters are rendered once, in depth order.
  return;
 }
@@ -864,9 +863,9 @@ if(scene==='hq'){
   const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
   const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
   if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
-  // The two southernmost rows are the building's exterior foreground.
-  // They can obscure characters, but characters cannot enter or cross them.
-  if(row>=19)return true;
+  // Keep the exterior solid except for the two-tile main entrance.
+  if(row>=19)return !(col===11||col===12);
+  // Internal wall faces are drawn over characters according to foot depth.
   return hqLayout.rows[row][col]==='V';
  };
  if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
