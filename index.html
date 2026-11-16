@@ -604,6 +604,27 @@ const hqLayout={
    this.rows[row][col]!=='.';
  }
 };
+// Validate the whole HQ wall map, not just the room currently on screen.
+// Each cream wall must have a two-tile-high face and a solid northern row;
+// every brown wall return is a solid tile. The two-cell entrance stays open.
+(function verifyHqWalls(){
+ const rows=hqLayout.rows,errors=[];
+ if(rows.length!==21||rows.some(row=>row.length!==24))errors.push('HQ dimensions');
+ for(let r=0;r<rows.length;r++)for(let c=0;c<24;c++){
+  const cell=rows[r][c];
+  if(cell==='H'&&r<19){
+   const above=r>0&&rows[r-1][c]==='H';
+   const below=r+1<rows.length&&rows[r+1][c]==='H';
+   if(above===below)errors.push('Unpaired wall at '+r+','+c);
+  }
+  if(!'.HV'.includes(cell))errors.push('Unknown tile '+r+','+c);
+ }
+ for(let c=0;c<24;c++){
+  if((c===11||c===12)!==(rows[19][c]==='.'&&rows[20][c]==='.'))
+   errors.push('Exterior entrance '+c);
+ }
+ if(errors.length)console.error('HQ wall layout validation:',errors);
+})();
 // The starting Director's Office is the bottom-left room of the HQ map.
 // Drag furnishings to reposition; their top-left corners snap to an 8px grid.
 const hqOffice={left:224,top:606,right:352,bottom:798};
@@ -631,37 +652,6 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  const map=hqLayout,t=map.tile;
  tileArea('futuristic',map.x,map.y,24*t,21*t,'#b9b9b9');
- function drawHqWalls(behindFeet=-Infinity){
- // Fill all horizontal wall tiles as a single continuous cream surface.
- // Merge matching runs vertically so two stacked rows cannot show a seam.
- const used=Array.from({length:map.rows.length},()=>Array(24).fill(false));
- for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;col++){
-  if(map.rows[row][col]!=='H'||used[row][col])continue;
-  let end=col+1;
-  while(end<24&&map.rows[row][end]==='H'&&!used[row][end])end++;
-  let bottom=row+1;
-  while(bottom<map.rows.length&&
-   [...Array(end-col)].every((_,i)=>map.rows[bottom][col+i]==='H'&&!used[bottom][col+i]))bottom++;
-  for(let r=row;r<bottom;r++)for(let c=col;c<end;c++)used[r][c]=true;
-  if(map.y+bottom*t>behindFeet)
-   rect(map.x+col*t,map.y+row*t,(end-col)*t,(bottom-row)*t,'#eee0c6');
- }
- // Cap only the exposed northern edge, never the seam between stacked tiles.
- for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;){
-  if(map.rows[row][col]!=='H'||(row>0&&map.rows[row-1][col]==='H')){col++;continue;}
-  const start=col;
-  while(col<24&&map.rows[row][col]==='H'&&(row===0||map.rows[row-1][col]!=='H'))col++;
-  const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
-  if(y+2*t>behindFeet){rect(x,y,w,5,'#65402e');rect(x,y+5,w,2,'#bc8c63');}
- }
- // Brown wall returns occupy their exact grid cells, without the
- // alignment offsets or extra border rectangles of the old renderer.
- for(let row=0;row<map.rows.length;row++)
-  for(let col=0;col<24;col++)if(map.rows[row][col]==='V'){
-   const x=map.x+col*t,y=map.y+row*t;
-   if(y+t>behindFeet){rect(x,y,t,t,'#65402e');rect(x+3,y,4,t,'#bc8c63');}
-  }
- }
  // Use the same feet-depth ordering as the hospital for EVERY character,
  // including Wildfire and scheduled staff, rather than only the player.
  const layers=[];
