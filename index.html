@@ -608,11 +608,11 @@ const hqLayout={
 // Drag furnishings to reposition; their top-left corners snap to an 8px grid.
 const hqOffice={left:224,top:606,right:352,bottom:798};
 const hqFurniture=[
- {key:'hqDesk',x:232,y:680,w:80,h:56},
- {key:'hqCabinet',x:232,y:752,w:32,h:64}
+ {key:'hqDesk',x:240,y:742,w:80,h:56},
+ {key:'hqCabinet',x:224,y:628,w:32,h:64}
 ];
 try{
- const saved=JSON.parse(localStorage.getItem('roots-hq-furniture-v1')||'null');
+ const saved=JSON.parse(localStorage.getItem('roots-hq-furniture-v2')||'null');
  if(Array.isArray(saved))for(const item of hqFurniture){
   const match=saved.find(v=>v.key===item.key);
   if(match&&Number.isFinite(match.x)&&Number.isFinite(match.y)){
@@ -631,6 +631,7 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  const map=hqLayout,t=map.tile;
  tileArea('futuristic',map.x,map.y,24*t,21*t,'#b9b9b9');
+ function drawHqWalls(){
  // Fill all horizontal wall tiles as a single continuous cream surface.
  // Merge matching runs vertically so two stacked rows cannot show a seam.
  const used=Array.from({length:map.rows.length},()=>Array(24).fill(false));
@@ -661,10 +662,24 @@ if(scene==='hq'){
    rect(x,y,t,t,'#65402e');
    rect(x+3,y,4,t,'#bc8c63');
   }
- for(const item of hqFurniture)furniture(item.key,item.x,item.y,item.w,item.h);
- drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
+ }
+ drawHqWalls();
+ // Furniture and characters use their floor contact points for depth.
+ const actors=[
+  ...hqFurniture.map(item=>({y:item.y+item.h-8,draw:()=>furniture(item.key,item.x,item.y,item.w,item.h)})),
+  {y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)},
+  ...scheduledStaffHere().map(staff=>({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)})),
+  {y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
+ ];
+ actors.sort((a,b)=>a.y-b.y);
+ for(const actor of actors)actor.draw();
+ // Walls south of the player's feet must cover their sprite.
+ ctx.save();ctx.beginPath();ctx.rect(map.x,player.y,24*t,map.y+21*t-player.y);ctx.clip();
+ drawHqWalls();ctx.restore();
+ // All actors are drawn above; don't render them again.
+ /*drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
  for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
- window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);*/
  return;
 }
 if(scene==='hospital'){
@@ -847,6 +862,12 @@ if(scene==='hq'){
  const r=8;
  if(hqLayout.solid(x-r,y-r)||hqLayout.solid(x+r,y-r)||
     hqLayout.solid(x-r,y+r)||hqLayout.solid(x+r,y+r))return true;
+ for(const item of hqFurniture){
+  const left=item.x+3,right=item.x+item.w-3;
+  const top=item.key==='hqDesk'?item.y+item.h-24:item.y+item.h-18;
+  const bottom=item.y+item.h+3;
+  if(x+r>left&&x-r<right&&y+r>top&&y-r<bottom)return true;
+ }
  const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
  const after=Math.hypot(x-wildfire.x,y-wildfire.y);
  return after<30&&!(before<30&&after>before);
