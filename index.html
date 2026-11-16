@@ -630,12 +630,20 @@ const hqLayout={
 // Cream wall faces are 64px tall, but their solid base is a thin
 // horizontal barrier. This lets sprites disappear behind the wall
 // without letting them cross it. Brown returns seal the ends.
+// Full-height invisible blockers at the cream/brown junctions marked
+// with yellow Xs on the HQ plan. Each pair covers BOTH cream wall rows.
+// Coordinates are [row, column] in the existing 24x21 HQ tile map.
+const hqJunctionBlockers=new Set([
+ '9,5','10,5','9,8','10,8','9,15','10,15','9,18','10,18',
+ '19,5','20,5','19,18','20,18'
+]);
 function hqWallBlocked(x,y,r=8){
  const m=hqLayout,t=m.tile;
  const solidPoint=(px,py)=>{
   const col=Math.floor((px-m.x)/t),row=Math.floor((py-m.y)/t);
   if(col<0||col>=24||row<0||row>=m.rows.length)return true;
   const cell=m.rows[row][col];
+  if(hqJunctionBlockers.has(row+','+col))return true;
   if(cell==='V')return true;
   if(cell!=='H')return false;
   // Every paired cream wall has the SAME solid base: the bottom
@@ -648,6 +656,16 @@ function hqWallBlocked(x,y,r=8){
   const stopY=row===20?baseY-34:baseY-12;
   return py>=stopY;
  };
+ // Check the player's full foot circle against the entire invisible
+ // blocker rectangles. This prevents diagonal slips at tile corners,
+ // not merely crossings through the middle of a marked tile.
+ for(const key of hqJunctionBlockers){
+  const [row,col]=key.split(',').map(Number);
+  const left=m.x+col*t,right=left+t,top=m.y+row*t,bottom=top+t;
+  const nearestX=Math.max(left,Math.min(x,right));
+  const nearestY=Math.max(top,Math.min(y,bottom));
+  if((x-nearestX)**2+(y-nearestY)**2<=r*r)return true;
+ }
  // Feet have width, not height. Probe the full width.
  for(let dx=-r;dx<=r;dx+=2)if(solidPoint(x+dx,y))return true;
  // Seal EVERY brown/cream join, including T-junctions where the
