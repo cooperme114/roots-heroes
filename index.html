@@ -609,7 +609,16 @@ if(scene==='hq'){
   // baseboard and end jambs, like the house's bedroom divider.
   // Draw them AFTER the returns so no brown side strip cuts through a face.
   for(const seg of hqLayout.walls)if(seg.axis==='h'){
-   const x=seg.x,y=seg.y-56,w=seg.w;
+   // A front face covers the COMPLETE thickness of any side wall it
+   // terminates against. Previously its endpoint stopped at the wall's
+   // centerline, leaving a brown strip protruding in front of the face.
+   const adjoining=hqLayout.walls.filter(v=>v.axis==='v'&&
+    v.y<seg.y+8&&v.y+v.h>seg.y-56);
+   const leftJoin=adjoining.find(v=>Math.abs(v.x-seg.x)<=8);
+   const rightJoin=adjoining.find(v=>Math.abs(v.x-(seg.x+seg.w))<=8);
+   const x=leftJoin?Math.min(seg.x,leftJoin.x-5):seg.x;
+   const right=rightJoin?Math.max(seg.x+seg.w,rightJoin.x+15):seg.x+seg.w;
+   const y=seg.y-56,w=right-x;
    ac.fillStyle=shadow;ac.fillRect(x-2,y-2,w+4,68);
    ac.fillStyle=face;ac.fillRect(x,y,w,64);
    ac.fillStyle=trim;ac.fillRect(x,y,w,7);
