@@ -965,7 +965,17 @@ function talk(name,message){dialogOpen=true;dialogue.innerHTML='<strong>'+name+'
 function closeTalk(){dialogOpen=false;talkingStaffId=null;dialogue.style.display='none'}
 function action(){if(gamePaused||summaryOpen)return;if(dialogOpen){closeTalk();return}const a=interactable();if(!a)return;if(a.kind==='bathroom'){bathroomOccupied=true;bathroomTimer=5;player.moving=false;keys.clear();prompt.style.display='none';}else if(a.kind==='sleep'){sleepUntilTomorrow();}else if(a.kind==='hospitalStaff'){talkingStaffId=a.staff.id;if(a.staff.id==='dima'){knowsDima=true;refreshOpenDossier();talk('Dima Faheem','Hello! I’m Dima Faheem. I work here at the hospital reception desk. Is there something I can help you with?');}else {knowsKenji=true;refreshOpenDossier();talk('Kenji Nakamura','Welcome. I can help you at reception. We see quite a few superheroes around here.');}}else if(a.kind==='wildfire'){faceToward(wildfire,player);talk('Finn / Wildfire','Hey, I’m Finn. Wildfire when I’m on the job. Just hanging out at headquarters for a bit.');}else if(a.kind==='heroNpc'){faceToward(a.npc,player);if(a.npc.id==='danielle'){knowsDanielle=true;refreshOpenDossier();talk('Danielle','Hey! I’m Danielle. Nice to meet you. I’m usually around the police station, so you’ll probably see me again.');}else if(a.npc.id==='ximena'){knowsXimena=true;refreshOpenDossier();talk('Ximena','Hi, I’m Ximena. I’m a journalist at the newspaper office. It’s nice to meet you!');}}else if(a.kind==='npc'){faceToward(a.npc,player);talk(a.npc.name,a.npc.text);}else if(a.kind==='placeholder'){talk(a.building.name,'This building is planned for a future update.')}else if(a.kind==='door'){lastDistrict=scene;scene=a.building.id;player.x=scene==='home'?301:scene==='hq'?576:400;player.y=scene==='hospital'?560:scene==='hq'?826:445;placeEl.textContent=interiors[scene].name}}
 window.addEventListener('keydown',e=>{if(gamePaused){if(['arrowup','arrowdown','arrowleft','arrowright',' ','e'].includes(e.key.toLowerCase()))e.preventDefault();return;}const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','escape'].includes(k))e.preventDefault();if((k==='e'||k===' ')&&!e.repeat)action();else if(k==='escape')closeTalk();keys.add(k)});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());function hospitalCameraY(){return Math.max(0,Math.min(170,player.y-360));}
-function bedPointer(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height+(scene==='hospital'?hospitalCameraY():0)}}
+function bedPointer(e){
+ const r=canvas.getBoundingClientRect();
+ let x=(e.clientX-r.left)*canvas.width/r.width;
+ let y=(e.clientY-r.top)*canvas.height/r.height;
+ // Pointer coordinates must use the same scrolling camera as the HQ renderer.
+ if(scene==='hq'){
+  x+=Math.max(0,Math.min(1152-W,player.x-W/2));
+  y+=Math.max(0,Math.min(1088-H,player.y-H/2));
+ }else if(scene==='hospital')y+=hospitalCameraY();
+ return {x,y};
+}
 let hqFurnitureDrag=null;
 canvas.addEventListener('pointerdown',e=>{if(scene==='hq'&&!gamePaused&&!summaryOpen&&!dialogOpen){
  const p=bedPointer(e);
