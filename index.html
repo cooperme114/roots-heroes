@@ -863,11 +863,24 @@ if(scene==='hq'){
   const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
   const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
   if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
-  // The bottom two rows are foreground wall art: characters can walk
-  // behind them, but cannot leave the HQ map except via the exit trigger.
-  // All interior H and V tiles remain solid, matching the actual floor plan.
-  if(row>=19)return false;
-  return hqLayout.rows[row][col]!=='.';
+  // Horizontal walls have a tall visible face. Their solid footprint is
+  // only at the base, so the player's feet can move down behind the face
+  // without passing all the way through the partition.
+  if(row>=19){
+   const entrance=col===11||col===12;
+   if(entrance)return false;
+   // Stop before the feet reach the bottom edge of the exterior wall.
+   return py>=hqLayout.y+19*hqLayout.tile+22;
+  }
+  const cell=hqLayout.rows[row][col];
+  if(cell==='V')return true;
+  if(cell==='H'){
+   // Paired H rows form a 64px-tall wall. Keep a thin solid strip at
+   // its base; the upper part is the foreground face, not floor collision.
+   const nextIsH=row+1<hqLayout.rows.length&&hqLayout.rows[row+1][col]==='H';
+   return !nextIsH&&(py-hqLayout.y)%hqLayout.tile>=20;
+  }
+  return false;
  };
  if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
     hqFootSolid(x-r,y+r)||hqFootSolid(x+r,y+r))return true;
