@@ -880,10 +880,13 @@ if(scene==='hq'){
   const cell=hqLayout.rows[row][col];
   if(cell==='V')return true;
   if(cell==='H'){
-   // Paired H rows form a 64px-tall wall. Keep a thin solid strip at
-   // its base; the upper part is the foreground face, not floor collision.
-   const nextIsH=row+1<hqLayout.rows.length&&hqLayout.rows[row+1][col]==='H';
-   return !nextIsH&&(py-hqLayout.y)%hqLayout.tile>=20;
+   // Paired horizontal wall rows: the northern row is the solid
+   // partition. The southern row is its foreground-facing artwork,
+   // which can cover a character standing on the near side.
+   // This prevents entering the wall from the north or crossing it
+   // from the south while still allowing the player below its face.
+   const hasHAbove=row>0&&hqLayout.rows[row-1][col]==='H';
+   return !hasHAbove;
   }
   return false;
  };
