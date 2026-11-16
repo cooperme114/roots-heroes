@@ -557,28 +557,46 @@ const hospitalLayout=(()=>{
 // Horizontal walls use the hospital's 64px front faces; vertical walls are
 // hospital-style narrow side returns. These are collision footprints, not art.
 const hqLayout=(()=>{
- // Shared wall axes: every separated section of a hallway uses the same x.
- const AX={leftWing:256,missionLeft:384,missionRight:768,rightWing:896};
- const walls=[],h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'}),v=(x,y1,y2)=>walls.push({x,y:y1,w:32,h:y2-y1,axis:'v'});
- // Perimeter: bottom-center exterior entrance is the only outside gap.
- h(64,1088,64);v(64,64,968);v(1078,64,968);
- h(64,544,968);h(608,1088,968);
- // Left wing: Med Bay and Research Lab each have one east-facing doorway.
- v(AX.leftWing,64,132);v(AX.leftWing,216,440);v(AX.leftWing,516,620);
- h(64,AX.leftWing,320);h(64,AX.leftWing,620);
- // Right wing: Data & Evidence and Administrative open west.
- v(AX.rightWing,64,132);v(AX.rightWing,216,440);v(AX.rightWing,516,620);
- h(AX.rightWing,1088,320);h(AX.rightWing,1088,620);
- // Mission Control has a single south-facing doorway.
- v(AX.missionLeft,64,620);v(AX.missionRight,64,620);
- h(AX.missionLeft,540,620);h(612,AX.missionRight,620);
- // Director's Office and Meeting Room have north-facing doors.
- h(64,116,724);h(184,AX.leftWing,724);
- h(AX.rightWing,968,724);h(1036,1088,724);
- // Reception has a SOLID north wall and two side entrances.
- h(AX.missionLeft,774,724);
- v(AX.leftWing,724,968);v(AX.missionLeft,724,826);v(AX.missionLeft,900,968);
- v(AX.missionRight,724,826);v(AX.missionRight,900,968);v(AX.rightWing,724,968);
+ // Plan(1).png: blue rooms, grey circulation, black wall lines.
+ // Shared axes ensure disconnected segments of a corridor stay aligned.
+ const X={west:64,outerEast:1088,left:288,centerLeft:384,centerRight:768,right:864,
+          southLeft:528,southRight:640};
+ const Y={north:64,upper:176,upperDoorEnd:232,upperDoorStart:336,
+          crossTop:392,crossBottom:488,midTop:584,midBottom:680,
+          south:824,bottom:968};
+ const walls=[];
+ const h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'});
+ const v=(x,y1,y2)=>walls.push({x,y:y1,w:16,h:y2-y1,axis:'v'});
+ // Building perimeter, with the main entrance at the bottom middle.
+ h(64,1088,Y.north);v(64,Y.north,Y.bottom);v(1078,Y.north,Y.bottom);
+ h(64,528,Y.bottom);h(640,1088,Y.bottom);
+ // Top row: two central full-height divisions; two outer door gaps.
+ h(64,288,Y.upper);h(288,384,Y.upper);h(384,768,Y.upper);
+ h(768,864,Y.upper);h(864,1088,Y.upper);
+ v(X.left,Y.north,Y.upperDoorEnd);v(X.left,Y.upperDoorStart,Y.crossTop);
+ v(X.centerLeft,Y.north,Y.crossTop);
+ v(X.centerRight,Y.north,Y.crossTop);
+ v(X.right,Y.north,Y.upperDoorEnd);v(X.right,Y.upperDoorStart,Y.crossTop);
+ // Upper cross-corridor and the four facing room partitions.
+ h(64,288,Y.crossTop);h(384,528,Y.crossTop);
+ h(640,768,Y.crossTop);h(864,1088,Y.crossTop);
+ h(64,288,Y.crossBottom);h(384,528,Y.crossBottom);
+ h(640,768,Y.crossBottom);h(864,1088,Y.crossBottom);
+ v(X.left,Y.crossTop,Y.crossBottom);
+ v(X.centerLeft,Y.crossTop,Y.crossBottom);
+ v(X.centerRight,Y.crossTop,Y.crossBottom);
+ v(X.right,Y.crossTop,Y.crossBottom);
+ // Middle horizontal corridor, open across the middle of the building.
+ h(64,288,Y.midTop);h(384,528,Y.midTop);
+ h(640,768,Y.midTop);h(864,1088,Y.midTop);
+ h(64,288,Y.midBottom);h(384,768,Y.midBottom);h(864,1088,Y.midBottom);
+ // Lower rooms: openings on corridor-facing walls only.
+ v(X.left,Y.midTop,656);v(X.left,752,Y.south);
+ v(X.centerLeft,Y.midBottom,Y.south);
+ v(X.centerRight,Y.midTop,Y.midBottom);
+ v(X.right,Y.midTop,744);v(X.right,808,Y.south);
+ h(64,X.southLeft,Y.south);h(X.southRight,1088,Y.south);
+ v(X.southLeft,Y.south,Y.bottom);v(X.southRight,Y.south,Y.bottom);
  return {walls};
 })();
 function drawInterior(){
