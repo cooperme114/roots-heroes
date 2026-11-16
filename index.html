@@ -650,21 +650,31 @@ function hqWallBlocked(x,y,r=8){
  };
  // Feet have width, not height. Probe the full width.
  for(let dx=-r;dx<=r;dx+=2)if(solidPoint(x+dx,y))return true;
- // Invisible corner plugs at EVERY cream/brown junction. The cream
- // wall's visible lower row is normally non-solid so characters can
- // stand behind it; at a brown return this left a diagonal shortcut.
- // Seal the end of that lower row without changing any visible tiles.
- for(let row=1;row<m.rows.length;row++)for(let col=0;col<24;col++){
-  if(m.rows[row][col]!=='H'||m.rows[row-1][col]!=='H')continue;
-  const leftReturn=col>0&&(m.rows[row][col-1]==='V'||m.rows[row-1][col-1]==='V');
-  const rightReturn=col<23&&(m.rows[row][col+1]==='V'||m.rows[row-1][col+1]==='V');
-  if(!leftReturn&&!rightReturn)continue;
-  const tileLeft=m.x+col*t,top=m.y+row*t;
-  // Extend the plug a little below the face to close diagonal paths.
-  const plugTop=top-4,plugBottom=top+t+8,plugWidth=14;
-  if(y+r<plugTop||y-r>plugBottom)continue;
-  if(leftReturn&&x+r>tileLeft&&x-r<tileLeft+plugWidth)return true;
-  if(rightReturn&&x+r>tileLeft+t-plugWidth&&x-r<tileLeft+t)return true;
+ // Seal EVERY brown/cream join, including T-junctions where the
+ // brown return ends one row ABOVE or starts one row BELOW the cream.
+ // The previous fix only checked V tiles immediately left/right of
+ // the lower cream row, so it missed those common corner shapes.
+ // Expand each V tile touching a cream tile (including diagonally)
+ // into an invisible rectangle by 12px on every side. Check the
+ // player's feet as a circle against that rectangle, preventing
+ // diagonal corner-cutting without adding visible artwork.
+ const pad=12;
+ for(let row=0;row<m.rows.length;row++)for(let col=0;col<24;col++){
+  if(m.rows[row][col]!=='V')continue;
+  let touchesCream=false;
+  for(let dr=-1;dr<=1&&!touchesCream;dr++)
+   for(let dc=-1;dc<=1;dc++){
+    const rr=row+dr,cc=col+dc;
+    if(rr>=0&&rr<m.rows.length&&cc>=0&&cc<24&&m.rows[rr][cc]==='H'){
+     touchesCream=true;break;
+    }
+   }
+  if(!touchesCream)continue;
+  const left=m.x+col*t-pad,right=m.x+(col+1)*t+pad;
+  const top=m.y+row*t-pad,bottom=m.y+(row+1)*t+pad;
+  const nearestX=Math.max(left,Math.min(x,right));
+  const nearestY=Math.max(top,Math.min(y,bottom));
+  if((x-nearestX)**2+(y-nearestY)**2<=r*r)return true;
  }
  return false;
 }
