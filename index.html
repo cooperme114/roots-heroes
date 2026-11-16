@@ -676,10 +676,7 @@ if(scene==='hq'){
  // Walls south of the player's feet must cover their sprite.
  ctx.save();ctx.beginPath();ctx.rect(map.x,player.y,24*t,map.y+21*t-player.y);ctx.clip();
  drawHqWalls();ctx.restore();
- // All actors are drawn above; don't render them again.
- /*drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
- for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
- window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);*/
+ // Characters are rendered once, in depth order.
  return;
 }
 if(scene==='hospital'){
