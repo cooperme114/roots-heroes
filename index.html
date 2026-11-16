@@ -297,7 +297,25 @@ const wildfire={x:576,y:560,face:'down',walking:false,clock:0};
 // Patrol the open central hall (tile rows 11-12), not the old HQ coordinates.
 // Hold movement into Wildfire for 3 seconds to pass through him.
 // Walls and furniture always remain solid.
-let wildfirePushSeconds=0,wildfirePassThrough=false;
+// Any NPC can be pushed through after 3 seconds of sustained pressure.
+let npcPushTarget=null,npcPushSeconds=0;
+const npcPassThrough=new Set();
+function nearbyBlockingNpcs(){
+ const npcs=scheduledStaffHere().map(staff=>{
+  const p=npcSchedule(staff.id);
+  return {id:'staff:'+staff.id,x:p.x,y:p.y,radius:25};
+ });
+ if(scene==='hq')npcs.push({id:'wildfire',x:wildfire.x,y:wildfire.y,radius:30});
+ for(const n of npcActors)if(n.scene===scene)
+  npcs.push({id:'actor:'+n.id,x:n.x,y:n.y,radius:25});
+ return npcs;
+}
+function npcBlocksMovement(n,x,y){
+ if(npcPassThrough.has(n.id))return false;
+ const before=Math.hypot(player.x-n.x,player.y-n.y);
+ const after=Math.hypot(x-n.x,y-n.y);
+ return after<n.radius&&!(before<n.radius&&after>before);
+}
 const wildfireStops=[{x:576,y:560,wait:3},{x:688,y:560,wait:2},{x:624,y:560,wait:3},{x:464,y:560,wait:2},{x:576,y:560,wait:3}];
 let wildfireStop=0,wildfireWait=3;
 // After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
@@ -966,12 +984,7 @@ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),pla
 }
 // Keep scheduled civilians solid without trapping the player if a route overlaps them.
 function scheduledStaffCollision(x,y){
- return scheduledStaffHere().some(staff=>{
-  const pos=npcSchedule(staff.id);
-  const before=Math.hypot(player.x-pos.x,player.y-pos.y);
-  const after=Math.hypot(x-pos.x,y-pos.y);
-  return after<25&&!(before<25&&after>before);
- });
+ return nearbyBlockingNpcs().some(n=>n.id.startsWith('staff:')&&npcBlocksMovement(n,x,y));
 }
 function collide(x,y){
 if(scheduledStaffCollision(x,y))return true;
@@ -992,11 +1005,7 @@ if(scene==='hq'){
   const bottom=item.y+item.h+3;
   if(x+r>left&&x-r<right&&y+r>top&&y-r<bottom)return true;
  }
- const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
- const after=Math.hypot(x-wildfire.x,y-wildfire.y);
- // Once the 3-second push succeeds, let the player pass through
- // Wildfire, but keep all HQ walls and furniture blocking normally.
- return !wildfirePassThrough&&after<30&&!(before<30&&after>before);
+ return nearbyBlockingNpcs().some(n=>n.id==='wildfire'&&npcBlocksMovement(n,x,y));
 }
 if(scene==='home'){
 // Use a character-width inset so the sprite cannot stand inside exterior walls.
@@ -1244,21 +1253,27 @@ for(let i=0;i<npcActors.length;i++){
 
 player.shoveShake=Math.max(0,(player.shoveShake||0)-dt);
 let dx=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft')),dy=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'));if(dx&&dy){if(player.face==='left'||player.face==='right')dy=0;else dx=0;}dx=dx*player.speed*dt;dy=dy*player.speed*dt;
-if(scene==='hq'){
- const distance=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
- const nextDistance=Math.hypot(player.x+dx-wildfire.x,player.y+dy-wildfire.y);
- // Count only deliberate movement pressing toward Wildfire while
- // close enough to be stopped by him, not standing still nearby.
- const pushing=(dx!==0||dy!==0)&&distance<42&&nextDistance<distance&&nextDistance<38;
- if(pushing&&!wildfirePassThrough)wildfirePushSeconds+=dt;
- else if(!wildfirePassThrough)wildfirePushSeconds=0;
- if(wildfirePushSeconds>=3)wildfirePassThrough=true;
- // Remain intangible to this NPC until fully past him so the player
- // cannot become trapped again halfway through the crossing.
- if(wildfirePassThrough&&distance>42){
-  wildfirePassThrough=false;wildfirePushSeconds=0;
+// A sustained attempt to move INTO any NPC unlocks passage through
+// that particular NPC after 3 seconds. Switching targets resets time.
+const npcs=nearbyBlockingNpcs();
+for(const id of npcPassThrough){
+ const n=npcs.find(n=>n.id===id);
+ if(!n||Math.hypot(player.x-n.x,player.y-n.y)>n.radius+12)npcPassThrough.delete(id);
+}
+const candidate=npcs.find(n=>{
+ const distance=Math.hypot(player.x-n.x,player.y-n.y);
+ const nextDistance=Math.hypot(player.x+dx-n.x,player.y+dy-n.y);
+ return !npcPassThrough.has(n.id)&&(dx!==0||dy!==0)&&
+  distance<n.radius+12&&nextDistance<distance&&nextDistance<n.radius+8;
+});
+if(candidate){
+ if(npcPushTarget!==candidate.id){npcPushTarget=candidate.id;npcPushSeconds=0;}
+ npcPushSeconds+=dt;
+ if(npcPushSeconds>=3){
+  npcPassThrough.add(candidate.id);
+  npcPushTarget=null;npcPushSeconds=0;
  }
-}else{wildfirePushSeconds=0;wildfirePassThrough=false;}
+}else{npcPushTarget=null;npcPushSeconds=0;}
 
 // Fast simulation can leap past the narrow district exit before the
 // transition check runs. Clamp outward steps to the valid exit threshold.
