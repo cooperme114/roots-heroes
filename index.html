@@ -568,43 +568,69 @@ const hospitalLayout=(()=>{
 // Empty HQ interior: no walls, partitions, or wall panels.
 // HQ uses the supplied 562x453 blueprint as its coordinate source.
 // Blue shapes are solid wall blocks; gray is walkable. No legacy wall pieces.
-const hqLayout=(()=>{
- const ox=192,oy=190,sx=768/562,sy=672/453;
- const blocks=[
-  [16,0,98,55],[182,0,180,55],[440,0,105,55],
-  [6,165,123,50],[172,165,70,50],[307,165,70,50],[425,165,132,50],
-  [0,265,129,44],[172,265,212,44],[434,265,128,44],
-  [0,385,253,68],[309,385,253,68]
- ];
- // Dark wall strokes in the drawing, including the small interrupted
- // vertical returns. Each interval is an intentional continuous section.
- const lines=[
-  [114,0,15,82],[167,0,15,165],[362,0,15,165],
-  [425,0,15,82],[114,135,15,30],[425,138,15,27],
-  [114,55,15,27],[425,55,15,27],
-  [124,165,5,50],[167,165,5,50],[237,165,5,50],
-  [307,165,5,50],[372,165,5,50],[425,165,5,50],
-  [114,215,15,50],[167,215,5,50],[237,215,5,50],
-  [307,215,5,50],[372,215,5,50],[425,215,15,50],
-  [114,309,15,26],[167,309,5,26],[425,309,15,26],
-  [114,374,15,11],[425,374,15,11],
-  [253,385,5,68],[304,385,5,68]
- ];
- const scale=([x,y,w,h])=>({x:ox+x*sx,y:oy+y*sy,w:w*sx,h:h*sy});
- return {blocks:blocks.map(scale),lines:lines.map(scale),
-  bounds:{left:ox,right:ox+768,top:oy,bottom:oy+672,entryX:ox+281*sx}};
-})();
+// Exact 24 x 21 tile transcription of the user's 32px HQ floor plan.
+// H = horizontal wall, V = vertical wall, . = walkable gray floor.
+// Tile colors are not rendered as grid squares: only continuous wall faces.
+const hqLayout={
+ x:192,y:190,tile:32,
+ rows:[
+ "HHHHHHHHHHHHHHHHHHHHHHHH",
+ "VHHHHHHHVHHHHHHVHHHHHHHV",
+ "V.......V......V.......V",
+ "V.......V......V.......V",
+ "V.......V......V.......V",
+ "HHHHHH..V......V..HHHHHH",
+ "VHHHHV..V......V..VHHHHV",
+ "V....V..V......V..V....V",
+ "V....V..V......V..V....V",
+ "HH..HH..HHH..HHH..HH..HH",
+ "HH..HH..HHH..HHH..HH..HH",
+ "V......................H",
+ "V......................H",
+ "HHHHHH..HHHHHHHH..VHHHHH",
+ "VHHHHV..HHHHHHHH..VHHHHV",
+ "V....V............V....V",
+ "V......................V",
+ "V......................V",
+ "V....V............V....V",
+ "HHHHHHHHHH....HHHHHHHHHH",
+ "HHHHHHHHHH....HHHHHHHHHH"
+],
+ bounds:{left:192,right:960,top:190,bottom:862,entryX:576},
+ solid(x,y){
+  const col=Math.floor((x-this.x)/this.tile),row=Math.floor((y-this.y)/this.tile);
+  return row<0||row>=this.rows.length||col<0||col>=24||
+   this.rows[row][col]!=='.';
+ }
+};
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- // Trace the uploaded floor plan at a uniform, reduced HQ size.
- const b=hqLayout.bounds;
- rect(b.left,b.top,b.right-b.left,b.bottom-b.top,'#c3c3c3');
- for(const block of hqLayout.blocks){
-  rect(block.x-4,block.y-4,block.w+8,block.h+8,'#050505');
-  rect(block.x,block.y,block.w,block.h,'#9edff0');
+ const map=hqLayout,t=map.tile;
+ rect(map.x,map.y,24*t,21*t,'#b9b9b9');
+ // Each contiguous row of horizontal wall tiles is a single uninterrupted
+ // cream wall face with blue upper surface. No visible tile-grid seams.
+ for(let row=0;row<map.rows.length;row++){
+  const line=map.rows[row];
+  for(let col=0;col<24;){
+   if(line[col]!=='H'){col++;continue;}
+   const start=col;
+   while(col<24&&line[col]==='H')col++;
+   const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
+   rect(x,y,w,t,'#91d9ec');
+   rect(x,y+t-12,w,12,'#eee0c6');
+   rect(x,y+t-12,w,3,'#65402e');
+   rect(x,y+t-3,w,3,'#65402e');
+  }
  }
- for(const line of hqLayout.lines)rect(line.x,line.y,line.w,line.h,'#050505');
+ // Brown wall returns occupy their exact grid cells, without the
+ // alignment offsets or extra border rectangles of the old renderer.
+ for(let row=0;row<map.rows.length;row++)
+  for(let col=0;col<24;col++)if(map.rows[row][col]==='V'){
+   const x=map.x+col*t,y=map.y+row*t;
+   rect(x,y,t,t,'#65402e');
+   rect(x+3,y,4,t,'#bc8c63');
+  }
  drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
  for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
@@ -786,11 +812,10 @@ function scheduledStaffCollision(x,y){
 function collide(x,y){
 if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
- const b=hqLayout.bounds;
- if(x<b.left+12||x>b.right-12||y<b.top+12||y>b.bottom)return true;
- for(const wall of [...hqLayout.blocks,...hqLayout.lines]){
-  if(x>=wall.x-12&&x<=wall.x+wall.w+12&&y>=wall.y-12&&y<=wall.y+wall.h+12)return true;
- }
+ // Character-sized collision against the same tiles used for rendering.
+ const r=8;
+ if(hqLayout.solid(x-r,y-r)||hqLayout.solid(x+r,y-r)||
+    hqLayout.solid(x-r,y+r)||hqLayout.solid(x+r,y+r))return true;
  const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
  const after=Math.hypot(x-wildfire.x,y-wildfire.y);
  return after<30&&!(before<30&&after>before);
