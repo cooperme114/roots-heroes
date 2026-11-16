@@ -625,6 +625,46 @@ const hqLayout={
  }
  if(errors.length)console.error('HQ wall layout validation:',errors);
 })();
+// Shared HQ collision geometry: independent of rendering and camera.
+function hqWallBlocked(x,y,r=8){
+ const map=hqLayout,t=map.tile;
+ const solidAt=(px,py)=>{
+  const col=Math.floor((px-map.x)/t),row=Math.floor((py-map.y)/t);
+  if(col<0||col>=24||row<0||row>=map.rows.length)return true;
+  const tile=map.rows[row][col];
+  if(tile==='V')return true;
+  if(tile!== 'H')return false;
+  // The last pair is the exterior foreground. The side boundaries
+  // remain solid, while the exit corridor stays open.
+  if(row>=19){
+   if(col===0||col===23)return true;
+   if(col===11||col===12)return false;
+   // Collision at the base of the foreground face, rather than at its
+   // top, lets the character stand behind the wall without feet showing.
+   return py>=map.y+19*t+30;
+  }
+  // All interior wall pairs have the same physical partition: their
+  // northern tile. The lower tile is purely the tall wall facade.
+  return row===0||map.rows[row-1][col]!=='H';
+ };
+ // Match the hospital's feet-only collision: horizontal radius for
+ // character width, but no head-height vertical sampling.
+ return solidAt(x-r,y)||solidAt(x+r,y);
+}
+// Exhaustively check every column of every two-row wall for consistent
+// collision: solid partition, traversable face, and blocked vertical returns.
+(function verifyHqCollision(){
+ const m=hqLayout,t=m.tile,failures=[];
+ for(let row=0;row<19;row++)for(let col=0;col<24;col++){
+  const tile=m.rows[row][col],x=m.x+(col+.5)*t,y=m.y+row*t;
+  if(tile==='H'){
+   const upper=row===0||m.rows[row-1][col]!=='H';
+   if(hqWallBlocked(x,y+16,0)!==upper)failures.push('H '+row+','+col);
+  }
+  if(tile==='V'&&!hqWallBlocked(x,y+16,0))failures.push('V '+row+','+col);
+ }
+ if(failures.length)console.error('HQ collision failures:',failures);
+})();
 // The starting Director's Office is the bottom-left room of the HQ map.
 // Drag furnishings to reposition; their top-left corners snap to an 8px grid.
 const hqOffice={left:224,top:606,right:352,bottom:798};
@@ -877,39 +917,11 @@ if(scene==='hq'){
  // Like the hospital, horizontal cream wall faces are foreground scenery:
  // the player's feet may pass behind them while the wall hides the sprite.
  // Brown vertical wall returns remain solid, as do map boundaries.
- const hqFootSolid=(px,py)=>{
-  const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
-  const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
-  if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
-  // Horizontal walls have a tall visible face. Their solid footprint is
-  // only at the base, so the player's feet can move down behind the face
-  // without passing all the way through the partition.
-  if(row>=19){
-   // The outer side walls stay solid all the way down to the foreground.
-   // Do not allow the player to slip sideways into the left/right wall
-   // while walking behind the bottom wall face.
-   if(col===0||col===23)return true;
-   const entrance=col===11||col===12;
-   if(entrance)return false;
-   // Let the feet go 8px farther behind the foreground wall, but
-   // stop before the sprite reaches its visible lower edge.
-   return py>=hqLayout.y+19*hqLayout.tile+30;
-  }
-  const cell=hqLayout.rows[row][col];
-  if(cell==='V')return true;
-  if(cell==='H'){
-   // Paired horizontal wall rows: the northern row is the solid
-   // partition. The southern row is its foreground-facing artwork,
-   // which can cover a character standing on the near side.
-   // This prevents entering the wall from the north or crossing it
-   // from the south while still allowing the player below its face.
-   const hasHAbove=row>0&&hqLayout.rows[row-1][col]==='H';
-   return !hasHAbove;
-  }
-  return false;
- };
- if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
-    hqFootSolid(x-r,y+r)||hqFootSolid(x+r,y+r))return true;
+ // Use the same feet-based collision model everywhere in HQ.
+ // A paired cream wall has a solid northern tile and a southern visual
+ // face. The southern face can cover a character, but cannot be crossed
+ // because the northern tile blocks passage. Vertical returns are solid.
+ if(hqWallBlocked(x,y,r))return true;
  for(const item of hqFurniture){
   const left=item.x+3,right=item.x+item.w-3;
   const top=item.key==='hqDesk'?item.y+item.h-24:item.y+item.h-18;
