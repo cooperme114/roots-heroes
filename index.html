@@ -608,7 +608,7 @@ function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  const map=hqLayout,t=map.tile;
- rect(map.x,map.y,24*t,21*t,'#b9b9b9');
+ tileArea('futuristic',map.x,map.y,24*t,21*t,'#b9b9b9');
  // Fill all horizontal wall tiles as a single continuous cream surface.
  // Merge matching runs vertically so two stacked rows cannot show a seam.
  const used=Array.from({length:map.rows.length},()=>Array(24).fill(false));
