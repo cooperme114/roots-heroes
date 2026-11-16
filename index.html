@@ -561,31 +561,62 @@ const hospitalLayout=(()=>{
 // HQ geometry from the latest blue/grey blueprint. No legacy partitions.
 // Fresh, intentionally simple HQ: four large rooms and a central hallway.
 // No geometry is inherited from the earlier blueprints.
+// HQ rebuilt to match the approved symmetrical pixel-art reference.
+// All geometry uses shared axes; openings are deliberate gaps.
 const hqLayout=(()=>{
- const walls=[];
- const h=(x1,x2,y)=>walls.push({axis:'h',x:x1,y,w:x2-x1,h:12});
- const v=(x,y1,y2)=>walls.push({axis:'v',x,y:y1,w:12,h:y2-y1});
- // Perimeter and centered front entrance.
- h(64,1088,72);v(64,72,968);v(1088,72,968);
- h(64,528,968);h(624,1088,968);
- // A wide 192px central hallway. Each room opens directly into it.
- // Upper left: Mission Control; lower left: Research Lab.
- v(480,72,260);v(480,356,552);v(480,648,968);
- h(64,480,520);
- // Upper right: Med Bay; lower right: Director's Office.
- v(672,72,260);v(672,356,552);v(672,648,968);
- h(672,1088,520);
- return {walls};
+ const walls=[],panels=[];
+ const H=(x1,x2,y,panel=false)=>{
+  walls.push({axis:'h',x:x1,y,w:x2-x1,h:12});
+  if(panel)panels.push({x:x1,y:y-66,w:x2-x1,h:66});
+ };
+ const V=(x,y1,y2)=>walls.push({axis:'v',x,y:y1,w:12,h:y2-y1});
+ const L=64,R=1088,A=272,B=368,C=784,D=880,mid=576;
+ // Perimeter, open at the bottom center.
+ H(L,R,88,true);V(L,88,968);V(R,88,968);
+ H(L,528,968);H(624,R,968);
+ // Upper wing rooms and the tall central mission room.
+ H(L,A,190,true);H(B,C,190,true);H(D,R,190,true);
+ V(A,88,242);V(A,308,380);
+ V(B,88,380);V(C,88,380);
+ V(D,88,242);V(D,308,380);
+ // Alcoves open into the central cross-hall.
+ H(L,A,380,true);H(B,496,380,true);
+ H(656,C,380,true);H(D,R,380,true);
+ // Central room dividers, aligned to the same corridor axes.
+ H(L,A,540,true);H(B,C,540,true);H(D,R,540,true);
+ V(A,540,650);V(A,720,772);
+ V(D,540,650);V(D,720,772);
+ // Bottom-left and bottom-right wings, center passage stays open.
+ H(L,A,772,true);H(D,R,772,true);
+ H(L,528,864,true);H(624,R,864,true);
+ V(528,864,968);V(624,864,968);
+ return {walls,panels};
 })();
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- // Layout-only pass: neutral 10px wall lines, no trim or decorative faces.
- // Each wall and its collision share the same geometry.
- tileArea('futuristic',64,72,1024,896,'#879ca6');
- for(const wall of hqLayout.walls){
-  rect(wall.x-(wall.axis==='v'?wall.w/2:0),wall.y-(wall.axis==='h'?wall.h/2:0),
-   wall.w,wall.h,'#273b45');
+ // Approved reference: uniform gray tiles, blue upper panels, cream
+ // horizontal faces and dark brown vertical returns.
+ tileArea('futuristic',64,72,1024,896,'#b9bec6');
+ const brown='#65402e',dark='#30211d',light='#bc8c63';
+ for(const p of hqLayout.panels){
+  rect(p.x-4,p.y-4,p.w+8,p.h+8,dark);
+  rect(p.x,p.y,p.w,p.h,'#91d9ec');
+  rect(p.x+3,p.y+3,p.w-6,p.h-6,'#a1e1f0');
+ }
+ // Side walls first; all cream faces are in front, as in the reference.
+ for(const w of hqLayout.walls)if(w.axis==='v'){
+  rect(w.x-9,w.y,18,w.h,dark);
+  rect(w.x-6,w.y,12,w.h,brown);
+  rect(w.x-4,w.y,3,w.h,light);
+ }
+ for(const w of hqLayout.walls)if(w.axis==='h'){
+  const y=w.y-1;
+  rect(w.x-4,y-4,w.w+8,37,dark);
+  rect(w.x,y,w.w,27,'#eee0c6');
+  rect(w.x,y,w.w,5,brown);
+  rect(w.x,y+5,w.w,3,light);
+  rect(w.x,y+25,w.w,5,brown);
  }
  drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
  for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
