@@ -558,12 +558,44 @@ const hospitalLayout=(()=>{
 // hospital-style narrow side returns. These are collision footprints, not art.
 // Clean HQ rebuild: no legacy wall segments, wall caches, or wall styles.
 // Interior partitions will be added only after their geometry is settled.
-const hqLayout={walls:[]};
+// HQ geometry from the latest blue/grey blueprint. No legacy partitions.
+const hqLayout=(()=>{
+ const walls=[],sx=x=>64+x*1024/545,sy=y=>64+y*904/455;
+ const H=(x1,x2,y)=>walls.push({axis:'h',x:sx(x1),y:sy(y),w:sx(x2)-sx(x1),h:10});
+ const V=(x,y1,y2)=>walls.push({axis:'v',x:sx(x),y:sy(y1),w:10,h:sy(y2)-sy(y1)});
+ // Outer walls and bottom-center entrance.
+ H(0,545,0);V(0,0,455);V(545,0,455);
+ H(0,252,455);H(310,545,455);
+ // North rooms: exact openings in the two short vertical partitions.
+ H(0,545,55);
+ V(121,0,82);V(121,135,165);
+ V(175,0,165);V(370,0,165);
+ V(432,0,82);V(432,138,165);
+ // The four smaller rooms bordering the upper cross corridor.
+ H(0,125,165);H(170,240,165);H(310,375,165);H(435,545,165);
+ V(125,165,215);V(170,165,215);V(240,165,215);
+ V(310,165,215);V(375,165,215);V(435,165,215);
+ H(0,125,215);H(170,240,215);H(310,375,215);H(435,545,215);
+ // Central cross hall and its lower rooms.
+ H(0,125,265);H(170,375,265);H(435,545,265);
+ V(125,265,335);V(170,265,310);V(375,265,310);V(435,265,335);
+ H(0,117,310);H(170,375,310);H(435,545,310);
+ // Lower corridor and bottom two rooms.
+ V(117,310,335);V(435,310,335);
+ H(0,252,385);H(310,545,385);
+ V(252,385,455);V(310,385,455);
+ return {walls};
+})();
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- // Empty full-size HQ shell: uniform floor and no inherited partitions.
+ // Layout-only pass: neutral 10px wall lines, no trim or decorative faces.
+ // Each wall and its collision share the same geometry.
  tileArea('futuristic',64,72,1024,896,'#879ca6');
+ for(const wall of hqLayout.walls){
+  rect(wall.x-(wall.axis==='v'?wall.w/2:0),wall.y-(wall.axis==='h'?wall.h/2:0),
+   wall.w,wall.h,'#273b45');
+ }
  drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
  for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
  window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
@@ -747,7 +779,7 @@ if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
  if(x<76||x>1076||y<112||y>968)return true;
  for(const wall of hqLayout.walls){
-  if(x>=wall.x-(wall.axis==='v'?3:0)-8&&x<=wall.x+(wall.axis==='v'?13:wall.w)+8&&y>=wall.y-8&&y<=wall.y+(wall.axis==='h'?8:wall.h)+8)return true;
+  if(x>=wall.x-(wall.axis==='v'?wall.w/2:0)-8&&x<=wall.x+(wall.axis==='v'?wall.w/2:wall.w)+8&&y>=wall.y-(wall.axis==='h'?wall.h/2:0)-8&&y<=wall.y+(wall.axis==='h'?wall.h/2:wall.h)+8)return true;
  }
  const before=Math.hypot(player.x-wildfire.x,player.y-wildfire.y);
  const after=Math.hypot(x-wildfire.x,y-wildfire.y);
