@@ -293,8 +293,9 @@ const npcActors=[
 ];
 let coupleCycle=0;
 // Wildfire strolls between a few spots in HQ, pausing at each one.
-const wildfire={x:576,y:250,face:'down',walking:false,clock:0};
-const wildfireStops=[{x:576,y:250,wait:3},{x:680,y:360,wait:2},{x:600,y:170,wait:3},{x:470,y:300,wait:2},{x:576,y:250,wait:3}];
+const wildfire={x:576,y:560,face:'down',walking:false,clock:0};
+// Patrol the open central hall (tile rows 11-12), not the old HQ coordinates.
+const wildfireStops=[{x:576,y:560,wait:3},{x:688,y:560,wait:2},{x:624,y:560,wait:3},{x:464,y:560,wait:2},{x:576,y:560,wait:3}];
 let wildfireStop=0,wildfireWait=3;
 // After they meet at 23s, wait 1s; show each emoji for 2s with 0.5s gaps.
 const coupleMessages=[['danielle','❤️'],['ximena','❤️'],['danielle','⭐'],['ximena','🥷'],['danielle','🚫'],['danielle','🍬'],['ximena','😏'],['ximena','❤️'],['danielle','❤️']];
