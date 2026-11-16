@@ -609,27 +609,27 @@ if(scene==='hq'){
  rect(0,0,W,H,'#172830');
  const map=hqLayout,t=map.tile;
  rect(map.x,map.y,24*t,21*t,'#b9b9b9');
- // Each contiguous row of horizontal wall tiles is a single uninterrupted
- // cream wall face with blue upper surface. No visible tile-grid seams.
- for(let row=0;row<map.rows.length;row++){
-  const line=map.rows[row];
-  for(let col=0;col<24;){
-   if(line[col]!=='H'){col++;continue;}
-   const start=col;
-   while(col<24&&line[col]==='H')col++;
-   const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
-   // A single cream wall face with a brown cap along its north edge.
-   // Adjacent horizontal rows merge visually without repeated stripes.
-   rect(x,y,w,t,'#eee0c6');
-   const above=row>0?map.rows[row-1]:'';
-   for(let k=start;k<col;){
-    if(above[k]==='H'){k++;continue;}
-    const capStart=k;
-    while(k<col&&above[k]!=='H')k++;
-    rect(map.x+capStart*t,y,(k-capStart)*t,5,'#65402e');
-    rect(map.x+capStart*t,y+5,(k-capStart)*t,2,'#bc8c63');
-   }
-  }
+ // Fill all horizontal wall tiles as a single continuous cream surface.
+ // Merge matching runs vertically so two stacked rows cannot show a seam.
+ const used=Array.from({length:map.rows.length},()=>Array(24).fill(false));
+ for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;col++){
+  if(map.rows[row][col]!=='H'||used[row][col])continue;
+  let end=col+1;
+  while(end<24&&map.rows[row][end]==='H'&&!used[row][end])end++;
+  let bottom=row+1;
+  while(bottom<map.rows.length&&
+   [...Array(end-col)].every((_,i)=>map.rows[bottom][col+i]==='H'&&!used[bottom][col+i]))bottom++;
+  for(let r=row;r<bottom;r++)for(let c=col;c<end;c++)used[r][c]=true;
+  rect(map.x+col*t,map.y+row*t,(end-col)*t,(bottom-row)*t,'#eee0c6');
+ }
+ // Cap only the exposed northern edge, never the seam between stacked tiles.
+ for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;){
+  if(map.rows[row][col]!=='H'||(row>0&&map.rows[row-1][col]==='H')){col++;continue;}
+  const start=col;
+  while(col<24&&map.rows[row][col]==='H'&&(row===0||map.rows[row-1][col]!=='H'))col++;
+  const x=map.x+start*t,y=map.y+row*t,w=(col-start)*t;
+  rect(x,y,w,5,'#65402e');
+  rect(x,y+5,w,2,'#bc8c63');
  }
  // Brown wall returns occupy their exact grid cells, without the
  // alignment offsets or extra border rectangles of the old renderer.
