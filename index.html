@@ -500,7 +500,7 @@ if(scene==='government'&&coupleCycle>=24&&coupleCycle<46){
 // District names and navigation labels are intentionally hidden; edge travel still works.
 }
 const furnitureImages={};
-for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom2.png',bedTop:'bed_blue_top2.png',doorRug:'Rug-basic-swirl-blue-001.png',bathroomDoor:'door1.png',kCozy:'Kitchen_Cozy.png',movingBoxes:'movingboxes.png',hqDesk:'old_directordesk.png',hqCabinet:'old_filecabinet.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
+for(const [key,file] of Object.entries({bedBottom:'bed_blue_bottom2.png',bedTop:'bed_blue_top2.png',doorRug:'Rug-basic-swirl-blue-001.png',bathroomDoor:'door1.png',kCozy:'Kitchen_Cozy.png',movingBoxes:'movingboxes.png',hqDesk:'old_directordesk.png',hqCabinet:'old_filecabinet.png',hqTable:'old_table.png'})){const img=new Image();img.src='assets/furniture/'+file;furnitureImages[key]=img}
 function furniture(key,x,y,w,h){const img=furnitureImages[key];if(img&&img.complete&&img.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,x,y,w,h);ctx.restore();return true}return false}
 // The bathroom is offscreen: entering its doorway hides the player for five seconds.
 let bathroomTimer=0,bathroomOccupied=false,bathroomExitLatch=false;
@@ -734,22 +734,40 @@ function hqWallBlocked(x,y,r=8){
 const hqOffice={left:224,top:606,right:352,bottom:798};
 const hqFurniture=[
  {key:'hqDesk',x:240,y:742,w:80,h:56},
- {key:'hqCabinet',x:224,y:628,w:32,h:64}
+ {key:'hqCabinet',x:224,y:628,w:32,h:64},
+ {key:'hqTable',x:568,y:632,w:80,h:144}
 ];
 try{
  const saved=JSON.parse(localStorage.getItem('roots-hq-furniture-v2')||'null');
  if(Array.isArray(saved))for(const item of hqFurniture){
   const match=saved.find(v=>v.key===item.key);
   if(match&&Number.isFinite(match.x)&&Number.isFinite(match.y)){
-   item.x=Math.max(hqOffice.left,Math.min(hqOffice.right-item.w,match.x));
-   item.y=Math.max(hqOffice.top,Math.min(hqOffice.bottom-item.h,match.y));
+   const pos=snapHqFurniture(item,match.x,match.y);
+   item.x=pos.x;item.y=pos.y;
   }
  }
 }catch(e){}
 function snapHqFurniture(item,x,y){
  const snap=(v,origin)=>origin+Math.round((v-origin)/8)*8;
- return {x:Math.max(hqOffice.left,Math.min(hqOffice.right-item.w,snap(x,hqOffice.left))),
- y:Math.max(hqOffice.top,Math.min(hqOffice.bottom-item.h,snap(y,hqOffice.top)))};
+ if(item.key!=='hqTable')return {
+  x:Math.max(hqOffice.left,Math.min(hqOffice.right-item.w,snap(x,hqOffice.left))),
+  y:Math.max(hqOffice.top,Math.min(hqOffice.bottom-item.h,snap(y,hqOffice.top)))
+ };
+ // The meeting table can be dragged throughout HQ, but its footprint
+ // cannot be dropped inside any cream or brown wall.
+ const valid=(px,py)=>{
+  const map=hqLayout,t=map.tile;
+  if(px<map.x+t||py<map.y+2*t||px+item.w>map.x+23*t||py+item.h>map.y+19*t)return false;
+  for(let yy=py+8;yy<py+item.h-4;yy+=8)
+   for(let xx=px+8;xx<px+item.w-4;xx+=8){
+    const col=Math.floor((xx-map.x)/t),row=Math.floor((yy-map.y)/t);
+    if(map.rows[row]?.[col]!=='.')return false;
+   }
+  return true;
+ };
+ const nx=snap(x,hqLayout.x),ny=snap(y,hqLayout.y);
+ if(valid(nx,ny))return {x:nx,y:ny};
+ return {x:item.x,y:item.y};
 }
 function drawInterior(){
 if(scene==='hq'){
@@ -1001,7 +1019,7 @@ if(scene==='hq'){
  if(hqWallBlocked(x,y,r))return true;
  for(const item of hqFurniture){
   const left=item.x+3,right=item.x+item.w-3;
-  const top=item.key==='hqDesk'?item.y+item.h-24:item.y+item.h-18;
+  const top=item.key==='hqDesk'?item.y+item.h-24:item.key==='hqTable'?item.y+12:item.y+item.h-18;
   const bottom=item.y+item.h+3;
   if(x+r>left&&x-r<right&&y+r>top&&y-r<bottom)return true;
  }
