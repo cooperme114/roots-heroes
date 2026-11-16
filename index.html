@@ -662,20 +662,48 @@ if(scene==='hq'){
    if(y+t>behindFeet){rect(x,y,t,t,'#65402e');rect(x+3,y,4,t,'#bc8c63');}
   }
  }
- drawHqWalls();
- // Furniture and characters use their floor contact points for depth.
- const actors=[
-  ...hqFurniture.map(item=>({y:item.y+item.h-8,draw:()=>furniture(item.key,item.x,item.y,item.w,item.h)})),
-  {y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)},
-  ...scheduledStaffHere().map(staff=>({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)})),
-  {y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)}
- ];
- actors.sort((a,b)=>a.y-b.y);
- for(const actor of actors)actor.draw();
- // Overlay walls by their floor-depth, like the hospital's wall layers.
- // Never clip at the player's feet: that was painting the player onto wall faces.
- drawHqWalls(player.y);
- // Characters are rendered once, in depth order.
+ // Use the same feet-depth ordering as the hospital for EVERY character,
+ // including Wildfire and scheduled staff, rather than only the player.
+ const layers=[];
+ const usedWalls=Array.from({length:map.rows.length},()=>Array(24).fill(false));
+ for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;col++){
+  if(map.rows[row][col]!=='H'||usedWalls[row][col])continue;
+  let end=col+1;
+  while(end<24&&map.rows[row][end]==='H'&&!usedWalls[row][end])end++;
+  let bottom=row+1;
+  while(bottom<map.rows.length&&
+   [...Array(end-col)].every((_,i)=>map.rows[bottom][col+i]==='H'&&!usedWalls[bottom][col+i]))bottom++;
+  for(let r=row;r<bottom;r++)for(let c=col;c<end;c++)usedWalls[r][c]=true;
+  const x=map.x+col*t,y=map.y+row*t,w=(end-col)*t,h=(bottom-row)*t;
+  const capCols=[];
+  for(let c=col;c<end;c++)if(row===0||map.rows[row-1][c]!=='H')capCols.push(c);
+  layers.push({y:y+h,draw:()=>{
+   rect(x,y,w,h,'#eee0c6');
+   for(const c of capCols){
+    const cx=map.x+c*t;
+    rect(cx,y,t,5,'#65402e');rect(cx,y+5,t,2,'#bc8c63');
+   }
+  }});
+ }
+ // Merge vertical wall returns into continuous strips.
+ const usedReturns=Array.from({length:map.rows.length},()=>Array(24).fill(false));
+ for(let row=0;row<map.rows.length;row++)for(let col=0;col<24;col++){
+  if(map.rows[row][col]!=='V'||usedReturns[row][col])continue;
+  let bottom=row;
+  while(bottom<map.rows.length&&map.rows[bottom][col]==='V'){
+   usedReturns[bottom][col]=true;bottom++;
+  }
+  const x=map.x+col*t,y=map.y+row*t,h=(bottom-row)*t;
+  layers.push({y:y+h,draw:()=>{rect(x,y,t,h,'#65402e');rect(x+3,y,4,h,'#bc8c63')}});
+ }
+ for(const item of hqFurniture)
+  layers.push({y:item.y+item.h-8,draw:()=>furniture(item.key,item.x,item.y,item.w,item.h)});
+ layers.push({y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)});
+ for(const staff of scheduledStaffHere())
+  layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
+ layers.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
+ layers.sort((a,b)=>a.y-b.y);
+ for(const layer of layers)layer.draw();
  return;
 }
 if(scene==='hospital'){
