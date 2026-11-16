@@ -595,25 +595,23 @@ if(scene==='hq'){
   const art=document.createElement('canvas');art.width=width;art.height=height;
   const ac=art.getContext('2d');
   const trim='#79563e',highlight='#cda77c',face='#e8d9b9',shadow='#563e30';
-  // First draw all side walls, including the junction behind front faces.
-  for(const seg of hqLayout.walls)if(seg.axis==='v'){
-   const x=seg.x-3,w=16;
-   const touchesTop=hqLayout.walls.some(h=>h.axis==='h'&&h.y===seg.y&&x<h.x+h.w&&x+w>h.x);
-   const y=touchesTop?seg.y-56:seg.y;
-   const bottom=seg.y+seg.h;
+  // Draw wall sections in north-to-south depth order. A vertical wall
+  // ending at a horizontal wall goes BEHIND its face; a vertical wall
+  // starting there continues south and is drawn IN FRONT.
+  const drawVertical=seg=>{
+   const x=seg.x-3,w=16,y=seg.y,bottom=seg.y+seg.h;
    ac.fillStyle=shadow;ac.fillRect(x-2,y,w+4,bottom-y);
    ac.fillStyle=trim;ac.fillRect(x,y,w,bottom-y);
    ac.fillStyle=highlight;ac.fillRect(x+2,y,3,bottom-y);
-  }
-  // Front-facing walls are opaque panels with their own finished top,
-  // baseboard and end jambs, like the house's bedroom divider.
-  // Draw them AFTER the returns so no brown side strip cuts through a face.
-  for(const seg of hqLayout.walls)if(seg.axis==='h'){
-   // A front face covers the COMPLETE thickness of any side wall it
-   // terminates against. Previously its endpoint stopped at the wall's
-   // centerline, leaving a brown strip protruding in front of the face.
+  };
+  const drawHorizontal=seg=>{
+   // Finish the front face over northern wall returns at both endpoints.
+   // Southern returns are drawn afterwards by the depth-order pass.
    const adjoining=hqLayout.walls.filter(v=>v.axis==='v'&&
-    v.y<seg.y+8&&v.y+v.h>seg.y-56);
+    v.y<seg.y&&v.y+v.h>=seg.y&&
+    Math.abs(v.x-seg.x)<=8||v.axis==='v'&&
+    v.y<seg.y&&v.y+v.h>=seg.y&&
+    Math.abs(v.x-(seg.x+seg.w))<=8);
    const leftJoin=adjoining.find(v=>Math.abs(v.x-seg.x)<=8);
    const rightJoin=adjoining.find(v=>Math.abs(v.x-(seg.x+seg.w))<=8);
    const x=leftJoin?Math.min(seg.x,leftJoin.x-5):seg.x;
@@ -627,6 +625,13 @@ if(scene==='hq'){
    ac.fillStyle=highlight;ac.fillRect(x,y+59,w,2);
    ac.fillStyle=trim;ac.fillRect(x,y+7,3,52);
    ac.fillRect(x+w-3,y+7,3,52);
+  };
+  const ordered=hqLayout.walls.slice().sort((a,b)=>
+   (a.axis==='v'?a.y+a.h:a.y+8)-
+   (b.axis==='v'?b.y+b.h:b.y+8));
+  for(const seg of ordered){
+   if(seg.axis==='v')drawVertical(seg);
+   else drawHorizontal(seg);
   }
   hqLayout.wallArt=art;
  }
