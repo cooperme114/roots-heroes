@@ -648,9 +648,24 @@ function hqWallBlocked(x,y,r=8){
   const stopY=row===20?baseY-34:baseY-12;
   return py>=stopY;
  };
- // Feet have width, not height. Probe the full width so thin
- // brown/cream joins cannot be squeezed through diagonally.
+ // Feet have width, not height. Probe the full width.
  for(let dx=-r;dx<=r;dx+=2)if(solidPoint(x+dx,y))return true;
+ // Invisible corner plugs at EVERY cream/brown junction. The cream
+ // wall's visible lower row is normally non-solid so characters can
+ // stand behind it; at a brown return this left a diagonal shortcut.
+ // Seal the end of that lower row without changing any visible tiles.
+ for(let row=1;row<m.rows.length;row++)for(let col=0;col<24;col++){
+  if(m.rows[row][col]!=='H'||m.rows[row-1][col]!=='H')continue;
+  const leftReturn=col>0&&(m.rows[row][col-1]==='V'||m.rows[row-1][col-1]==='V');
+  const rightReturn=col<23&&(m.rows[row][col+1]==='V'||m.rows[row-1][col+1]==='V');
+  if(!leftReturn&&!rightReturn)continue;
+  const tileLeft=m.x+col*t,top=m.y+row*t;
+  // Extend the plug a little below the face to close diagonal paths.
+  const plugTop=top-4,plugBottom=top+t+8,plugWidth=14;
+  if(y+r<plugTop||y-r>plugBottom)continue;
+  if(leftReturn&&x+r>tileLeft&&x-r<tileLeft+plugWidth)return true;
+  if(rightReturn&&x+r>tileLeft+t-plugWidth&&x-r<tileLeft+t)return true;
+ }
  return false;
 }
 // Check every H pair and V tile against the exact shared collider.
