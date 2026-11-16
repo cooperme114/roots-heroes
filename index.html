@@ -556,102 +556,18 @@ const hospitalLayout=(()=>{
 // Exact doorway topology from the supplied HQ drawing, enlarged for gameplay.
 // Horizontal walls use the hospital's 64px front faces; vertical walls are
 // hospital-style narrow side returns. These are collision footprints, not art.
-const hqLayout=(()=>{
- // The replacement HQ blueprint is the sole source of interior walls.
- // Blue areas are rooms, grey areas are circulation. Door gaps are explicit.
- const walls=[];
- const h=(x1,x2,y)=>walls.push({x:x1,y,w:x2-x1,h:8,axis:'h'});
- const v=(x,y1,y2)=>walls.push({x,y:y1,w:16,h:y2-y1,axis:'v'});
- // Scale the 545x455 blueprint into the existing 1024x904 HQ footprint.
- const sx=x=>Math.round(64+x*1024/545);
- const sy=y=>Math.round(64+y*904/455);
- const H=(a,b,y)=>h(sx(a),sx(b),sy(y));
- const V=(x,a,b)=>v(sx(x),sy(a),sy(b));
- // Exterior, with the entrance opening in the bottom center.
- H(0,545,0);V(0,0,455);V(545,0,455);
- H(0,252,455);H(310,545,455);
- // Top rooms: openings are breaks in the vertical corridor walls.
- H(0,114,55);H(182,362,55);H(440,545,55);
- V(114,0,83);V(114,135,165);
- V(167,0,165);V(362,0,165);
- V(425,0,83);V(425,138,165);
- // Four upper rooms on the north side of the broad cross hall.
- H(0,129,165);H(172,240,165);H(309,374,165);H(435,545,165);
- V(129,165,215);V(172,165,215);
- V(240,165,215);V(309,165,215);
- V(374,165,215);V(435,165,215);
- H(0,129,215);H(172,240,215);H(309,374,215);H(435,545,215);
- // Rooms below the cross hall; retain only the actual drawing's openings.
- H(0,129,265);H(172,374,265);H(435,545,265);
- V(129,265,335);V(129,374,385);
- V(172,265,310);
- V(374,265,310);V(435,265,335);V(435,374,385);
- H(0,117,310);H(172,374,310);H(435,545,310);
- // Southern rooms, with an open central approach to the entrance.
- V(252,385,455);V(310,385,455);
- H(0,252,385);H(310,545,385);
- return {walls};
-})();
+// Clean HQ rebuild: no legacy wall segments, wall caches, or wall styles.
+// Interior partitions will be added only after their geometry is settled.
+const hqLayout={walls:[]};
 function drawInterior(){
 if(scene==='hq'){
  rect(0,0,W,H,'#172830');
- // One continuous floor throughout the headquarters; room names are not drawn.
+ // Empty full-size HQ shell: uniform floor and no inherited partitions.
  tileArea('futuristic',64,72,1024,896,'#879ca6');
- // Cache a single connected wall mask. Only its OUTER perimeter gets trim:
- // stroking each rectangle separately caused the misaligned internal seams.
- if(!hqLayout.wallArt){
-  // House-style walls: 16px brown vertical returns, separate 64px
-  // horizontal cream wall faces. Shared coordinates remain unchanged.
-  const width=1152,height=1088;
-  const art=document.createElement('canvas');art.width=width;art.height=height;
-  const ac=art.getContext('2d');
-  const trim='#79563e',highlight='#cda77c',face='#e8d9b9',shadow='#563e30';
-  // Draw wall sections in north-to-south depth order. A vertical wall
-  // ending at a horizontal wall goes BEHIND its face; a vertical wall
-  // starting there continues south and is drawn IN FRONT.
-  const drawVertical=seg=>{
-   const x=seg.x-3,w=16,y=seg.y,bottom=seg.y+seg.h;
-   ac.fillStyle=shadow;ac.fillRect(x-2,y,w+4,bottom-y);
-   ac.fillStyle=trim;ac.fillRect(x,y,w,bottom-y);
-   ac.fillStyle=highlight;ac.fillRect(x+2,y,3,bottom-y);
-  };
-  const drawHorizontal=seg=>{
-   // Finish the front face over northern wall returns at both endpoints.
-   // Southern returns are drawn afterwards by the depth-order pass.
-   const adjoining=hqLayout.walls.filter(v=>v.axis==='v'&&
-    v.y<seg.y&&v.y+v.h>=seg.y&&
-    Math.abs(v.x-seg.x)<=8||v.axis==='v'&&
-    v.y<seg.y&&v.y+v.h>=seg.y&&
-    Math.abs(v.x-(seg.x+seg.w))<=8);
-   const leftJoin=adjoining.find(v=>Math.abs(v.x-seg.x)<=8);
-   const rightJoin=adjoining.find(v=>Math.abs(v.x-(seg.x+seg.w))<=8);
-   const x=leftJoin?Math.min(seg.x,leftJoin.x-5):seg.x;
-   const right=rightJoin?Math.max(seg.x+seg.w,rightJoin.x+15):seg.x+seg.w;
-   const y=seg.y-56,w=right-x;
-   ac.fillStyle=shadow;ac.fillRect(x-2,y-2,w+4,68);
-   ac.fillStyle=face;ac.fillRect(x,y,w,64);
-   ac.fillStyle=trim;ac.fillRect(x,y,w,7);
-   ac.fillStyle=highlight;ac.fillRect(x,y+2,w,2);
-   ac.fillStyle=trim;ac.fillRect(x,y+59,w,5);
-   ac.fillStyle=highlight;ac.fillRect(x,y+59,w,2);
-   ac.fillStyle=trim;ac.fillRect(x,y+7,3,52);
-   ac.fillRect(x+w-3,y+7,3,52);
-  };
-  const ordered=hqLayout.walls.slice().sort((a,b)=>
-   (a.axis==='v'?a.y+a.h:a.y+8)-
-   (b.axis==='v'?b.y+b.h:b.y+8));
-  for(const seg of ordered){
-   if(seg.axis==='v')drawVertical(seg);
-   else drawHorizontal(seg);
-  }
-  hqLayout.wallArt=art;
- }
- ctx.drawImage(hqLayout.wallArt,0,0);
- const layers=[];
- layers.push({y:wildfire.y,draw:()=>drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock)});
- for(const staff of scheduledStaffHere())layers.push({y:npcSchedule(staff.id).y,draw:()=>drawScheduledStaff(staff)});
- layers.push({y:player.y,draw:()=>window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1)});
- layers.sort((a,b)=>a.y-b.y);for(const layer of layers)layer.draw();return;
+ drawNpcSheet('wildfire',wildfire.x,wildfire.y,wildfire.face,wildfire.walking,wildfire.clock);
+ for(const staff of scheduledStaffHere())drawScheduledStaff(staff);
+ window.RootsCharacter.draw(ctx,player.x,player.y,window.RootsCharacter.get(),player.face,player.moving?1:0,1);
+ return;
 }
 if(scene==='hospital'){
  // Four 4x7-tile patient rooms, 3-tile corridor and 6-tile lobby.
