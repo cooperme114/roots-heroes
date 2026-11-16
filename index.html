@@ -867,10 +867,15 @@ if(scene==='hq'){
   // only at the base, so the player's feet can move down behind the face
   // without passing all the way through the partition.
   if(row>=19){
+   // The outer side walls stay solid all the way down to the foreground.
+   // Do not allow the player to slip sideways into the left/right wall
+   // while walking behind the bottom wall face.
+   if(col===0||col===23)return true;
    const entrance=col===11||col===12;
    if(entrance)return false;
-   // Stop before the feet reach the bottom edge of the exterior wall.
-   return py>=hqLayout.y+19*hqLayout.tile+22;
+   // Let the feet go 8px farther behind the foreground wall, but
+   // stop before the sprite reaches its visible lower edge.
+   return py>=hqLayout.y+19*hqLayout.tile+30;
   }
   const cell=hqLayout.rows[row][col];
   if(cell==='V')return true;
