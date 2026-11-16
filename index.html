@@ -857,12 +857,17 @@ if(scheduledStaffCollision(x,y))return true;
 if(scene==='hq'){
  // Character-sized collision against the same tiles used for rendering.
  const r=8;
- // Let the director walk south behind the office's foreground wall.
- // This is an occluding wall face, not an impassable back wall.
- const behindOfficeFront=x>=224+r&&x<=352-r&&y>=790&&y<=862;
- if(!behindOfficeFront&&
-    (hqLayout.solid(x-r,y-r)||hqLayout.solid(x+r,y-r)||
-     hqLayout.solid(x-r,y+r)||hqLayout.solid(x+r,y+r)))return true;
+ // Like the hospital, horizontal cream wall faces are foreground scenery:
+ // the player's feet may pass behind them while the wall hides the sprite.
+ // Brown vertical wall returns remain solid, as do map boundaries.
+ const hqFootSolid=(px,py)=>{
+  const col=Math.floor((px-hqLayout.x)/hqLayout.tile);
+  const row=Math.floor((py-hqLayout.y)/hqLayout.tile);
+  if(row<0||row>=hqLayout.rows.length||col<0||col>=24)return true;
+  return hqLayout.rows[row][col]==='V';
+ };
+ if(hqFootSolid(x-r,y-r)||hqFootSolid(x+r,y-r)||
+    hqFootSolid(x-r,y+r)||hqFootSolid(x+r,y+r))return true;
  for(const item of hqFurniture){
   const left=item.x+3,right=item.x+item.w-3;
   const top=item.key==='hqDesk'?item.y+item.h-24:item.y+item.h-18;
